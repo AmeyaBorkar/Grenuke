@@ -1,27 +1,34 @@
-# Dev kit v2: model-v2 pair features (79), scores and candidates
+# Dev kit v3: model-v3 pair features (87), scores and candidates
 
-These are the features, scores and candidates behind **model v2**, which is Submission 3 (0.9844 on the full shared holdout). They cover the dev sample only.
+These are the features, scores and candidates behind **model v3** (0.98882 on the full shared holdout; model v2 = Submission 3 was 0.98436). They cover the dev sample only.
 
-## Files (unzip `grenuke-devkit-v2.zip` into the repo root; the files land in `work/`)
+**New in v3** (see `ANALYSIS_v2.md` and `docs/decisions/2026-09-25_*`):
+- blocking v2: pair recall 0.9857 → 0.9899, with (name token × address word) keys and one-token names in the name-only view;
+- the `leg__*` legal-form group (8 features);
+- the fixed `(number, street)` key: the first word after the house number, skipping street types, so French addresses work;
+- stage 1 and stage 2 retrained with the legal features.
+
+## Files (unzip `grenuke-devkit-v3.zip` into the repo root; the files land in `work/`)
 
 | file | rows | what |
 |---|---|---|
-| `work/features/ameya-fx2-dev/train.parquet` | 3,262,031 | C8 layout: `s1, r, fold, y` + 79 float32 features |
-| `work/scores/ameya-s2-v2-dev/train.parquet` | 3,262,031 | `s1, r, fold, y, p0, p1, p2, pc` (same row order as the features) |
-| `work/candidates/ameya-block-v1-dev/train.parquet` | 3,262,031 | C4 candidates (blocking v1) |
+| `work/features/ameya-fx3-dev/train.parquet` | 3,345,119 | C8 layout: `s1, r, fold, y` + 87 float32 features |
+| `work/scores/ameya-s2-v3-dev/train.parquet` | 3,345,119 | `s1, r, fold, y, p0, p1, p2, pc` (same row order as the features) |
+| `work/candidates/ameya-block-v2-dev/train.parquet` | 3,345,119 | C4 candidates (blocking v2) |
 
 - **Dev sample:** `ber.eval.splits.in_dev_sample`, about 110k S1.
   - Fold 0 is the dev holdout: 27,651 S1.
   - Folds 5, 10 and 15 each give one OOF group (`ber.eval.splits.oof_group`).
-- **Memory:** about 1.1 GB for all columns. On 8 GB, load only the columns you need: `pd.read_parquet(path, columns=[...])`.
-- **How the files were built:** on the integration machine over the **full** candidate graph (65.2M train pairs), then sliced to the dev sample. So the context/rivalry features, the look-alike odds (`lo__*`) and the scores all saw every S1 and record, not only the dev sample. Use them as they are; a dev-only recomputation would differ.
+- **Memory:** about 1.2 GB for all columns. On 8 GB, load only the columns you need: `pd.read_parquet(path, columns=[...])`.
+- **How the files were built:** on the integration machine over the **full** candidate graph (66.8M train pairs), then sliced to the dev sample. So the context/rivalry features, the look-alike odds (`lo__*`) and the scores all saw every S1 and record, not only the dev sample. Use them as they are; a dev-only recomputation would differ.
 
 ## Reference numbers
 
 | system | dev holdout (fold 0, 27,651 S1) | full holdout (549,699 S1) |
 |---|---|---|
 | baseline v0 (dev kit v0, Submission 1) | 0.9682 | 0.9683 |
-| **model v2** (Submission 3) | **0.9845** (US 0.9848, India 0.9841; P 0.997, R 0.961) | **0.9844** |
+| model v2 (Submission 3) | 0.9845 (US 0.9848, India 0.9841; P 0.997, R 0.961) | 0.9844 |
+| **model v3** | **0.9889** (US 0.9889, India 0.9888; P 0.998, R 0.969) | **0.98882** |
 
 ## Features
 
@@ -81,7 +88,9 @@ The text is transliterated with the blocking tokenizer (`ber.block.text`, `ber.b
 - **Rivalry:** these are log-counts.
   - `ctx__log_s1_same_name` counts the other S1 with the S1's name key.
   - `ctx__log_s1_same_rname` counts the S1 with the record's name key.
-  - `ctx__log_s1_same_numstreet` and `ctx__log_s1_same_rnumstreet` count the S1 sharing the (number, first address word) key. v3 will switch this key to the street name; in France the first word is the street type.
+  - `ctx__log_s1_same_numstreet` and `ctx__log_s1_same_rnumstreet` count the S1 sharing the (house number, street word) key.
+  - The street word is the first word after the number, skipping street types, articles and house markers (`ber.features.context.numstreet_keys`).
+  - In v2 the key took the first address word, which in France is the street type.
   - `ctx__same_name_key` flags identical name keys.
 - **Source:** `src__is_s3` is 1 for Source 3 and 0 for Source 2.
 
@@ -94,33 +103,45 @@ The text is transliterated with the blocking tokenizer (`ber.block.text`, `ber.b
   - look-alike words: holdings -9.8, group -9.7, industries, enterprises and exports about -8.6, north, valley and harbor about -7.6;
   - benign words: c0mpany, lnc, formerly.
 
-## Scores (`work/scores/ameya-s2-v2-dev/train.parquet`)
+**Legal forms** (`leg__*`, `experiments/ameya/model-v1/legal.py`).
+- **Why they exist:** the tokenizer above drops legal forms. Look-alikes change or add them ("Bright Voya LP" → "Bright Voya Corp", "High Agro LLP" → "ஹை அக்ரோ லிமிடெட்"), while true records keep, reformat or drop them.
+- **How legal words are found:** each name gets a bitmask over 20 legal forms. Latin words count with single-character OCR variants (c0rp, lnc, 1td) and dotted acronyms (L.L.C.). Indic words are transliterated and matched by skeleton (praivet → pvt, limitet → ltd, "pra. li."). French forms have their own bits.
+- **No labels are used.**
+
+| feature | definition |
+|---|---|
+| `leg__rel` | 0 none, 1 same, 2 dropped (the record has none), 3 added (the S1 has none), 4 subset, 5 superset, 6 changed |
+| `leg__n_s1`, `leg__n_r` | legal forms per side |
+| `leg__inter`, `leg__s1_only`, `leg__r_only` | shared, only in the S1, only in the record |
+| `leg__r_only_bits`, `leg__s1_only_bits` | bitmask of the forms added / dropped (bits in `legal.FORMS`) |
+
+## Scores (`work/scores/ameya-s2-v3-dev/train.parquet`)
 
 | column | meaning |
 |---|---|
-| `p0` | stage-0 filter: 200 trees on 10% of training S1. Pairs with p0 < 0.00345 skip stage 1; they keep 99.95% of true pairs |
-| `p1` | stage 1: XGBoost depth 9, eta 0.06, about 2,100 trees. **Out of fold** on training folds, the mean of the 3 group models on fold 0 |
-| `p2` | stage 2: rivalry features over the full candidate graph + cluster support + p1 + the top-30 stage-1 features. Depth 7, out of fold the same way |
+| `p0` | stage-0 filter: 200 trees on 10% of training S1. Pairs with p0 < 0.00555 skip stage 1; they keep 99.95% of true pairs (15.4% of pairs) |
+| `p1` | stage 1: XGBoost depth 9, eta 0.06, about 1,600 trees, all 87 features. **Out of fold** on training folds, the mean of the 3 group models on fold 0 |
+| `p2` | stage 2: rivalry features over the full candidate graph + cluster support + p1 + the top-30 stage-1 features + the `leg__*` group. Depth 7, out of fold the same way |
 | `pc` | `p2` after isotonic calibration, fitted on OOF p2 of training folds only. Reliable within about 0.01 per bin on the holdout |
 
 **The model-v2 decision:**
 1. Argmax ownership: every record stays only under its highest-`pc` S1, computed over **all** S1, not only the dev sample.
 2. Per S1, the exact expected F0.5, with the logit shift at 0 and no tuning.
    - Code: `expected_f_select` in `experiments/ameya/model-v1/decide.py`.
-   - The G6 result on the full holdout: +0.00018, CI [0.00009, 0.00026] over the best global threshold (0.675).
+   - The G6 result on the full holdout: +0.00011, CI [0.00005, 0.00017] over the best global threshold (0.650); for v2 it was +0.00018.
    - On stage-1 probabilities the same rule **loses** (-0.00029), which agrees with the dev-sample record of 25 Sep.
 
 ## Loading
 
 ```python
 import pandas as pd
-df = pd.read_parquet("work/features/ameya-fx2-dev/train.parquet")
-features = [c for c in df.columns if "__" in c]                    # 79
+df = pd.read_parquet("work/features/ameya-fx3-dev/train.parquet")
+features = [c for c in df.columns if "__" in c]                    # 87
 train, hold = df[df.fold.isin([5, 10, 15])], df[df.fold == 0]      # folds 5/10/15 = OOF groups 0/1/2
-sc = pd.read_parquet("work/scores/ameya-s2-v2-dev/train.parquet")   # same row order
+sc = pd.read_parquet("work/scores/ameya-s2-v3-dev/train.parquet")   # same row order
 assert (sc["s1"].to_numpy() == df["s1"].to_numpy()).all()
 ```
 
 To evaluate on the dev holdout, use `ber.eval.metric.report(matches, truth, universe)`, where `universe` holds the fold-0 S1 of the dev sample (see the dev kit v0 notes), or run `python -m ber.pipeline --stage evaluate --split train --tag <tag> --folds 0 --set sample=dev`.
 
-The full pipeline is in `experiments/ameya/model-v1/`. The steps, commands and gate results are in `docs/handover/2026-09-25_1958_ameya_model-v1.md`.
+The full pipeline is in `experiments/ameya/model-v1/`. The steps, commands and gate results are in `docs/handover/2026-09-25_2147_ameya_analysis-v2-and-v3.md` (v3) and `docs/handover/2026-09-25_1958_ameya_model-v1.md` (v1/v2).
