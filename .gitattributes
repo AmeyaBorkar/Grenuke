@@ -1,0 +1,19 @@
+# Normalize line endings for a mixed Windows / macOS / Linux team.
+* text=auto eol=lf
+
+# Windows script formats keep CRLF
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Git hooks and shell scripts must stay LF (bash breaks on CRLF)
+.githooks/* text eol=lf
+*.sh text eol=lf
+
+# Binary files
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.zip binary
+*.parquet binary

@@ -1,0 +1,49 @@
+# --- data (never commit; the dataset is 2.5 GB) ---
+student_resource/dataset/
+data_cache/
+work/
+*.parquet
+*.npy
+*.npz
+*.feather
+*.arrow
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.pkl
+*.joblib
+
+# --- generated outputs (each upload is recorded in submissions/records/; files archived locally) ---
+output/*.tsv
+submissions/files/
+submissions/**/*.tsv
+submissions/**/*.zip
+*_submission.zip
+
+# --- personal / local config ---
+.claude/settings.local.json
+.claude/worktrees/
+config.local.*
+.env
+.env.*
+
+# --- python / env ---
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+*.log
+
+# --- editors / os junk ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+__MACOSX/
+Thumbs.db
