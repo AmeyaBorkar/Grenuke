@@ -8,6 +8,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 import numpy as np
+import pandas as pd
 
 
 @lru_cache(maxsize=1)
@@ -107,8 +108,11 @@ def token_features(left: list[str], right: list[str], idf_lookup: dict[str, floa
     vectorizer = CountVectorizer(binary=True, lowercase=False,
                                  token_pattern=r"(?u)\b[a-z0-9]+\b", dtype=np.int8)
     corpus = np.concatenate([np.asarray(left, dtype=object), np.asarray(right, dtype=object)])
+    codes, unique_text = pd.factorize(corpus, sort=False)
     try:
-        matrix = vectorizer.fit_transform(corpus)
+        # A candidate list repeats S1 text across its neighbors. Tokenize each
+        # distinct text once and gather the aligned pair rows from sparse CSR.
+        matrix = vectorizer.fit_transform(unique_text)[codes]
     except ValueError as exc:
         if "empty vocabulary" not in str(exc):
             raise

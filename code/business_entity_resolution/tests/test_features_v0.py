@@ -41,6 +41,8 @@ def test_added_business_word_and_nudged_house_number():
     assert out.loc[0, "num__abs_diff"] == 4
     assert out.loc[1, "name__indic_mismatch"] == 1
     assert out.loc[1, "addr__either_empty"] == 1
+    assert out.loc[0, "addr__char_cosine"] < 1
+    assert out.loc[1, "addr__char_cosine"] == 0
     assert all(dtype.name == "float32" for dtype in out.dtypes)
 
 
@@ -63,7 +65,7 @@ def test_stage_writes_c8_pairs_labels_and_metadata(tmp_path, monkeypatch):
     truth.to_parquet(truth_path(), index=False)
     cfg = RunConfig(split="train", tag="bakshi-feat-v0",
                     inputs={"norm": "bakshi-norm-v0", "candidates": "ameya-block-v0-dev"},
-                    params={"batch_size": "1", "idf_docs": "2"})
+                    params={"batch_size": "1", "idf_docs": "2", "include_context": "false"})
     result = run(cfg)
     out = artifacts.read_table("features", "bakshi-feat-v0", "train")
     assert result["pairs"] == 2
