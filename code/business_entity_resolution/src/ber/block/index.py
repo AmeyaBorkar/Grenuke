@@ -1,7 +1,8 @@
 """Token keys per record and per-country indexes for blocking (plans/FINAL_PLAN.md section 4.3).
 
 Each record gets int64 token keys:
-- base tokens: name tokens (+ the joined name), address words and address numbers, each in its own namespace;
+- base tokens: name tokens (+ the joined name and consonant skeletons), address words and address numbers, each
+  in its own namespace (Indic-script names are transliterated first, ber.block.indic);
 - compound tokens, which stay rare where single tokens are common:
   (one of the first 2 numbers, one of the first 3 address words), (one of the first 2 numbers, one of the first 3
   name tokens) and unordered pairs among the first 4 name tokens.
@@ -16,7 +17,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from numba import njit, prange
 
-from . import text
+from . import indic, text
 
 KIND_SHIFT = 61  # bits 61-62: compound kind (0 = base token)
 A_SHIFT = 30     # bits 30-60: first code; bits 0-29: second code
@@ -88,19 +89,27 @@ def _fill_compound(n_ptr, n_codes, w_ptr, w_codes, d_ptr, d_codes, c_ptr, out):
 
 
 def record_keys(names: pa.Array, addresses: pa.Array) -> tuple[np.ndarray, np.ndarray]:
-    """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row."""
+    """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
+
+    Indic-script names are transliterated first; every name token of 3+ letters also adds its consonant skeleton
+    (namespace "k"), so "मार्केटिंग" and "marketing" share a key.
+    """
     n = len(names)
-    nt = text.name_tokens(names)
+    nt = text.name_tokens(indic.transliterate_array(names))
     nc = text.name_concat(nt, n)
     aw = text.address_words(addresses)
     ad = text.address_numbers(addresses)
-    parts = [_prefixed(nt.values, "n"), _prefixed(nc.values, "n"), _prefixed(aw.values, "a"), _prefixed(ad.values, "d")]
+    long = pc.greater_equal(pc.utf8_length(nt.values), 3)
+    sk_values = indic.skeleton(pc.filter(nt.values, long))
+    sk_rows = nt.rows[long.to_numpy(zero_copy_only=False)]
+    parts = [_prefixed(nt.values, "n"), _prefixed(nc.values, "n"), _prefixed(aw.values, "a"), _prefixed(ad.values, "d"),
+             _prefixed(sk_values, "k")]
     enc = pc.dictionary_encode(pa.chunked_array(parts).combine_chunks())
     codes = enc.indices.to_numpy(zero_copy_only=False).astype(np.int64)
     if len(enc.dictionary) >= MAX_CODE:
         raise ValueError("token vocabulary too large for the compound-key layout")
     sizes = np.cumsum([0] + [len(p) for p in parts])
-    c_nt, c_nc, c_aw, c_ad = (codes[sizes[k]:sizes[k + 1]] for k in range(4))
+    c_nt, c_nc, c_aw, c_ad, c_sk = (codes[sizes[k]:sizes[k + 1]] for k in range(5))
 
     n_ptr, _ = _csr(nt.rows, c_nt, n)
     w_ptr, _ = _csr(aw.rows, c_aw, n)
@@ -112,8 +121,9 @@ def record_keys(names: pa.Array, addresses: pa.Array) -> tuple[np.ndarray, np.nd
     compound = np.empty(c_ptr[-1], np.int64)
     _fill_compound(n_ptr, c_nt, w_ptr, c_aw, d_ptr, c_ad, c_ptr, compound)
 
-    rows = np.concatenate([nt.rows, nc.rows, aw.rows, ad.rows, np.repeat(np.arange(n, dtype=np.int64), counts)])
-    keys = np.concatenate([c_nt, c_nc, c_aw, c_ad, compound])
+    rows = np.concatenate([nt.rows, nc.rows, aw.rows, ad.rows, sk_rows,
+                           np.repeat(np.arange(n, dtype=np.int64), counts)])
+    keys = np.concatenate([c_nt, c_nc, c_aw, c_ad, c_sk, compound])
     return _group_by_row(rows, keys, n)
 
 
