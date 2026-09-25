@@ -31,6 +31,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--feats", default="ameya-fx2")
     ap.add_argument("--split", required=True, choices=["train", "test"])
+    ap.add_argument("--group", default="lg", help="output group name: work/features/<feats>-<group>")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     t0 = time.perf_counter()
@@ -42,11 +43,12 @@ def main() -> int:
     log.info("legal forms of %d records (%.0fs)", eid.size, time.perf_counter() - t0)
 
     src = pq.ParquetFile(artifact_path("features", f"{args.feats}-str", args.split))
-    out = artifact_path("features", f"{args.feats}-lg", args.split)
+    out = artifact_path("features", f"{args.feats}-{args.group}", args.split)
     out.parent.mkdir(parents=True, exist_ok=True)
-    command = f"python experiments/ameya/model-v1/feats_legal.py --feats {args.feats} --split {args.split}"
+    command = (f"python experiments/ameya/model-v1/feats_legal.py --feats {args.feats} --split {args.split}"
+               f" --group {args.group}")
     meta = provenance(command, {"features": f"{args.feats}-str"}, split=args.split, rows=src.metadata.num_rows,
-                      kind="features", tag=f"{args.feats}-lg")
+                      kind="features", tag=f"{args.feats}-{args.group}")
     writer = None
     for g in range(src.num_row_groups):
         k = src.read_row_group(g, columns=["s1", "r"])

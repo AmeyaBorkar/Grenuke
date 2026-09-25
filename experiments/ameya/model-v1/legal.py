@@ -10,7 +10,9 @@ the v2 holdout, pairs scored 0.8-0.9 are true 94% of the time when the legal for
 - Indic-script names: transliterated (``ber.block.indic``); a token's consonant skeleton maps to a legal form
   (praaivet/piraivet -> prvt -> pvt, limited/limitet -> lmtd/lmt -> ltd, elaelapii -> elp -> llp, "pra. li." -> pvt,
   ltd).
-- French legal forms get their own bits (the test adds France): the relation features stay the same.
+- French legal forms get their own bits (the test adds France): the relation features stay the same. "EI"
+  (entreprise individuelle, 4.2k French test S1 and 16.4k records) is a form too, so EI -> SARL is a change, not an
+  addition.
 """
 from __future__ import annotations
 
@@ -21,12 +23,13 @@ import pyarrow.compute as pc
 from ber.block import indic, text
 
 FORMS = ("pvt", "ltd", "llc", "inc", "corp", "co", "llp", "lp", "pllc", "pc", "plc", "opc", "sas", "sarl", "sa",
-         "sasu", "eurl", "sci", "snc", "gmbh")
+         "sasu", "eurl", "sci", "snc", "gmbh", "ei")
 BIT = {f: 1 << i for i, f in enumerate(FORMS)}
 _BASE = {"pvt": "pvt", "private": "pvt", "prvt": "pvt", "ltd": "ltd", "limited": "ltd", "llc": "llc", "inc": "inc",
          "incorporated": "inc", "corp": "corp", "corporation": "corp", "co": "co", "company": "co", "cos": "co",
          "llp": "llp", "lp": "lp", "pllc": "pllc", "pc": "pc", "plc": "plc", "opc": "opc", "sas": "sas",
-         "sarl": "sarl", "sa": "sa", "sasu": "sasu", "eurl": "eurl", "sci": "sci", "snc": "snc", "gmbh": "gmbh"}
+         "sarl": "sarl", "sa": "sa", "sasu": "sasu", "eurl": "eurl", "sci": "sci", "snc": "snc", "gmbh": "gmbh",
+         "ei": "ei", "eirl": "ei"}
 _OCR = {"o": "0", "l": "1i", "i": "l1"}
 # consonant skeletons of transliterated Indic legal words (see ber.block.indic.LEGAL_SKELETONS)
 _SKELETON = {"prvt": "pvt", "prbt": "pvt", "prvr": "pvt", "lmt": "ltd", "lmtd": "ltd", "lmrd": "ltd", "elp": "llp"}
