@@ -116,6 +116,8 @@ def main(argv: list[str] | None = None) -> int:
         try:
             result = run_stage(name, cfg)
         except NotImplementedError as exc:
+            if type(exc) is not NotImplementedError:  # e.g. pyarrow's ArrowNotImplementedError is a real error
+                raise
             log.error("stage %s is not implemented yet: %s", name, exc)
             return 2
         print(json.dumps({"stage": name, **result}, indent=2, default=str))
