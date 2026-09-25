@@ -32,20 +32,23 @@ ap.add_argument("--groups", default="str,cx,lo")
 ap.add_argument("--s1", default="ameya-s1-v2")
 ap.add_argument("--s2", default="ameya-s2-v2")
 ap.add_argument("--matches", default="ameya-model-v2")
+ap.add_argument("--scores-only", action="store_true", help="skip the features (a new stage-2 run on the same features)")
 args = ap.parse_args()
 common.GROUPS[:] = args.groups.split(",")
-command = "python experiments/ameya/model-v1/dev_export.py " + " ".join(f"--{k} {v}" for k, v in vars(args).items())
+command = "python experiments/ameya/model-v1/dev_export.py " + " ".join(
+    f"--{k.replace('_', '-')} {v}" for k, v in vars(args).items())
 
 keys = load_keys(args.feats, "train")
 dev = in_dev_sample(keys["s1"].to_numpy())
-features = feature_names(args.feats)
-X = np.concatenate([Xg for _, _, Xg in iter_matrix(args.feats, "train", features, dev)])
-df = pd.concat([keys[dev].reset_index(drop=True), pd.DataFrame(X, columns=features)], axis=1)
-df["fold"] = df["fold"].astype(np.int8)
-df["y"] = df["y"].astype(np.int8)
-write_table(df, "features", f"{args.feats}-dev", "train", command=command, inputs={"features": args.feats},
-            subset="dev sample (ber.eval.splits.in_dev_sample)", groups=args.groups)
-print(f"features: {len(df):,} rows x {len(features)} features -> {args.feats}-dev")
+if not args.scores_only:
+    features = feature_names(args.feats)
+    X = np.concatenate([Xg for _, _, Xg in iter_matrix(args.feats, "train", features, dev)])
+    df = pd.concat([keys[dev].reset_index(drop=True), pd.DataFrame(X, columns=features)], axis=1)
+    df["fold"] = df["fold"].astype(np.int8)
+    df["y"] = df["y"].astype(np.int8)
+    write_table(df, "features", f"{args.feats}-dev", "train", command=command, inputs={"features": args.feats},
+                subset="dev sample (ber.eval.splits.in_dev_sample)", groups=args.groups)
+    print(f"features: {len(df):,} rows x {len(features)} features -> {args.feats}-dev")
 
 s1s = read_table("scores", args.s1, "train", ["p0"])["p0"].to_numpy()
 s2s = read_table("scores", args.s2, "train")
