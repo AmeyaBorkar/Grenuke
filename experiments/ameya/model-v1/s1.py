@@ -6,6 +6,8 @@
   tau0 keeps 99.95% of the training positives outside the sample.
 - Stage 1: one model per OOF group (C2). Each trains on the other two groups' kept rows (minus a 2% S1 slice used
   for early stopping) and scores its own group; the holdout and test get the mean of the three models.
+  With ``--all`` (final fit) the holdout is a fourth group: four models, each on the other three groups (75% of train
+  instead of 50%); every train pair, holdout included, gets an out-of-fold score and test gets the mean of four.
 - Writes work/scores/<tag>/{train,test}.parquet (s1, r, p0, p1; fold, y on train; row-aligned with the
   candidates), the models, and a report: holdout macro F0.5 with argmax ownership + the best global threshold.
 """
@@ -59,7 +61,7 @@ def score_test(args, command: str, test_groups: list[str]) -> None:
     cfg = json.loads((mdir / "config.json").read_text())
     features, tau0 = cfg["features"], cfg["tau0"]
     b0 = xgb.Booster(model_file=str(mdir / "stage0.ubj"))
-    boosters = [xgb.Booster(model_file=str(mdir / f"stage1_g{g}.ubj")) for g in range(3)]
+    boosters = [xgb.Booster(model_file=str(mdir / f"stage1_g{g}.ubj")) for g in range(len(cfg["best_iterations"]))]
     for b, it in zip(boosters, cfg["best_iterations"]):
         b.set_attr(best_iteration=str(it))
     common.GROUPS[:] = test_groups
@@ -92,6 +94,7 @@ def main() -> int:
     ap.add_argument("--test-groups", default="", help="feature groups for test (default: --groups), e.g. lop for lo")
     ap.add_argument("--test-only", action="store_true", help="only score test with the saved models of --models")
     ap.add_argument("--models", default="", help="tag of the saved models for --test-only (default: --tag)")
+    ap.add_argument("--all", action="store_true", help="final fit: the holdout is a fourth OOF group")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -127,14 +130,18 @@ def main() -> int:
              kept[honest].mean(), time.perf_counter() - t0)
 
     # ---- stage 1, out of fold
-    rows1 = train_rows & kept
+    rows1 = kept if args.all else train_rows & kept
     X1 = load_matrix(args.feats, "train", features, rows1)
     y1, g1 = y[rows1], oof_group(s1[rows1])
+    n_groups = 3
+    if args.all:
+        g1 = np.where(g1 < 0, 3, g1).astype(np.int8)
+        n_groups = 4
     es1 = s1_hash_slice(s1[rows1], SALT1, 50)
     idx1 = np.flatnonzero(rows1)
     p1 = p0.copy()
     boosters, best_its = [], []
-    for g in range(3):
+    for g in range(n_groups):
         tr, va = (g1 != g) & ~es1, (g1 != g) & es1
         dtr = xgb.QuantileDMatrix(X1[tr], y1[tr], feature_names=features)
         dva = xgb.QuantileDMatrix(X1[va], y1[va], feature_names=features, ref=dtr)
@@ -147,9 +154,10 @@ def main() -> int:
         log.info("stage 1 group %d: best iteration %d, es logloss %.5f (%.0fs)", g, b.best_iteration, b.best_score,
                  time.perf_counter() - t0)
     del X1
-    hold_rows = ~train_rows & kept
-    ph = predict(boosters, args.feats, "train", features, hold_rows, n)
-    p1[hold_rows] = ph[hold_rows]
+    if not args.all:  # the holdout gets the mean of the three models (with --all it is out of fold already)
+        hold_rows = ~train_rows & kept
+        ph = predict(boosters, args.feats, "train", features, hold_rows, n)
+        p1[hold_rows] = ph[hold_rows]
 
     out_dir = artifact_dir("models", args.tag)
     out_dir.mkdir(parents=True, exist_ok=True)
