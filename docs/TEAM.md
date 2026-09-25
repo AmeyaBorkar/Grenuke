@@ -1,36 +1,47 @@
 # Team, roles and ownership
 
-This is a shared file owned by the coordinator. Change it through a small PR. Ownership is finalized right after the plan decision (`plans/DECISION.md`).
+This is a shared file owned by the coordinator. Change it through a small PR.
+- Ownership follows `plans/FINAL_PLAN.md` §10.
+- It is **proposed** until each member confirms it in the review of the decision PR.
 
 ## Members
 
 | member | GitHub | branch prefix | role(s) | contact |
 |---|---|---|---|---|
-| Ameya | @AmeyaBorkar | `ameya/` | repo admin; **coordinator** (proposed); **submissions captain** (proposed) | team chat |
-| _Member 2 (name)_ | @_handle_ | `<name>/` | _TBD_ | team chat |
-| _Member 3 (name)_ | @_handle_ | `<name>/` | _TBD_ | team chat |
+| Ameya | @AmeyaBorkar | `ameya/` | repo admin; **coordinator**; **submissions captain**; blocking; pipeline and packaging | team chat |
+| Sachi | @ssdhoka06 | `sachi/` | model, calibration, decision; gates and ablations; error analysis | team chat |
+| Member 3 (_name: please fill in_) | @trustdemons05 | `<name>/` (please fill in) | normalization and lexicons; pair features | team chat |
 
-Replace the placeholders, then:
-- the admin invites each handle as a repo collaborator: `gh api -X PUT repos/AmeyaBorkar/Grenuke/collaborators/<handle> -f permission=push`;
-- add the handle to `.github/CODEOWNERS` for the areas that person owns.
+- All three handles are repo collaborators with push access.
+- `.github/CODEOWNERS` mirrors the areas below.
 
 ## Roles
 
-- **Coordinator:** owns shared files, keeps `docs/ROADMAP.md` current, breaks ties after a 15-minute timebox, and reviews shared-file PRs.
-- **Submissions captain:** the only person who uploads to the leaderboard. Manages the 5-per-day budget, writes `submissions/records/*` and tags `sub/*`.
-- **Area owner:** decides everything inside their area and reviews PRs that touch it.
+- **Coordinator:**
+  - owns shared files and keeps `docs/ROADMAP.md` and `CHANGELOG.md` current;
+  - breaks ties after a 15-minute timebox;
+  - reviews shared-file PRs.
+- **Submissions captain:**
+  - the only person who uploads to the leaderboard;
+  - manages the 5-per-day budget;
+  - writes `submissions/records/*`, tags `sub/*` and adds the changelog entry for each upload.
+- **Area owner:**
+  - decides everything inside their area and reviews PRs that touch it;
+  - runs the gates (`plans/FINAL_PLAN.md` §9) for their area and records the results (`docs/CONTRACTS.md` C10).
 
-## Area ownership (fill in after the plan decision)
+## Area ownership
 
 | area | paths | owner | backup |
 |---|---|---|---|
-| shared foundation (I/O, IDs, metric, holdout) | `src/ber/{io,ids,paths}.py`, `src/ber/eval/**` | Ameya | _TBD_ |
-| normalization and lexicons (US/IN/FR, Indic transliteration) | `src/ber/normalize/**` | _TBD_ | _TBD_ |
-| blocking and candidate generation | `src/ber/block/**` | _TBD_ | _TBD_ |
-| pair features | `src/ber/features/**` | _TBD_ | _TBD_ |
-| models, calibration, decision | `src/ber/model/**` | _TBD_ | _TBD_ |
-| pipeline, CLI, packaging, final zip | `src/ber/pipeline.py`, `scripts/package_*` | _TBD_ | _TBD_ |
-| methodology document | `docs/methodology/**` | _TBD_ | _TBD_ |
+| shared foundation (I/O, IDs, paths, artifacts, metric, holdout, gates) | `src/ber/{io,ids,paths,artifacts,config}.py`, `src/ber/eval/**` | Ameya | Sachi |
+| pipeline CLI, records, outputs, packaging, final zip | `src/ber/{pipeline,records,outputs}.py`, `scripts/package_*` | Ameya | Sachi |
+| blocking and candidate generation (GPU runs) | `src/ber/block/**` | Ameya | Sachi |
+| normalization and lexicons (US/IN/FR, Indic transliteration) | `src/ber/normalize/**` | Member 3 | Ameya |
+| pair features | `src/ber/features/**` | Member 3 | Ameya |
+| models, calibration, ownership, decision | `src/ber/model/**` | Sachi | Ameya |
+| methodology document | `docs/methodology/**` | each owner writes their section; Ameya compiles | — |
 | personal experiments | `experiments/<member>/**` | that member | — |
+
+Paths are relative to `code/business_entity_resolution/`.
 
 Rule: outside your areas, open an issue, ask the owner, or send a PR that the owner reviews. Never push to the owner's branch.
