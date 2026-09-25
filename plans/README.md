@@ -19,11 +19,14 @@ Each member writes a plan independently. We then pick one as the base and take t
 
 ## Current plans
 
+> **Decided on Fri 25 Sep, 14:15 IST.** The plan we build is **`plans/FINAL_PLAN.md`**: Plan A as the base, with grafts from Plan B. The reasons, grafts and rejected ideas are in `plans/DECISION.md`. The candidate plans below are kept unchanged for the record.
+
 | plan | author | file | status |
 |---|---|---|---|
-| A | Ameya | `plans/ameya/PLAN.md` (+ `PLAN.pdf`) | submitted |
-| B | _member 2_ | `plans/<name>/PLAN.md` | pending |
-| C | _member 3_ | `plans/<name>/PLAN.md` | pending |
+| A | Ameya | `plans/ameya/PLAN.md` (+ `PLAN.pdf`) | submitted; **base** |
+| B | Sachi | `plans/sachi/PLAN.md` | submitted; **grafts taken** |
+| C | Member 3 | none | not submitted |
+| **Final** | coordinator | **`plans/FINAL_PLAN.md`** | **accepted, v1.0** |
 
 ## Decision meeting (about 45 minutes, chaired by the coordinator)
 
