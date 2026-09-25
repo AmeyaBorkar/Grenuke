@@ -25,13 +25,23 @@ def test_tokenizer_folds_accents_scripts_legal_forms_and_numbers():
     assert tok[3] == ["abcexports"]
     addrs = pa.array(["0054 RUE Negrier, Lille", "H.No 12-3-45, MG Road", "8444b Main Street", "<NULL>"])
     words = _rows(text.address_words(addrs))
-    assert words[0] == ["r", "negrier", "lille"] and words[1] == ["mg", "rd"] and words[2] == ["main", "st"]
+    assert words[0] == ["rue", "negrier", "lille"] and words[1] == ["mg", "rd"] and words[2] == ["main", "st"]
     assert 3 not in words  # '<NULL>' has no words
     nums = _rows(text.address_numbers(addrs))
     assert nums[0] == ["54"] and nums[1] == ["12", "3", "45"] and nums[2] == ["8444"]
     ordinals = pa.array(["D-587 1St Floor, 3rd Cross", "2 Nd Floor, 42nd Street"])
     assert _rows(text.address_words(ordinals)) == {0: ["cross"], 1: ["st"]}
     assert _rows(text.address_numbers(ordinals)) == {0: ["587", "1", "3"], 1: ["2", "42"]}
+
+
+def test_french_addresses_meet_across_region_department_and_abbreviations():
+    s1 = pa.array(["Calais, Hauts-de-France, 176 RUE Pierre Clostermann", "12 Rue de la Paix, Bordeaux, Nouvelle-Aquitaine",
+                   "4 Bis Rue de Frasnoy, Nantes, Pays de la Loire"])
+    rec = pa.array(["176 R Pierre Clostermann, Calais, Pas-de-Calais", "12 R. DE LA PAIX, BORDEAUX, Gironde",
+                    "Nantes, 4 bis R Frasnoy, Loire-Atlantique"])
+    a, b = _rows(text.address_words(s1)), _rows(text.address_words(rec))
+    assert all(sorted(a[i]) == sorted(b[i]) for i in range(3))  # region = department, R = Rue, articles and bis dropped
+    assert _rows(text.address_words(pa.array(["3 Rue du Nord, Lille"]))) == {0: ["rue", "nord", "lille"]}  # street kept
 
 
 def test_name_concat_matches_domain_form():

@@ -3,8 +3,10 @@
 Blocking does not wait for the normalize stage, so it has its own small normalizer:
 - NFKD, combining marks removed, other non-ASCII characters (e.g. Indic scripts) become spaces, lowercase;
 - name tokens without legal forms, honorifics and stop words (length >= 2);
-- address words (letters only, length >= 2, markers removed, street types canonicalized) and numbers (every digit
-  run, leading zeros stripped).
+- address words (letters only, length >= 2, markers, articles and number suffixes removed, street types
+  canonicalized, the one-letter "R" read as "rue") and numbers (every digit run, leading zeros stripped);
+- French departments written as a whole address component become their region ("…, Lille, Nord" and "…, Lille,
+  Hauts-de-France" give the same words): S1 addresses name the region, a third of S2/S3 name the department.
 Everything runs on whole pyarrow columns; nothing loops over records in Python.
 """
 from __future__ import annotations
@@ -25,13 +27,22 @@ NAME_STOP = frozenset("""
 ADDR_STOP = frozenset("""
     null none na no nos h hno house plot door flat unit apt apartment suite ste floor fl bldg building
     near nr opp opposite behind beside po box pmb nd th
+    de du des la le les sur en au aux bis ter quater cedex
 """.split())
 # One short form per street type (US, India, France); "saint" -> "st" on both sides (FINAL_PLAN section 4.2).
 STREET = {
     "road": "rd", "street": "st", "str": "st", "saint": "st", "avenue": "ave", "av": "ave", "boulevard": "blvd",
     "bd": "blvd", "lane": "ln", "drive": "dr", "place": "pl", "court": "ct", "circle": "cir", "highway": "hwy",
-    "parkway": "pkwy", "square": "sq", "terrace": "ter", "trail": "trl", "rue": "r", "chemin": "ch",
+    "parkway": "pkwy", "square": "sq", "terrace": "ter", "trail": "trl", "rue": "rue", "chemin": "ch",
     "impasse": "imp", "allee": "all", "route": "rte", "faubourg": "fg",
+}
+SHORT_STREET = {"r": "rue"}  # one-letter abbreviations, mapped before the length filter
+# French departments -> their region (hand-written, the regions of the test data; applied to whole address components)
+DEPARTMENT_REGION = {
+    "hauts de france": ("aisne", "nord", "oise", "pas de calais", "somme"),
+    "nouvelle aquitaine": ("charente", "charente maritime", "correze", "creuse", "dordogne", "gironde", "landes",
+                           "lot et garonne", "pyrenees atlantiques", "deux sevres", "vienne", "haute vienne"),
+    "pays de la loire": ("loire atlantique", "maine et loire", "mayenne", "sarthe", "vendee"),
 }
 
 
@@ -80,13 +91,19 @@ def name_tokens(names: pa.Array) -> Tokens:
 
 
 def _address_text(addresses: pa.Array) -> pa.Array:
-    """Folded address without ordinal endings ('1st floor' -> '1 floor', '3rd' -> '3'): they are not street types."""
-    return pc.replace_substring_regex(fold(addresses), r"([0-9])(st|nd|rd|th)\b", r"\1")
+    """Folded address without ordinal endings ('1st floor' -> '1 floor', '3rd' -> '3'): they are not street types.
+    French departments written as a whole comma-separated component become their region."""
+    a = pc.replace_substring_regex(fold(addresses), r"([0-9])(st|nd|rd|th)\b", r"\1")
+    for region, departments in DEPARTMENT_REGION.items():
+        alt = "|".join(d.replace(" ", "[ -]+") for d in departments)
+        a = pc.replace_substring_regex(a, r"(^|,)\s*(?:" + alt + r")\s*(,|$)", r"\1 " + region + r" \2")
+    return a
 
 
 def address_words(addresses: pa.Array) -> Tokens:
-    """Address words (letters only), markers removed, street types canonicalized."""
-    tok = _drop(_split(_address_text(addresses), r"[^a-z]+"), ADDR_STOP, 2)
+    """Address words (letters only), markers removed, street types canonicalized ("R" -> "rue" first)."""
+    tok = _split(_address_text(addresses), r"[^a-z]+")
+    tok = _drop(Tokens(_map_values(tok.values, SHORT_STREET), tok.rows), ADDR_STOP, 2)
     return Tokens(_map_values(tok.values, STREET), tok.rows)
 
 
