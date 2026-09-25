@@ -27,7 +27,7 @@ from ber.artifacts import read_table, write_report, write_table
 from ber.eval.gates import compare
 from ber.eval.metric import per_entity_f05
 from ber.records import load_truth
-from common import argmax_owner, holdout_report, holdout_universe
+from common import FastEval, argmax_owner, holdout_report, holdout_universe
 
 log = logging.getLogger("decide")
 Q_MIN = 1e-3
@@ -159,8 +159,8 @@ def main() -> int:
     hold = np.isin(s1, universe)
     own = argmax_owner(s1, r, p)
 
-    def f05(mask: np.ndarray) -> float:
-        return float(per_entity_f05(sc.loc[mask & hold, ["s1", "r"]], th, universe)["f05"].mean())
+    fe = FastEval(s1, r, truth, universe)
+    f05 = fe.score
 
     thr = [(float(t), f05(own & (p > t))) for t in np.round(np.arange(0.30, 0.951, 0.025), 3)]
     t_best, f_thr = max(thr, key=lambda x: x[1])

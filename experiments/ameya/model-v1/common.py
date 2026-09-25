@@ -114,3 +114,36 @@ def holdout_report(pred: pd.DataFrame, truth: pd.DataFrame, universe: np.ndarray
     rep = report(pred[pred["s1"].isin(universe)], truth[truth["s1"].isin(universe)], universe, groups=country)
     rep["by_country"] = rep.pop("by_group")
     return rep
+
+
+class FastEval:
+    """Macro F0.5 on a fixed S1 universe for many candidate selections (same numbers as ber.eval.metric).
+
+    Build once from the scored pairs; ``score(mask)`` takes a bool mask over those pairs (the predicted ones).
+    """
+
+    def __init__(self, s1: np.ndarray, r: np.ndarray, truth: pd.DataFrame, universe: np.ndarray):
+        self.universe = np.unique(np.asarray(universe, np.int64))
+        th = truth[truth["s1"].isin(self.universe)]
+        self.n_true = np.bincount(np.searchsorted(self.universe, th["s1"].to_numpy()),
+                                  minlength=self.universe.size).astype(np.float64)
+        self.in_u = np.isin(s1, self.universe)
+        self.idx = np.searchsorted(self.universe, s1[self.in_u])
+        key = s1[self.in_u] * 4_000_000_000 + r[self.in_u]
+        self.hit = np.isin(key, th["s1"].to_numpy() * 4_000_000_000 + th["r"].to_numpy()).astype(np.float64)
+
+    def per_entity(self, mask: np.ndarray) -> np.ndarray:
+        m = mask[self.in_u]
+        n_pred = np.bincount(self.idx[m], minlength=self.universe.size)
+        n_hit = np.bincount(self.idx[m], weights=self.hit[m], minlength=self.universe.size)
+        denom = 0.25 * self.n_true + n_pred
+        return np.where(denom > 0, 1.25 * n_hit / np.where(denom > 0, denom, 1.0), 1.0)
+
+    def score(self, mask: np.ndarray) -> float:
+        return float(self.per_entity(mask).mean())
+
+    def sweep(self, p: np.ndarray, own: np.ndarray, grid=None) -> tuple[float, float, list]:
+        grid = np.round(np.arange(0.30, 0.951, 0.025), 3) if grid is None else grid
+        res = [(float(t), self.score(own & (p > t))) for t in grid]
+        best = max(res, key=lambda x: x[1])
+        return best[0], best[1], res

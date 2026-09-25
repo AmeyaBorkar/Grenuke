@@ -31,7 +31,7 @@ from ber.eval.gates import compare
 from ber.eval.splits import oof_group
 from ber.paths import artifact_dir, artifact_path
 from ber.records import load_truth
-from common import argmax_owner, holdout_report, holdout_universe, load_matrix, s1_hash_slice, sweep
+from common import FastEval, argmax_owner, holdout_report, holdout_universe, load_matrix, s1_hash_slice
 
 log = logging.getLogger("s2")
 P_MIN = 0.002
@@ -255,9 +255,10 @@ def main() -> int:
     res = {}
     base = read_table("matches", "ameya-baseline-v0", "train")
     th = truth[truth["s1"].isin(universe)]
+    fe = FastEval(s1a, ra, truth, universe)
     for name, p in (("p1", out["p1"].to_numpy(np.float32)), ("p2", p2), ("pc", pc)):
         own = argmax_owner(s1a, ra, p)
-        t_best, f_best, grid = sweep(out, p, own, truth, universe)
+        t_best, f_best, grid = fe.sweep(p, own)
         pred = out.loc[own & (p > t_best), ["s1", "r"]]
         res[name] = {"threshold": t_best, "holdout": holdout_report(pred, truth, universe, country),
                      "gate_vs_baseline_v0": compare(base, pred, th, universe, groups=country)}
