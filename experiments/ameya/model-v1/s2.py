@@ -45,7 +45,7 @@ S_FEATS = ("s_rank", "s_max", "s_sum", "s_n05", "s_n08", "s_n095", "s_gap_up", "
 
 
 @njit(parallel=True, cache=True)
-def _record_side(starts, order, p, out):
+def _record_side(starts, order, p, pos, out):
     for g in prange(starts.size - 1):
         a, b = starts[g], starts[g + 1]
         best = p[order[a]]
@@ -59,19 +59,22 @@ def _record_side(starts, order, p, out):
                 n05 += 1
         for k in range(a, b):
             i = order[k]
+            o = pos[i]
+            if o < 0:
+                continue
             v = p[i]
-            out[0, i] = k - a
-            out[1, i] = best
-            out[2, i] = second
-            out[3, i] = v - (second if k == a else best)
-            out[4, i] = n05
-            out[5, i] = tot
-            out[6, i] = v / tot if tot > 0 else 0.0
-            out[7, i] = b - a
+            out[0, o] = k - a
+            out[1, o] = best
+            out[2, o] = second
+            out[3, o] = v - (second if k == a else best)
+            out[4, o] = n05
+            out[5, o] = tot
+            out[6, o] = v / tot if tot > 0 else 0.0
+            out[7, o] = b - a
 
 
 @njit(parallel=True, cache=True)
-def _s1_side(starts, order, p, is_s3, out):
+def _s1_side(starts, order, p, is_s3, pos, out):
     for g in prange(starts.size - 1):
         a, b = starts[g], starts[g + 1]
         tot = 0.0
@@ -102,20 +105,23 @@ def _s1_side(starts, order, p, is_s3, out):
                 sum2 += v
         for k in range(a, b):
             i = order[k]
+            o = pos[i]
+            if o < 0:
+                continue
             v = p[i]
             same_sum, other_sum, same_n = (sum3, sum2, c3) if is_s3[i] else (sum2, sum3, c2)
-            out[0, i] = k - a
-            out[1, i] = p[order[a]]
-            out[2, i] = tot
-            out[3, i] = n05
-            out[4, i] = n08
-            out[5, i] = n095
-            out[6, i] = p[order[k - 1]] - v if k > a else 0.0
-            out[7, i] = v - p[order[k + 1]] if k + 1 < b else v
-            out[8, i] = same_sum - v
-            out[9, i] = same_n - (1 if v > 0.8 else 0)
-            out[10, i] = other_sum
-            out[11, i] = b - a
+            out[0, o] = k - a
+            out[1, o] = p[order[a]]
+            out[2, o] = tot
+            out[3, o] = n05
+            out[4, o] = n08
+            out[5, o] = n095
+            out[6, o] = p[order[k - 1]] - v if k > a else 0.0
+            out[7, o] = v - p[order[k + 1]] if k + 1 < b else v
+            out[8, o] = same_sum - v
+            out[9, o] = same_n - (1 if v > 0.8 else 0)
+            out[10, o] = other_sum
+            out[11, o] = b - a
 
 
 def _grouped(key: np.ndarray, p: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -125,24 +131,25 @@ def _grouped(key: np.ndarray, p: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return np.append(starts, k.size).astype(np.int64), order.astype(np.int64)
 
 
-def group_features(s1: np.ndarray, r: np.ndarray, p1: np.ndarray) -> dict[str, np.ndarray]:
-    n = p1.size
-    out_r = np.zeros((len(R_FEATS), n), np.float32)
+def group_features(s1: np.ndarray, r: np.ndarray, p1: np.ndarray, rows: np.ndarray) -> dict[str, np.ndarray]:
+    """Group features over all pairs, returned for the pairs where ``rows`` is True (in row order)."""
+    m = int(rows.sum())
+    pos = np.full(p1.size, -1, np.int64)
+    pos[rows] = np.arange(m)
+    out_r = np.zeros((len(R_FEATS), m), np.float32)
     starts, order = _grouped(r, p1)
-    _record_side(starts, order, p1, out_r)
-    out_s = np.zeros((len(S_FEATS), n), np.float32)
+    _record_side(starts, order, p1, pos, out_r)
+    out_s = np.zeros((len(S_FEATS), m), np.float32)
     starts, order = _grouped(s1, p1)
-    _s1_side(starts, order, p1, (r // 1_000_000_000 == 3), out_s)
+    _s1_side(starts, order, p1, (r // 1_000_000_000 == 3), pos, out_s)
     cols = {f"s2__{f}": out_r[i] for i, f in enumerate(R_FEATS)}
     cols.update({f"s2__{f}": out_s[i] for i, f in enumerate(S_FEATS)})
     return cols
 
 
 def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], rows: np.ndarray) -> tuple[np.ndarray, list[str]]:
-    g = group_features(scores["s1"].to_numpy(), scores["r"].to_numpy(), scores["p1"].to_numpy(np.float32))
+    cols = group_features(scores["s1"].to_numpy(), scores["r"].to_numpy(), scores["p1"].to_numpy(np.float32), rows)
     p1 = np.clip(scores["p1"].to_numpy(np.float32)[rows], 1e-6, 1 - 1e-6)
-    cols = {k: v[rows] for k, v in g.items()}
-    del g
     cols["s2__p1"] = p1
     cols["s2__logit_p1"] = np.log(p1 / (1 - p1)).astype(np.float32)
     names = list(cols)

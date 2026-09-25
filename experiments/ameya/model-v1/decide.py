@@ -115,6 +115,30 @@ def expected_f_select(s1: np.ndarray, p: np.ndarray, own: np.ndarray, shift: flo
     return sel
 
 
+def diagnostics(pred: pd.DataFrame, s1: np.ndarray, p: np.ndarray, own: np.ndarray, country: pd.Series,
+                universe: np.ndarray) -> dict:
+    """Per country (G8): predicted matches per S1, share of S1 left empty, share of owned pairs above 0.5 and 0.9
+    per S1, mean owned p per S1 (sum of p over owned pairs / S1)."""
+    uni = pd.Index(universe)
+    c_of = country.reindex(uni)
+    n_s1 = c_of.value_counts()
+    pr = pred[pred["s1"].isin(uni)]
+    pc_ = country.reindex(pr["s1"]).to_numpy()
+    m = own & np.isin(s1, universe)
+    cp = country.reindex(s1[m]).to_numpy()
+    out = {}
+    for c in n_s1.index:
+        sel = cp == c
+        out[str(c)] = {
+            "pred_per_s1": round(float((pc_ == c).sum() / n_s1[c]), 4),
+            "empty_share": round(1 - pr.loc[pc_ == c, "s1"].nunique() / n_s1[c], 4),
+            "owned_p50_per_s1": round(float((p[m][sel] > 0.5).sum() / n_s1[c]), 4),
+            "owned_p90_per_s1": round(float((p[m][sel] > 0.9).sum() / n_s1[c]), 4),
+            "owned_psum_per_s1": round(float(p[m][sel].sum() / n_s1[c]), 4),
+        }
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--scores", default="ameya-s2-v1")
@@ -165,9 +189,7 @@ def main() -> int:
                 inputs={"scores": args.scores}, rule=rule)
     payload = {"rule": rule, "holdout": rep, "threshold_grid": thr, "dp_grid": dp, "g6_dp_vs_threshold": gate,
                "gate_vs_base": gate_base}
-    hold_pred = pred[pred["s1"].isin(universe)]
-    payload["mean_pred_per_s1_holdout"] = (hold_pred.groupby(country.reindex(hold_pred["s1"]).to_numpy()).size()
-                                           / country.loc[universe].value_counts()).round(3).to_dict()
+    payload["diagnostics"] = {"holdout": diagnostics(pred, s1, p, own, country, universe)}
 
     if not args.no_test:
         st = read_table("scores", args.scores, "test", ["s1", "r", args.col])
@@ -177,13 +199,8 @@ def main() -> int:
         mt = st.loc[sel_t, ["s1", "r"]].reset_index(drop=True)
         write_table(mt, "matches", args.tag, "test", command=command, inputs={"scores": args.scores}, rule=rule)
         _, ct = holdout_universe("test")
-        n_s1 = ct.value_counts()
-        payload["test"] = {
-            "mean_pred_per_s1": (mt.groupby(ct.reindex(mt["s1"]).to_numpy()).size() / n_s1).round(3).to_dict(),
-            "empty_share": {k: round(1 - v / n_s1[k], 4) for k, v in mt.groupby(ct.reindex(mt["s1"]).to_numpy())["s1"].nunique().items()},
-            "max_p_quantiles": {c: pd.Series(pt[own_t]).groupby(ct.reindex(s1t[own_t]).to_numpy()).quantile(0.5).get(c)
-                                for c in n_s1.index},
-        }
+        payload["diagnostics"]["test"] = diagnostics(mt, s1t, pt, own_t, ct, ct.index.to_numpy())
+        log.info("diagnostics: %s", json.dumps(payload["diagnostics"], default=str))
     payload["runtime_s"] = round(time.perf_counter() - t0)
     write_report(args.tag, payload, command=command, inputs={"scores": args.scores})
     print(json.dumps({k: payload[k] for k in payload if k not in ("threshold_grid",)}, indent=1, default=str))
