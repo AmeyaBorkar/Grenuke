@@ -40,7 +40,7 @@ Notable changes to the pipeline, the plan, the contracts and the team process. N
 - The PR template has fields for the roadmap task, the gate and a changelog line.
 
 ### In progress
-- The pipeline skeleton and `docs/DEVELOPMENT.md`, in a separate PR. It adds:
+- The pipeline skeleton and `docs/DEVELOPMENT.md`, in PR #4. It adds:
   - the `ber.pipeline` CLI;
   - the `records`, `write` and `evaluate` stages;
   - artifact metadata;

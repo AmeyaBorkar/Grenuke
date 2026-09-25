@@ -17,10 +17,10 @@
 | 0.1 | Repo, rules, agent file, hooks, CI, templates, shared metric/holdout/IO | A | done | — |
 | 0.2 | Everyone: clone, run `scripts/setup`, get the dataset, `pip install -r code/business_entity_resolution/requirements.txt`, run `pytest` | all | todo | tests green on every machine |
 | 0.3 | Plans submitted | each member | done | A and B submitted; C not submitted |
-| 0.4 | Decision: `plans/FINAL_PLAN.md` and `plans/DECISION.md` | A | doing | PR merged |
+| 0.4 | Decision: `plans/FINAL_PLAN.md` and `plans/DECISION.md` | A | doing (PR #3) | PR merged |
 | 0.5 | `docs/TEAM.md` owners and `CODEOWNERS`; Member 3 adds their name and branch prefix | A, M3 | doing | owners confirmed in the PR |
-| 0.6 | Contracts v1 (`docs/CONTRACTS.md` C0–C10) | A | doing | PR merged |
-| 0.7 | Pipeline skeleton: CLI, `records` / `write` / `evaluate` stages, artifact metadata, OOF groups, gate bootstrap, stage stubs | A | doing | PR merged; `python -m ber.pipeline --stage records --split train` works |
+| 0.6 | Contracts v1 (`docs/CONTRACTS.md` C0–C10) | A | doing (PR #3) | PR merged |
+| 0.7 | Pipeline skeleton: CLI, `records` / `write` / `evaluate` stages, artifact metadata, OOF groups, gate bootstrap, stage stubs | A | doing (PR #4) | PR merged; `python -m ber.pipeline --stage records --split train` works |
 
 ## Phase 1: v0 baseline → Submission 1 (Fri 15:30 → 23:30)
 
@@ -28,7 +28,7 @@ Goal: a **valid, honest baseline on the leaderboard before midnight** (FINAL_PLA
 
 | # | task | owner | status | target | done when |
 |---|---|---|---|---|---|
-| 1.1 | Records cache for train and test (`--stage records`) | A | todo | 15:45 | `work/records/*.parquet` exist; counts match §1 #1 |
+| 1.1 | Records cache for train and test (`--stage records`) | A | done (on A's machine; others run it in ~75 s) | 15:45 | `work/records/*.parquet` exist; counts match §1 #1 |
 | 1.2 | Normalize v0 (§4.2 v0) → `work/norm/<tag>/` | M3 | todo | 17:30 | the C3 v0 columns for both splits; unit tests on tricky strings (Indic, French, `N°`, `8444b`, `<NULL>`) |
 | 1.3a | Block v0 with keys only: exact-key candidates for fold 0 and test, so features and model can start | A | todo | 16:30 | a C4 file plus a recall report |
 | 1.3b | Block v0: V-both + V-addr (GPU) + keys + heuristic trim; quick G2 check; G1 report (≥99.0%) | A | todo | 19:30 | C4 for train and test; a blocking report JSON |
