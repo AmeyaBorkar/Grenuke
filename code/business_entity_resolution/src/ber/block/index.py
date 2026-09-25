@@ -88,7 +88,7 @@ def _fill_compound(n_ptr, n_codes, w_ptr, w_codes, d_ptr, d_codes, c_ptr, out):
                 p += 1
 
 
-def record_keys(names: pa.Array, addresses: pa.Array) -> tuple[np.ndarray, np.ndarray]:
+def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
 
     Indic-script names are transliterated first; every name token of 3+ letters also adds its consonant skeleton
@@ -99,6 +99,8 @@ def record_keys(names: pa.Array, addresses: pa.Array) -> tuple[np.ndarray, np.nd
     nc = text.name_concat(nt, n)
     aw = text.address_words(addresses)
     ad = text.address_numbers(addresses)
+    if counts_out is not None:  # per-record address token counts (the name_short view needs them)
+        counts_out["address_tokens"] = np.bincount(aw.rows, minlength=n) + np.bincount(ad.rows, minlength=n)
     long = pc.greater_equal(pc.utf8_length(nt.values), 3)
     sk_values = indic.skeleton(pc.filter(nt.values, long))
     sk_rows = nt.rows[long.to_numpy(zero_copy_only=False)]

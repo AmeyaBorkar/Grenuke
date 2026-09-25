@@ -140,7 +140,7 @@ def run(cfg: RunConfig) -> dict:
     from ..artifacts import write_table
     from ..eval.splits import in_dev_sample, in_folds
     from ..paths import records_path
-    from . import index, text
+    from . import index
 
     tag = cfg.require_tag()
     tok = SearchParams(cfg.param("k_s1", 40, int), cfg.param("k_r", 8, int), cfg.param("trim_s1", 30, int),
@@ -162,9 +162,9 @@ def run(cfg: RunConfig) -> dict:
     country = tbl["country"].to_numpy()
     names, addresses = tbl["name"].combine_chunks(), tbl["address"].combine_chunks()
     del tbl
-    indptr, keys = index.record_keys(names, addresses)
-    n_addr = (np.bincount(text.address_words(addresses).rows, minlength=eid.size)
-              + np.bincount(text.address_numbers(addresses).rows, minlength=eid.size))
+    counts: dict = {}
+    indptr, keys = index.record_keys(names, addresses, counts)
+    n_addr = counts["address_tokens"]
     del addresses
     log.info("tokens: %d records, %.1f keys per record, %.0fs", eid.size, keys.size / eid.size, time.perf_counter() - t0)
 
