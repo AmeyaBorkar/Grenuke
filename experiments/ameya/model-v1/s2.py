@@ -7,7 +7,7 @@
     S1 above 0.5, the sum of p1 and this pair's share of it;
   - per S1: this record's rank, the max and sum of p1 (expected cluster size), counts above 0.5/0.8/0.95, the gaps
     to the neighbouring ranks, and the same-source sums and confident counts without this pair (source balance).
-- Stage-2 rows: pairs with p1 >= P_MIN (the others keep p2 = p1; they can never be predicted). Features: the group
+- Stage-2 rows: stage-1 rows (p0 >= tau0) with p1 >= P_MIN (the others keep p2 = p1; they are never predicted). Features: the group
   features, p1 and its logit, and the top stage-1 features by gain.
 - Out of fold over the same three groups (C2): p1 of training folds is already out of fold, so stage 2 learns from
   honest scores; the holdout and test get the mean of the three stage-2 models.
@@ -169,7 +169,10 @@ def main() -> int:
     ap.add_argument("--top", type=int, default=30, help="stage-1 features kept, by gain")
     ap.add_argument("--rounds", type=int, default=3000)
     ap.add_argument("--no-test", action="store_true")
+    ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
     args = ap.parse_args()
+    import common
+    common.GROUPS[:] = args.groups.split(",")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     import warnings
     warnings.filterwarnings("ignore", category=UserWarning, module="xgboost")
@@ -184,7 +187,7 @@ def main() -> int:
 
     sc = read_table("scores", args.s1, "train")
     fold, y = sc["fold"].to_numpy(), sc["y"].to_numpy()
-    rows = sc["p1"].to_numpy() >= P_MIN
+    rows = (sc["p0"].to_numpy() >= cfg["tau0"]) & (sc["p1"].to_numpy() >= P_MIN)  # stage-1 rows only
     X, names = build(sc, args.feats, "train", s1_feats, rows)
     idx = np.flatnonzero(rows)
     yr, fr = y[rows], fold[rows]
@@ -255,7 +258,7 @@ def main() -> int:
 
     if not args.no_test:
         st = read_table("scores", args.s1, "test")
-        rows_t = st["p1"].to_numpy() >= P_MIN
+        rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
         Xt, _ = build(st, args.feats, "test", s1_feats, rows_t)
         p2t = st["p1"].to_numpy(np.float32).copy()
         idt = np.flatnonzero(rows_t)

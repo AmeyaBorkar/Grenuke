@@ -127,7 +127,9 @@ def _field_csr(tok: text.Tokens, n: int, cid: np.ndarray) -> dict:
             "off": off.copy(), "buf": buf.copy()}
 
 
-def load_records(split: str, dictionary: pd.DataFrame | None, truth: pd.DataFrame | None = None) -> tuple[dict, pd.DataFrame | None]:
+def load_records(split: str, dictionary: pd.DataFrame | None, truth: pd.DataFrame | None = None,
+                 strings: bool = True) -> tuple[dict, pd.DataFrame | None]:
+    """Token CSRs (name, skel, skel4, word, num), numbers and, if ``strings``, the folded strings for rapidfuzz."""
     t0 = time.perf_counter()
     tbl = pq.read_table(records_path(split), columns=["eid", "source", "country", "name", "address"])
     n = tbl.num_rows
@@ -144,9 +146,11 @@ def load_records(split: str, dictionary: pd.DataFrame | None, truth: pd.DataFram
     sk = text.Tokens(indic.skeleton(tok.values), tok.rows)
     rec["skel"] = _field_csr(sk, n, rec["cid"])
     rec["skel4"] = _field_csr(text.Tokens(pc.utf8_slice_codeunits(sk.values, 0, 4), sk.rows), n, rec["cid"])
-    rec["cname"] = _joined(tok, n, " ")
-    rec["ccat"] = _joined(tok, n, "")
-    rec["fname"] = np.asarray(text.fold(indic.transliterate_array(names)).to_numpy(zero_copy_only=False), dtype=object)
+    if strings:
+        rec["cname"] = _joined(tok, n, " ")
+        rec["ccat"] = _joined(tok, n, "")
+        rec["fname"] = np.asarray(text.fold(indic.transliterate_array(names)).to_numpy(zero_copy_only=False),
+                                  dtype=object)
     words = text.address_words(addrs)
     rec["word"] = _field_csr(words, n, rec["cid"])
     nums = text.address_numbers(addrs)
@@ -155,7 +159,8 @@ def load_records(split: str, dictionary: pd.DataFrame | None, truth: pd.DataFram
     rec["numval"] = np.array([int(v[:12]) for v in nd], dtype=np.int64)
     first = rec["num"]["first"]
     rec["num1"] = np.where(first >= 0, rec["numval"][np.maximum(first, 0)], -1)
-    rec["faddr"] = np.asarray(text.fold(addrs).to_numpy(zero_copy_only=False), dtype=object)
+    if strings:
+        rec["faddr"] = np.asarray(text.fold(addrs).to_numpy(zero_copy_only=False), dtype=object)
     rec["row_of"] = pd.Index(rec["eid"])
     rec["labels"] = labels
     log.info("records %s: %d rows, %d Indic names, prepared in %.0fs", split, n, int(is_ind.sum()),

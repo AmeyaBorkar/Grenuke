@@ -15,73 +15,61 @@ log = logging.getLogger("model-v1")
 KEYS = ("s1", "r", "fold", "y")
 
 
-def files(feats: str, split: str) -> tuple[pq.ParquetFile, pq.ParquetFile]:
-    fs = pq.ParquetFile(artifact_path("features", f"{feats}-str", split))
-    fc = pq.ParquetFile(artifact_path("features", f"{feats}-cx", split))
-    if fs.metadata.num_rows != fc.metadata.num_rows or fs.num_row_groups != fc.num_row_groups:
-        raise ValueError(f"{feats}: the str and cx files of {split} are not row-aligned")
-    return fs, fc
+GROUPS = ["str", "cx"]  # feature files <feats>-<group>; s1.py --groups adds more (e.g. lo)
+
+
+def files(feats: str, split: str) -> list[pq.ParquetFile]:
+    out = [pq.ParquetFile(artifact_path("features", f"{feats}-{g}", split)) for g in GROUPS]
+    for f, g in zip(out[1:], GROUPS[1:]):
+        if f.metadata.num_rows != out[0].metadata.num_rows or f.num_row_groups != out[0].num_row_groups:
+            raise ValueError(f"{feats}: the {g} and str files of {split} are not row-aligned")
+    return out
 
 
 def feature_names(feats: str, split: str = "train") -> list[str]:
-    fs, fc = files(feats, split)
-    return [c for c in fs.schema_arrow.names if c not in KEYS] + list(fc.schema_arrow.names)
+    return [c for f in files(feats, split) for c in f.schema_arrow.names if c not in KEYS]
 
 
 def load_keys(feats: str, split: str) -> pd.DataFrame:
-    fs, _ = files(feats, split)
+    fs = files(feats, split)[0]
     cols = [c for c in KEYS if c in fs.schema_arrow.names]
     return fs.read(columns=cols).to_pandas()
 
 
-def load_matrix(feats: str, split: str, features: list[str], rows: np.ndarray | None = None) -> np.ndarray:
-    """float32 matrix of ``features`` for the rows where ``rows`` (bool mask over the split) is True."""
-    fs, fc = files(feats, split)
-    in_s = set(fs.schema_arrow.names)
-    cs = [f for f in features if f in in_s]
-    cc = [f for f in features if f not in in_s]
-    n_out = int(rows.sum()) if rows is not None else fs.metadata.num_rows
-    X = np.empty((n_out, len(features)), np.float32)
-    pos = {f: i for i, f in enumerate(features)}
-    start = out = 0
-    for g in range(fs.num_row_groups):
-        n = fs.metadata.row_group(g).num_rows
-        sel = rows[start:start + n] if rows is not None else None
-        k = int(sel.sum()) if sel is not None else n
-        if k:
-            for f, tbl in ((cs, fs), (cc, fc)):
-                if not f:
-                    continue
-                t = tbl.read_row_group(g, columns=f)
-                for name in f:
-                    col = t.column(name).to_numpy()
-                    X[out:out + k, pos[name]] = col[sel] if sel is not None else col
-        start += n
-        out += k
-    return X
-
-
 def iter_matrix(feats: str, split: str, features: list[str], rows: np.ndarray | None = None):
     """Yield (start, sel, X) per row group: X holds the rows of that group where ``rows`` is True (all if None)."""
-    fs, fc = files(feats, split)
-    in_s = set(fs.schema_arrow.names)
-    cs = [f for f in features if f in in_s]
-    cc = [f for f in features if f not in in_s]
+    fl = files(feats, split)
+    owner = {}
+    for f in fl:
+        for c in f.schema_arrow.names:
+            owner.setdefault(c, f)
     pos = {f: i for i, f in enumerate(features)}
     start = 0
-    for g in range(fs.num_row_groups):
-        n = fs.metadata.row_group(g).num_rows
+    for g in range(fl[0].num_row_groups):
+        n = fl[0].metadata.row_group(g).num_rows
         sel = rows[start:start + n] if rows is not None else np.ones(n, bool)
         k = int(sel.sum())
         if k:
             X = np.empty((k, len(features)), np.float32)
-            for f, tbl in ((cs, fs), (cc, fc)):
-                if f:
-                    t = tbl.read_row_group(g, columns=f)
-                    for name in f:
+            for f in fl:
+                cols = [c for c in features if owner[c] is f]
+                if cols:
+                    t = f.read_row_group(g, columns=cols)
+                    for name in cols:
                         X[:, pos[name]] = t.column(name).to_numpy()[sel]
             yield start, sel, X
         start += n
+
+
+def load_matrix(feats: str, split: str, features: list[str], rows: np.ndarray | None = None) -> np.ndarray:
+    """float32 matrix of ``features`` for the rows where ``rows`` (bool mask over the split) is True."""
+    n_out = int(rows.sum()) if rows is not None else files(feats, split)[0].metadata.num_rows
+    X = np.empty((n_out, len(features)), np.float32)
+    out = 0
+    for _, _, Xg in iter_matrix(feats, split, features, rows):
+        X[out:out + len(Xg)] = Xg
+        out += len(Xg)
+    return X
 
 
 def argmax_owner(s1: np.ndarray, r: np.ndarray, p: np.ndarray) -> np.ndarray:
