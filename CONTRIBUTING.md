@@ -10,6 +10,7 @@ AI agents follow the same rules through `AGENTS.md`.
 3. **One writer per coordination file.** Each person has their own status file, each handover is its own file, and each submission record is its own file. So these files never conflict.
 4. **Small PRs, merged often.** Branches live at most about a day. Rebase on `main` before opening a PR.
 5. **Comparable numbers.** Everyone scores with `ber.eval.metric` on the same holdout (`ber.eval.splits`). Any number without the command and commit that produced it doesn't count.
+6. **Gates before complexity.** Anything beyond the v0 baseline ships only after its gate passes (`plans/FINAL_PLAN.md` §9): a paired bootstrap on the holdout, recorded in `docs/decisions/`. Ties go to the simpler option.
 
 ## 2. One-time setup (per clone)
 
@@ -72,10 +73,11 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 6. After a merge, everyone runs `git fetch` and rebases their active branches.
 
 **Shared files** (coordinator review, one dedicated small PR each):
-- `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`
-- `docs/ROADMAP.md`, `docs/TEAM.md`, `docs/CONTRACTS.md`
+- `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `CHANGELOG.md`
+- `plans/FINAL_PLAN.md`, `plans/DECISION.md`
+- `docs/ROADMAP.md`, `docs/TEAM.md`, `docs/CONTRACTS.md`, `docs/DEVELOPMENT.md`
 - `code/business_entity_resolution/{requirements.txt,pyproject.toml}`
-- `src/ber/{io.py,ids.py,paths.py}`, `src/ber/eval/**`
+- `src/ber/{io,ids,paths,artifacts,config}.py`, `src/ber/eval/**`
 - `.github/**`, `.githooks/**`, `scripts/**`, `.claude/settings.json`
 
 ## 6. Coordination documents (conflict-free by design)
@@ -87,7 +89,9 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 | decision record (architecture/approach choices) | `docs/decisions/` | `YYYY-MM-DD_HHMM_<topic>.md` | the author, reviewed in a PR |
 | leaderboard submission record | `submissions/records/` | `YYYY-MM-DD_subNN.md` | the submissions captain |
 | roadmap, milestones and owners | `docs/ROADMAP.md` | fixed | the coordinator (others propose changes in their status file or a PR) |
-| plans | `plans/<member>/` | `PLAN.md` (+ `.pdf`) | that member |
+| changelog | `CHANGELOG.md` | fixed | the coordinator, plus the captain for uploads. Feature PRs put a one-line `Changelog:` note in the PR description instead |
+| the plan we build | `plans/FINAL_PLAN.md` | fixed | the coordinator. Changes come from `docs/decisions/` records |
+| candidate plans | `plans/<member>/` | `PLAN.md` (+ `.pdf`) | that member |
 
 `python scripts/new_doc.py {handover|status|decision|submission} ...` creates any of these from the templates with the correct name and IST timestamp.
 
