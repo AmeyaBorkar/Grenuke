@@ -18,7 +18,7 @@ C8 stage now computes 56 float32 name, extra-word, number and address features i
 
 ## Current state
 
-- **Works:** 56 string features, C8 output, train labels and folds, optional exact context integration; 97 tests pass against current `origin/main`.
+- **Works:** 56 string features, C8 output, train labels and folds, optional exact context integration; 100 tests pass against current `origin/main`.
 - **Half-done:** benchmark on Ameya's real dev candidates, including nonmatches, pending artifact access.
 - **Known bugs and caveats:** `include_context=true` loads all candidates and raw S1 records in memory because the coordinator API expects the full candidate set; use the integration machine for large runs. String-only mode is streaming and the default. The 100k probe contained only known positives, so no predictive metric can be inferred.
 
