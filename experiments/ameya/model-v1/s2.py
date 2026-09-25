@@ -172,8 +172,10 @@ def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], row
 
 def score_test(args, command: str) -> None:
     """Test scores from the saved stage-2 models and calibration; no train data in memory (lean re-run)."""
+    import common
+    common.GROUPS[:] = (args.test_groups or args.groups).split(",")
     cfg1 = json.loads((artifact_dir("models", args.s1) / "config.json").read_text())
-    mdir = artifact_dir("models", args.tag)
+    mdir = artifact_dir("models", args.models or args.tag)
     cfg2 = json.loads((mdir / "config.json").read_text())
     boosters = [xgb.Booster(model_file=str(mdir / f"stage2_g{g}.ubj")) for g in range(3)]
     iso = pd.read_parquet(mdir / "isotonic.parquet")
@@ -206,6 +208,8 @@ def main() -> int:
     ap.add_argument("--cluster", action="store_true", help="add cluster-support features (G9)")
     ap.add_argument("--test-only", action="store_true", help="only score test with the saved models (lean re-run)")
     ap.add_argument("--extra", default="", help="more features for stage 2, comma-separated (e.g. the leg__ group)")
+    ap.add_argument("--test-groups", default="", help="feature groups for test (default: --groups), e.g. lop for lo")
+    ap.add_argument("--models", default="", help="tag of the saved stage-2 models for --test-only (default: --tag)")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -298,6 +302,7 @@ def main() -> int:
                "stage2_rows": int(rows.sum()), "best_iterations": best_its}
 
     if not args.no_test:
+        common.GROUPS[:] = (args.test_groups or args.groups).split(",")
         st = read_table("scores", args.s1, "test")
         rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
         Xt, _ = build(st, args.feats, "test", s1_feats, rows_t, args.cluster)
