@@ -7,11 +7,13 @@ name = "ber"
 version = "0.2.0"
 description = "Team Grenuke: Business Entity Resolution (Amazon ML Challenge 2026)"
 requires-python = ">=3.11"
-# Light core deps only (CI installs these). The full pinned environment is requirements.txt.
+# Core deps (CI installs these). numba is core because stage kernels are @njit at module level.
+# The full pinned environment is requirements.txt.
 dependencies = [
   "numpy>=2.0",
   "pandas>=2.2",
   "pyarrow>=15",
+  "numba>=0.61",
 ]
 
 [project.optional-dependencies]
