@@ -33,9 +33,9 @@ python -m ber.pipeline --stage <stage|all> --split <train|test> --tag <tag> [--i
 | stage | module (owner) | reads | writes | contract |
 |---|---|---|---|---|
 | `records` | `ber.records` (Ameya) | TSVs | `work/records/<split>.parquet`, `truth.parquet` | C3 |
-| `normalize` | `ber.normalize` (Member 3) | records | `work/norm/<tag>/<split>.parquet` | C3 |
+| `normalize` | `ber.normalize` (Bakshi) | records | `work/norm/<tag>/<split>.parquet` | C3 |
 | `block` | `ber.block` (Ameya) | norm | `work/candidates/<tag>/<split>.parquet` | C4 |
-| `features` | `ber.features` (Member 3) | candidates, norm, truth | `work/features/<tag>/<split>.parquet` | C8 |
+| `features` | `ber.features` (Bakshi; context groups Ameya) | candidates, norm, truth | `work/features/<tag>/<split>.parquet` | C8 |
 | `train` | `ber.model` (Sachi), train only | features | `work/models/<tag>/`, `work/scores/<tag>-s1/train.parquet` | C5 |
 | `predict` | `ber.model` (Sachi) | features, models | `work/scores/<tag>/<split>.parquet` | C5 |
 | `decide` | `ber.model` (Sachi) | scores, candidates | `work/matches/<tag>/<split>.parquet` | C9 |
@@ -102,6 +102,13 @@ python -m ber.pipeline --stage evaluate --split test  --tag <tag>               
 - The report is `work/reports/<tag>.json` (C7). Paste its headline numbers into your handover and PR.
 - For reference, the empty prediction scores **0.0558** on the holdout (the singleton share).
 - The blocking section reports pair recall, oracle F0.5, candidates per S1 (mean and p99), and recall per country and per source.
+
+### Dev sample (small machines)
+
+- `ber.eval.splits.in_dev_sample(eids)` selects about 110k train S1 (a quarter of folds 0, 5, 10 and 15). Its fold-0 part is a dev holdout (about 27k S1), and folds 5/10/15 give one fold per OOF group, so train → OOF → calibrate → decide all work on it.
+- Ameya shares dev artifacts on the team drive: `work/candidates/ameya-block-v0-dev/train.parquet`, then the dev features. Use them with `--in candidates=ameya-block-v0-dev`.
+- Evaluate on it: `python -m ber.pipeline --stage evaluate --split train --tag <tag> --folds 0 --set sample=dev`. Gates: `python -m ber.eval.gates ... --folds 0 --sample dev`.
+- Numbers for PRs still come from the full holdout, run on the integration machine.
 
 ## 6. Gates (plans/FINAL_PLAN.md §9)
 
