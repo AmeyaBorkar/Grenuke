@@ -180,3 +180,15 @@ def test_indic_transliteration_and_skeleton_meet_latin_names():
     ptr, keys = index.record_keys(pa.array(["Star Marketing Pvt Ltd", "स्टार मार्केटिंग प्राइवेट लिमिटेड"]), pa.array(["", ""]))
     shared = set(keys[ptr[0]:ptr[1]].tolist()) & set(keys[ptr[1]:ptr[2]].tolist())
     assert shared  # the skeletons (and here even the tokens "star"/"staar" skeletons) connect the two scripts
+
+
+def test_indic_name_tokens_drop_legal_forms_and_apply_the_dictionary():
+    from ber.block import indic
+    names = pa.array(["गोल्डन इंफ्रा प्राइवेट लिमिटेड", "Golden Infra Pvt Ltd", "Shri Ram Traders"])
+    tok, is_indic = indic.name_tokens(names, {"goldan": "golden", "inphraa": "infra", "ram": "never"})
+    assert is_indic.tolist() == [True, False, False]
+    # Indic legal forms go, the dictionary maps Indic-script tokens only (the Latin "ram" is untouched)
+    assert tok.values.to_pylist() == ["golden", "infra", "golden", "infra", "ram", "traders"]
+    assert tok.rows.tolist() == [0, 0, 1, 1, 2, 2]
+    ptr, keys = index.record_keys(names[:2], pa.array(["", ""]), name_map={"goldan": "golden", "inphraa": "infra"})
+    assert set(keys[ptr[0]:ptr[1]].tolist()) == set(keys[ptr[1]:ptr[2]].tolist())

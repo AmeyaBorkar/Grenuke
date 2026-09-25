@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import re
 
+import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
+
+from . import text
 
 BLOCKS = (0x0900, 0x0980, 0x0A00, 0x0A80, 0x0B00, 0x0B80, 0x0C00, 0x0C80, 0x0D00)
 _INHERENT, _KILL = "\u0001", "\u0002"  # placeholders: inherent vowel, and "remove the preceding inherent vowel"
@@ -95,3 +98,40 @@ def _skeleton_unique(tokens: pa.Array) -> pa.Array:
     for letter in "bdfgjklmnprstv":  # RE2 has no backreferences: collapse runs letter by letter
         a = pc.replace_substring_regex(a, letter + "{2,}", letter)
     return a
+
+
+# Skeletons of the transliterated legal forms and honorifics among the most frequent Indic-name tokens of train
+# (25 Sep): praaivet/praivet/piraivet (private) prvt, praaibhet prbt, praivarr prvr, praa + li ("pra. li.") pr + l,
+# limitet lmt, limited lmtd, limirrad lmrd, elaelapii (LLP) elp, shrii sr. Dropped on Indic-script names only.
+LEGAL_SKELETONS = ("prvt", "prbt", "prvr", "pr", "l", "lmt", "lmtd", "lmrd", "elp", "sr")
+INDIC_PATTERN = r"[\x{0900}-\x{0d7f}]"
+
+
+def name_tokens(names: pa.Array, mapping: dict[str, str] | None = None) -> tuple[text.Tokens, np.ndarray]:
+    """Name tokens after transliteration, and a per-name flag "written in an Indic script".
+
+    On Indic-script names, transliterated legal forms and honorifics are dropped and ``mapping`` (transliterated
+    token -> Latin token, learned from true pairs of the training folds) is applied: "गोल्डन इंफ्रा प्राइवेट लिमिटेड"
+    -> ["golden", "infra"].
+    """
+    is_indic = pc.match_substring_regex(names, INDIC_PATTERN).to_numpy(zero_copy_only=False)
+    tok = text.name_tokens(transliterate_array(names))
+    if not is_indic.any():
+        return tok, is_indic
+    legal = pc.is_in(skeleton(tok.values), value_set=pa.array(LEGAL_SKELETONS, type=tok.values.type))
+    keep = ~(is_indic[tok.rows] & legal.to_numpy(zero_copy_only=False))
+    tok = text.Tokens(pc.filter(tok.values, pa.array(keep)), tok.rows[keep])
+    if mapping:
+        mask = is_indic[tok.rows]
+        if mask.any():
+            mapped = text._map_values(pc.filter(tok.values, pa.array(mask)), mapping)  # noqa: SLF001
+            tok = text.Tokens(pc.replace_with_mask(tok.values, pa.array(mask), mapped), tok.rows)
+    return tok, is_indic
+
+
+def load_name_map(path) -> dict[str, str]:
+    """The Indic -> Latin token dictionary (columns t, w) written by the feature experiments."""
+    import pandas as pd
+
+    d = pd.read_parquet(path, columns=["t", "w"])
+    return dict(zip(d["t"], d["w"]))
