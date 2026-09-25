@@ -1,8 +1,10 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 02:05
+- **Last updated (IST):** 2026-09-26 02:15
 - **Current focus:** France. The holdout → leaderboard gap (−0.0092) is France's (about 0.93 against 0.989 for US/India). v4 fixes it on the diagnostics; v5 (French address normalization) is building.
-- **Branch(es):** `ameya/analysis-v3`: the gap analysis (`experiments/ameya/model-v1/ANALYSIS_v3.md`), label-free look-alike odds for France, leave-one-country-out check, final candidate set, probes, French address normalization, EI legal form.
+- **Branch(es):**
+  - `ameya/france-v4` (PR): the gap analysis (`experiments/ameya/model-v1/ANALYSIS_v3.md`), label-free look-alike odds for France, the leave-one-country-out check, the final candidate set, probes, model v4.
+  - `ameya/analysis-v3`: the same, plus v5 (French address normalization in `ber.block.text`, EI as a legal form), which waits for its gate.
 - **Leaderboard vs holdout:**
 
   | model | holdout | leaderboard | gap |
@@ -18,7 +20,7 @@
 - **Deadline:** the submission-round page says the window closes 27 Sep 15:30 UTC = **21:00 IST**, and the private leaderboard uses the **final** submission. To be confirmed in the logged-in portal.
 - **ETA for the current task:** v5 about 04:00 IST.
 - **Blocked on / need from others:** the captain's uploads and the deadline check.
-- **Latest handover:** `docs/handover/2026-09-25_2147_ameya_analysis-v2-and-v3.md` (a new one follows v5).
+- **Latest handover:** `docs/handover/2026-09-26_0207_ameya_leaderboard-gap-france-v4.md`
 - **Next up:**
   - v5 gate and packaging;
   - a France-only decision probe (G8) if v4's leaderboard move is below the forecast;
