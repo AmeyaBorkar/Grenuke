@@ -1,19 +1,12 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-25 14:30
-- **Current focus:** the final plan is decided (`plans/FINAL_PLAN.md`), and the pipeline skeleton is ready. Both PRs are open for review.
-- **Branch(es):**
-  - `ameya/final-plan`: PR #3, plan, contracts v1, roadmap, changelog;
-  - `ameya/dev-skeleton`: PR #4, `ber.pipeline` CLI, records/write/evaluate stages, gates, `docs/DEVELOPMENT.md`.
-- **ETA for the current task:**
-  - Roadmap 1.1 (records cache) is done on my machine.
-  - Next: 1.3a, block v0 with keys (by 16:30), then 1.3b, views on the GPU (by 19:30).
+- **Last updated (IST):** 2026-09-25 17:08
+- **Current focus:** Submission 1 (baseline) is ready to upload. Next: blocking recall (GPU char views, Indic) and the 21:30 integration run.
+- **Branch(es):** `ameya/block-v0` (PR #15: blocking v0, context features, baseline)
+- **ETA for the current task:** upload now; improved blocking by about 19:30; integration and Submission 2 by about 23:00
 - **Blocked on / need from others:**
-  - Reviews and merges of #3 and #4.
-  - Member 3 (@trustdemons05): name, branch prefix, and a yes to owning normalization and features.
-  - Sachi: a yes to owning model, decision and gates.
-  - Both: rubric scores in #3.
-- **Latest handover:**
-  - `docs/handover/2026-09-25_1414_ameya_final-plan.md` (plan);
-  - `docs/handover/2026-09-25_1425_ameya_dev-skeleton.md` (skeleton, in #4).
-- **Next up:** merge #3 and #4 → block v0 with keys (by 16:30) → block v0 views on the GPU (by 19:30) → outputs and Submission 1 (by 23:30)
+  - team-drive link for the dev kit (`work/dev_kit/`, 180 MB);
+  - Bakshi: normalize v0 (#6);
+  - Sachi: model and decide v0 on the dev features (#8, #9).
+- **Latest handover:** `docs/handover/2026-09-25_1706_ameya_block-v0-baseline.md`
+- **Next up:** blocking v1 recall (1.3b), then integration (#13)
