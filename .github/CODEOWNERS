@@ -1,0 +1,18 @@
+# Code owners: GitHub requests their review automatically on PRs that touch these paths.
+# Keep this in sync with docs/TEAM.md. Add teammates' handles after the plan decision.
+
+# Default owner (repo admin / coordinator)
+*                                                        @AmeyaBorkar
+
+# Shared files (coordinator review)
+/AGENTS.md                                               @AmeyaBorkar
+/CONTRIBUTING.md                                         @AmeyaBorkar
+/docs/CONTRACTS.md                                       @AmeyaBorkar
+/.github/                                                @AmeyaBorkar
+/.githooks/                                              @AmeyaBorkar
+
+# Areas (fill in after the decision, e.g.)
+# /code/business_entity_resolution/src/ber/normalize/    @<handle>
+# /code/business_entity_resolution/src/ber/block/        @<handle>
+# /code/business_entity_resolution/src/ber/features/     @<handle>
+# /code/business_entity_resolution/src/ber/model/        @<handle>

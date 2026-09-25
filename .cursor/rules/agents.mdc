@@ -1,0 +1,13 @@
+---
+description: Team rules for all agents in this repo
+alwaysApply: true
+---
+
+Read and follow `AGENTS.md` at the repo root before any action. It is the single source of truth:
+
+- `<member>/<topic>` branches only, never `main`;
+- no Co-authored-by or attribution lines;
+- no data or large files;
+- no external data or APIs;
+- stay in the paths your member owns;
+- write a handover and status update at the end of each session.
