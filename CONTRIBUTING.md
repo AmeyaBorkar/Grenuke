@@ -67,7 +67,8 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 2. **Size:** aim for under ~400 changed lines. Split large work: contracts, then implementation, then tuning.
 3. **Review:** at least **one other member** must approve PRs that touch shared files (below) or another owner's area. A PR inside your own area may be self-merged once CI is green, if nobody responds within 30 minutes.
 4. **CI must be green.** It checks for co-author lines, large or data files, runs the unit tests, and compiles the package.
-5. **Merge method:** **rebase and merge** only; squash and merge commits are disabled. The branch is deleted automatically after merge.
+5. **Merge method:** **rebase and merge** only; squash and merge commits are disabled. (A GitHub squash merge would add `Co-authored-by` lines.) The branch is deleted automatically after merge.
+   - **Branch protection on `main` is active on GitHub:** a PR is required, the CI checks `repo policy` and `unit tests` must pass, history stays linear, and force pushes and deletion are blocked.
 6. After a merge, everyone runs `git fetch` and rebases their active branches.
 
 **Shared files** (coordinator review, one dedicated small PR each):
