@@ -93,12 +93,16 @@ def main():
         sys.exit(f"Need both training and holdout rows. Folds present: {sorted(tr['fold'].unique())}")
     train["oof_group"] = np.asarray(E.oof_group(train["s1_eid"].to_numpy())).astype(np.int8)
     print("  OOF groups (team):", train["oof_group"].value_counts().sort_index().to_dict())
+    rest = train.iloc[:0]
     if a.sample_entities:
         ents = train["s1_eid"].drop_duplicates().sample(
             min(a.sample_entities, train["s1_eid"].nunique()), random_state=17)
-        train = train[train["s1_eid"].isin(ents)]
+        pick = train["s1_eid"].isin(ents)
+        train, rest = train[pick], train[~pick]
     test_path = W / "features" / a.feat_tag / "test.parquet"
     apply = {"holdout": hold}
+    if len(rest):
+        apply["rest"] = rest            # unsampled training-fold rows: scored, never trained on
     if test_path.exists():
         apply["test"] = load_feats(a.feat_tag, "test")
     print(f"  train pairs {len(train):,} | holdout pairs {len(hold):,} | test pairs "
@@ -115,7 +119,8 @@ def main():
         d["oof_group"] = -1
 
     h = applied["holdout"]
-    s1_train = pd.concat([oof, h], ignore_index=True)
+    # every train-split pair: OOF p for training rows, full-model p for holdout (+ unsampled) rows
+    s1_train = pd.concat([oof, h] + ([applied["rest"]] if "rest" in applied else []), ignore_index=True)
     save(c5_s1(s1_train), W / "scores" / f"{a.tag}-s1" / "train.parquet")
     save(c5_p(s1_train), W / "scores" / a.tag / "train.parquet")
     if "test" in applied:
@@ -138,7 +143,11 @@ def main():
     truth = pd.read_parquet(W / "records" / "truth.parquet").rename(columns={"s1": "s1_eid", "r": "r_eid"})
     ev = EvalIndex(hold_s1["eid"].to_numpy(), truth)
 
-    owned = argmax_ownership(h)
+    # Ownership over ALL S1 candidates of each record (training folds included), exactly as on test,
+    # then keep the pairs owned by holdout S1s for evaluation.
+    owned_all = argmax_ownership(s1_train)
+    owned = owned_all[owned_all["s1_eid"].isin(hold_s1["eid"])]
+    print(f"  ownership: {len(s1_train):,} pairs -> {len(owned_all):,} owned; {len(owned):,} owned by holdout S1")
     t, _, _ = tune_threshold(owned, ev)
     f_thr = f_vector(apply_threshold(owned, t), ev)
     b, _, _ = tune_shift(owned, ev)

@@ -1,5 +1,5 @@
 import itertools, numpy as np, pandas as pd, pytest
-from model.decide import (_expected_f_best_k, argmax_ownership, EvalIndex,
+from ber.model.decision import (_expected_f_best_k, argmax_ownership, EvalIndex,
                           f_vector, paired_bootstrap)
 
 def f_entity(pred, true):
