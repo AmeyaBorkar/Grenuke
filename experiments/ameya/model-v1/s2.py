@@ -147,8 +147,17 @@ def group_features(s1: np.ndarray, r: np.ndarray, p1: np.ndarray, rows: np.ndarr
     return cols
 
 
-def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], rows: np.ndarray) -> tuple[np.ndarray, list[str]]:
+def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], rows: np.ndarray,
+          cluster: bool = False) -> tuple[np.ndarray, list[str]]:
     cols = group_features(scores["s1"].to_numpy(), scores["r"].to_numpy(), scores["p1"].to_numpy(np.float32), rows)
+    if cluster:  # gate G9: similarity to the S1's confident records
+        from cluster import support
+        from feats import load_records
+        rec, _ = load_records(split, pd.read_parquet(artifact_dir("models", feats) / "indic_dict.parquet"),
+                              strings=False)
+        cols.update(support(rec, scores["s1"].to_numpy(), scores["r"].to_numpy(), scores["p1"].to_numpy(np.float32),
+                            rows))
+        del rec
     p1 = np.clip(scores["p1"].to_numpy(np.float32)[rows], 1e-6, 1 - 1e-6)
     cols["s2__p1"] = p1
     cols["s2__logit_p1"] = np.log(p1 / (1 - p1)).astype(np.float32)
@@ -170,6 +179,7 @@ def main() -> int:
     ap.add_argument("--rounds", type=int, default=3000)
     ap.add_argument("--no-test", action="store_true")
     ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
+    ap.add_argument("--cluster", action="store_true", help="add cluster-support features (G9)")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -188,7 +198,7 @@ def main() -> int:
     sc = read_table("scores", args.s1, "train")
     fold, y = sc["fold"].to_numpy(), sc["y"].to_numpy()
     rows = (sc["p0"].to_numpy() >= cfg["tau0"]) & (sc["p1"].to_numpy() >= P_MIN)  # stage-1 rows only
-    X, names = build(sc, args.feats, "train", s1_feats, rows)
+    X, names = build(sc, args.feats, "train", s1_feats, rows, args.cluster)
     idx = np.flatnonzero(rows)
     yr, fr = y[rows], fold[rows]
     train_rows = fr >= 5
@@ -259,7 +269,7 @@ def main() -> int:
     if not args.no_test:
         st = read_table("scores", args.s1, "test")
         rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
-        Xt, _ = build(st, args.feats, "test", s1_feats, rows_t)
+        Xt, _ = build(st, args.feats, "test", s1_feats, rows_t, args.cluster)
         p2t = st["p1"].to_numpy(np.float32).copy()
         idt = np.flatnonzero(rows_t)
         p2t[idt] = np.mean([bst.inplace_predict(Xt, iteration_range=(0, bst.best_iteration + 1)) for bst in boosters],
