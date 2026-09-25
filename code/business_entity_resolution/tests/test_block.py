@@ -192,3 +192,14 @@ def test_indic_name_tokens_drop_legal_forms_and_apply_the_dictionary():
     assert tok.rows.tolist() == [0, 0, 1, 1, 2, 2]
     ptr, keys = index.record_keys(names[:2], pa.array(["", ""]), name_map={"goldan": "golden", "inphraa": "infra"})
     assert set(keys[ptr[0]:ptr[1]].tolist()) == set(keys[ptr[1]:ptr[2]].tolist())
+
+
+def test_name_char_ngrams_survive_typos_and_never_collide_with_token_keys():
+    tok = text.name_tokens(pa.array(["Stormy Campbell Brokerage", "STORMY CBMPBELL 8ROKERAGE", "ab"]))
+    rows, keys = index.char_ngrams(tok, 3, 4)
+    assert (keys < 0).all() and not (rows == 2).any()  # "ab" is shorter than one 4-gram
+    a, b = set(keys[rows == 0].tolist()), set(keys[rows == 1].tolist())
+    assert len(a) == 20 and len(a & b) >= 10
+    ptr, plain = index.record_keys(pa.array(["Stormy Campbell"]), pa.array([""]))
+    ptr2, with_grams = index.record_keys(pa.array(["Stormy Campbell"]), pa.array([""]), name_ngrams=4)
+    assert set(plain.tolist()) < set(with_grams.tolist()) and (plain >= 0).all()

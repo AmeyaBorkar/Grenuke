@@ -88,13 +88,33 @@ def _fill_compound(n_ptr, n_codes, w_ptr, w_codes, d_ptr, d_codes, c_ptr, out):
                 p += 1
 
 
+def char_ngrams(tok: text.Tokens, n_rows: int, n: int) -> tuple[np.ndarray, np.ndarray]:
+    """Character ``n``-grams (n <= 7) of each row's name tokens joined without spaces, as negative int64 keys (they
+    never collide with token codes or compound keys, which are non-negative). "stormy cbmpbell 8rokerage" still
+    shares most 4-grams with "stormy campbell brokerage"."""
+    counts = np.bincount(tok.rows, minlength=n_rows)
+    offsets = np.concatenate([[0], np.cumsum(counts)]).astype(np.int64)
+    joined = pc.binary_join(pa.LargeListArray.from_arrays(pa.array(offsets), tok.values.cast(pa.large_string())),
+                            pa.scalar("", pa.large_string()))
+    off = np.frombuffer(joined.buffers()[1], np.int64)[joined.offset:joined.offset + len(joined) + 1]
+    buf = np.frombuffer(joined.buffers()[2], np.uint8)
+    cnt = np.maximum(np.diff(off) - n + 1, 0)
+    rows = np.repeat(np.arange(n_rows, dtype=np.int64), cnt)
+    first = np.cumsum(cnt) - cnt
+    starts = np.repeat(off[:-1], cnt) + (np.arange(int(cnt.sum()), dtype=np.int64) - np.repeat(first, cnt))
+    packed = np.zeros(starts.size, np.int64)
+    for j in range(n):
+        packed = packed * 256 + buf[starts + j]
+    return rows, -(packed + 1)
+
+
 def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None,
-                name_map: dict[str, str] | None = None) -> tuple[np.ndarray, np.ndarray]:
+                name_map: dict[str, str] | None = None, name_ngrams: int = 0) -> tuple[np.ndarray, np.ndarray]:
     """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
 
     Indic-script names are transliterated first (``indic.name_tokens``: legal forms dropped, ``name_map`` applied);
     every name token of 3+ letters also adds its consonant skeleton (namespace "k"), so "मार्केटिंग" and "marketing"
-    share a key.
+    share a key. ``name_ngrams`` > 0 adds character n-grams of the name (typos; used by the name-only view).
     """
     n = len(names)
     nt, _ = indic.name_tokens(names, name_map)
@@ -125,10 +145,13 @@ def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = 
     compound = np.empty(c_ptr[-1], np.int64)
     _fill_compound(n_ptr, c_nt, w_ptr, c_aw, d_ptr, c_ad, c_ptr, compound)
 
-    rows = np.concatenate([nt.rows, nc.rows, aw.rows, ad.rows, sk_rows,
-                           np.repeat(np.arange(n, dtype=np.int64), counts)])
-    keys = np.concatenate([c_nt, c_nc, c_aw, c_ad, c_sk, compound])
-    return _group_by_row(rows, keys, n)
+    rows = [nt.rows, nc.rows, aw.rows, ad.rows, sk_rows, np.repeat(np.arange(n, dtype=np.int64), counts)]
+    keys = [c_nt, c_nc, c_aw, c_ad, c_sk, compound]
+    if name_ngrams:
+        g_rows, g_keys = char_ngrams(nt, n, name_ngrams)
+        rows.append(g_rows)
+        keys.append(g_keys)
+    return _group_by_row(np.concatenate(rows), np.concatenate(keys), n)
 
 
 @njit(parallel=True, cache=True)
