@@ -175,8 +175,10 @@ def run(cfg: RunConfig) -> dict:
     if cfg.split == "train" and cfg.param("sample") == "dev":
         s1_query &= in_dev_sample(eid)
 
+    parts = partitions(country)
+    has_empty_country = sum(r.size for _, r in parts) > eid.size
     frames, report = [], {}
-    for label, rows in partitions(country):
+    for label, rows in parts:
         t1 = time.perf_counter()
         s1_rows = rows[s1_mask[rows]]
         r_rows = rows[~s1_mask[rows]]
@@ -220,9 +222,10 @@ def run(cfg: RunConfig) -> dict:
             cands[c] = cands[c].fillna(-1).astype(np.int16)
     cands["views"] = cands["views"].astype(np.int16)
     cands = cands[["s1", "r", "views"] + [f"{m}_{v}" for v in view_names for m in ("score", "rank_s1", "rank_r")]]
-    if cands.duplicated(["s1", "r"]).any():  # only possible when empty-country records join several partitions
+    if has_empty_country and cands.duplicated(["s1", "r"]).any():  # empty-label records join several partitions
         cands = cands.sort_values("views", ascending=False).drop_duplicates(["s1", "r"]).reset_index(drop=True)
-    cands = cands.sort_values(["s1", "r"], kind="stable").reset_index(drop=True)
+    order = np.lexsort((cands["r"].to_numpy(), cands["s1"].to_numpy()))  # by s1, then r (numpy: fast on 100M rows)
+    cands = cands.take(order).reset_index(drop=True)
     meta = {"params": params, "partitions": report}
     write_table(cands, "candidates", tag, cfg.split, command=cfg.command, inputs={"records": cfg.split}, **meta)
     out = {"pairs": int(len(cands)), "s1_with_candidates": int(cands["s1"].nunique()),

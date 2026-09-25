@@ -169,3 +169,14 @@ def test_merge_views_or_bits_and_fills_absent_views():
     m = merge_views({"tok": a, "name_short": b}).sort_values(["s1", "r"]).reset_index(drop=True)
     assert m["views"].tolist() == [64, 68, 4]
     assert m["rank_s1_tok"].tolist() == [0, 1, -1] and np.isnan(m.loc[2, "score_tok"])
+
+
+def test_indic_transliteration_and_skeleton_meet_latin_names():
+    from ber.block import indic
+    assert indic.transliterate("मार्केटिंग") == "maarketing" and indic.transliterate("राम") == "raam"
+    assert indic.transliterate("லக்ஷ்மி") == "lakshmi"  # Tamil uses the same offsets
+    sk = indic.skeleton(pa.array(["marketing", "maarketing", "builders", "bildars", "software", "sophtaveyar"]))
+    assert sk.to_pylist() == ["mrktng", "mrktng", "bldrs", "bldrs", "sftvr", "sftvr"]
+    ptr, keys = index.record_keys(pa.array(["Star Marketing Pvt Ltd", "स्टार मार्केटिंग प्राइवेट लिमिटेड"]), pa.array(["", ""]))
+    shared = set(keys[ptr[0]:ptr[1]].tolist()) & set(keys[ptr[1]:ptr[2]].tolist())
+    assert shared  # the skeletons (and here even the tokens "star"/"staar" skeletons) connect the two scripts
