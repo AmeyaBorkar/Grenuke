@@ -1,0 +1,90 @@
+name: checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: repo policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: No co-author / attribution lines in commit messages
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            revs="$BASE..$HEAD"
+          elif [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            revs="$BEFORE..$SHA"
+          else
+            revs="-n 50 $SHA"
+          fi
+          pattern='^[[:space:]]*(co-?authored-?by|co-?author|assisted-?by|generated-?by|generated with|created with|made with)|noreply@anthropic\.com|generated with \[?claude'
+          bad=$(git log --format='--- %h%n%B' $revs | grep -Ein "$pattern" || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Co-author / attribution lines are not allowed (CONTRIBUTING.md section 4):"
+            echo "$bad"
+            exit 1
+          fi
+          echo "OK: no attribution lines ($revs)"
+
+      - name: No attribution lines in PR title / body
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s\n%s\n' "$TITLE" "$BODY" | grep -Eiq '(co-?authored-?by|generated with|assisted-?by|noreply@anthropic\.com)'; then
+            echo "::error::Remove co-author / attribution lines from the PR title/body."
+            exit 1
+          fi
+          echo "OK"
+
+      - name: No data / binary / large files tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            size=$(stat -c %s "$f")
+            if [ "$size" -gt 5242880 ]; then echo "::error file=$f::larger than 5 MB ($size bytes)"; fail=1; fi
+            case "$f" in
+              student_resource/dataset/*|data_cache/*|work/*|output/*.tsv)
+                echo "::error file=$f::data path must not be committed"; fail=1 ;;
+              *.parquet|*.npy|*.npz|*.pkl|*.pickle|*.joblib|*.pt|*.pth|*.ckpt|*.safetensors|*.onnx|*.h5|*.feather|*.arrow|*.zip|*.7z|*.tar|*.gz)
+                echo "::error file=$f::data/binary artifact must not be committed"; fail=1 ;;
+            esac
+          done < <(git ls-files)
+          exit $fail
+
+  tests:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install shared package (light deps)
+        run: python -m pip install -e "code/business_entity_resolution[dev]"
+      - name: Byte-compile sources and scripts
+        run: python -m compileall -q code/business_entity_resolution/src scripts
+      - name: Unit tests
+        run: python -m pytest code/business_entity_resolution/tests -q

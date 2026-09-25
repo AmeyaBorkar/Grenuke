@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Team policy (CONTRIBUTING.md section 4):
+#   1) no co-author / collaborator / attribution / tool-signature lines
+#   2) subject must be "type(scope): summary"
+msg_file="$1"
+body=$(grep -v '^#' "$msg_file")
+
+forbidden='^[[:space:]]*(co-?authored-?by|co-?author|assisted-?by|generated-?by|generated with|created with|made with|written (by|with) (claude|copilot|cursor|codex|gemini|chatgpt|gpt|an? ai))'
+if printf '%s\n' "$body" | grep -Eiq "$forbidden" \
+   || printf '%s\n' "$body" | grep -Eiq 'noreply@anthropic\.com|generated with \[?claude'; then
+  echo "ERROR (commit-msg): co-author / attribution / tool-signature lines are not allowed in this repo." >&2
+  echo "Remove lines like 'Co-authored-by: ...' or 'Generated with ...' and commit again (CONTRIBUTING.md section 4)." >&2
+  exit 1
+fi
+
+subject=$(printf '%s\n' "$body" | sed -n '/[^[:space:]]/{p;q;}')
+case "$subject" in
+  "Merge "*|"Revert "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+if ! printf '%s' "$subject" | grep -Eq '^(feat|fix|perf|refactor|test|docs|exp|data|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: .+'; then
+  echo "ERROR (commit-msg): subject must look like 'type(scope): summary'." >&2
+  echo "  types: feat fix perf refactor test docs exp data build ci chore revert" >&2
+  echo "  example: feat(block): add address-view kNN retriever" >&2
+  echo "  got: $subject" >&2
+  exit 1
+fi
+
+if [ "${#subject}" -gt 100 ]; then
+  echo "ERROR (commit-msg): subject is ${#subject} chars; keep it <= 72 (hard limit 100)." >&2
+  exit 1
+fi
+exit 0

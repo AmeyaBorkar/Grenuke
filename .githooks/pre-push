@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Team policy (CONTRIBUTING.md section 3): main is updated only through reviewed PRs.
+# Blocks direct pushes to / deletion of main. Pushing your own branches and sub/* tags is fine.
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ] && [ "${ALLOW_MAIN_PUSH:-0}" != "1" ]; then
+    if [ "$local_sha" = "$zero" ]; then
+      echo "ERROR (pre-push): deleting 'main' is not allowed." >&2
+    else
+      echo "ERROR (pre-push): direct pushes to 'main' are not allowed. Push your branch and open a PR:" >&2
+      echo "  git push -u origin <member>/<topic>" >&2
+    fi
+    exit 1
+  fi
+done
+exit 0
