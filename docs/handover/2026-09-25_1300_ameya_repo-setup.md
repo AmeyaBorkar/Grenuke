@@ -48,8 +48,14 @@ The repo is ready for three people and their agents working in parallel: branche
   - `ber.io.write_matching` / `write_candidates` produce 1,732,544-row files that the **official validator passes, including `--check-ids`**.
 - **Half-done:** `docs/TEAM.md` still has placeholders for members 2 and 3 (names, handles, owners).
 - **Known caveats:**
-  - Branch protection on `main` may be unavailable for private repos on the free GitHub plan. Hooks and CI enforce the rules in that case (see the PR or chat note).
-  - Everyone must run `scripts/setup` once, otherwise the hooks are not active in their clone.
+  - GitHub **branch protection on `main` is active**:
+    - a PR is required;
+    - the checks `repo policy` and `unit tests` are required;
+    - history is linear;
+    - force pushes and deletion are blocked.
+  - Admins can bypass protection in an emergency. The local `pre-push` hook still blocks direct pushes.
+  - Merge settings are rebase-only, and branches are deleted automatically on merge.
+  - Everyone must run `scripts/setup` once, otherwise the local hooks are not active in their clone.
 
 ## Numbers (shared holdout, `ber.eval`; include the command)
 
