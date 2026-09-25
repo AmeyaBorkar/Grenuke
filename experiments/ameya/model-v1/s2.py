@@ -170,6 +170,30 @@ def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], row
     return X, names + s1_feats
 
 
+def score_test(args, command: str) -> None:
+    """Test scores from the saved stage-2 models and calibration; no train data in memory (lean re-run)."""
+    cfg1 = json.loads((artifact_dir("models", args.s1) / "config.json").read_text())
+    mdir = artifact_dir("models", args.tag)
+    cfg2 = json.loads((mdir / "config.json").read_text())
+    boosters = [xgb.Booster(model_file=str(mdir / f"stage2_g{g}.ubj")) for g in range(3)]
+    iso = pd.read_parquet(mdir / "isotonic.parquet")
+    st = read_table("scores", args.s1, "test")
+    rows_t = (st["p0"].to_numpy() >= cfg1["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
+    Xt, names = build(st, args.feats, "test", cfg2["s1_feats"], rows_t, args.cluster)
+    if names != cfg2["features"]:
+        raise ValueError("test features do not match the saved stage-2 models")
+    p2t = st["p1"].to_numpy(np.float32).copy()
+    idt = np.flatnonzero(rows_t)
+    p2t[idt] = np.mean([b.inplace_predict(Xt, iteration_range=(0, it + 1))
+                        for b, it in zip(boosters, cfg2["best_iterations"])], axis=0)
+    del Xt
+    pct = p2t.copy()
+    pct[idt] = np.interp(p2t[idt], iso["x"].to_numpy(), iso["y"].to_numpy()).astype(np.float32)  # = isotonic (clip)
+    write_table(pd.DataFrame({"s1": st["s1"], "r": st["r"], "p1": st["p1"], "p2": p2t, "pc": pct}), "scores",
+                args.tag, "test", command=command, inputs={"scores": args.s1, "features": args.feats})
+    log.info("test scores written: %d pairs, %d stage-2 rows", len(st), idt.size)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--feats", default="ameya-fx1")
@@ -180,6 +204,7 @@ def main() -> int:
     ap.add_argument("--no-test", action="store_true")
     ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
     ap.add_argument("--cluster", action="store_true", help="add cluster-support features (G9)")
+    ap.add_argument("--test-only", action="store_true", help="only score test with the saved models (lean re-run)")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -188,6 +213,9 @@ def main() -> int:
     warnings.filterwarnings("ignore", category=UserWarning, module="xgboost")
     command = "python experiments/ameya/model-v1/s2.py " + " ".join(f"--{k.replace('_', '-')} {v}" for k, v in vars(args).items())
     t0 = time.perf_counter()
+    if args.test_only:
+        score_test(args, command)
+        return 0
 
     cfg = json.loads((artifact_dir("models", args.s1) / "config.json").read_text())
     b = xgb.Booster(model_file=str(artifact_dir("models", args.s1) / "stage1_g0.ubj"))
