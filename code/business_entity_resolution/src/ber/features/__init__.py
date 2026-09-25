@@ -15,6 +15,7 @@ import time
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
 from ..artifacts import provenance
@@ -94,15 +95,20 @@ def run(cfg: RunConfig) -> dict:
     # Compute it once when requested; per-batch context would silently change
     # those values at batch boundaries. The string-only mode remains streaming.
     context_features = None
-    if str(cfg.param("include_context", "false")).lower() in {"true", "1", "yes"}:
-        if importlib.util.find_spec("ber.features.context") is None:
+    context_option = str(cfg.param("include_context", "auto")).lower()
+    if context_option not in {"auto", "true", "1", "yes", "false", "0", "no"}:
+        raise ValueError("include_context must be auto, true or false")
+    context_available = importlib.util.find_spec("ber.features.context") is not None
+    include_context = (context_available if context_option == "auto"
+                       else context_option in {"true", "1", "yes"})
+    if include_context:
+        if not context_available:
             raise ImportError("ber.features.context is required for include_context")
         from . import context
-        raw = pq.read_table(records_path(cfg.split),
-                            columns=["eid", "source", "country", "name", "address"]).to_pandas()
-        s1_records = raw.loc[raw["source"] == 1,
-                             ["eid", "country", "name", "address"]].copy()
-        del raw
+        s1_records = ds.dataset(records_path(cfg.split), format="parquet").to_table(
+            columns=["eid", "country", "name", "address"],
+            filter=ds.field("source") == 1,
+        ).to_pandas()
         all_candidates = pq.read_table(candidates_path).to_pandas()
         context_features = context.compute(all_candidates, s1_records)
         if len(context_features) != len(all_candidates):

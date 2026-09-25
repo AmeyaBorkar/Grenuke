@@ -202,8 +202,12 @@ def compute(left: pd.DataFrame, right: pd.DataFrame, countries: np.ndarray,
     result["addr__token_set"] = fuzzy(addr_l, addr_r, fuzz.token_set_ratio)
     hasher = HashingVectorizer(analyzer="char", ngram_range=(3, 3), n_features=2**18,
                                alternate_sign=False, norm="l2", dtype=np.float32)
-    char_l = hasher.transform(addr_l)
-    char_r = hasher.transform(addr_r)
+    # Candidate lists reuse each S1 address many times. Hash each distinct
+    # address once, then gather its sparse row for the aligned pairs.
+    codes, unique_addresses = pd.factorize(np.concatenate([addr_l, addr_r]), sort=False)
+    hashed = hasher.transform(unique_addresses)
+    char_l = hashed[codes[:n]]
+    char_r = hashed[codes[n:]]
     result["addr__char_cosine"] = np.asarray(char_l.multiply(char_r).sum(axis=1)).ravel()
     for label, field in (("empty", "f_addr_empty"), ("short", "f_addr_short"),
                          ("landmark", "f_landmark"), ("pobox", "f_pobox"),
