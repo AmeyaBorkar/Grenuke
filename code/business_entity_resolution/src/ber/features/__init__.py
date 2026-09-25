@@ -20,7 +20,7 @@ import pyarrow.parquet as pq
 from ..artifacts import provenance
 from ..config import RunConfig
 from ..eval.splits import fold_of, in_dev_sample
-from ..paths import artifact_path
+from ..paths import artifact_path, records_path
 from ..records import load_truth
 from .string import FEATURES, compute
 
@@ -86,18 +86,33 @@ def run(cfg: RunConfig) -> dict:
     truth_index = None
     if cfg.split == "train":
         truth_index = pd.MultiIndex.from_frame(load_truth()[["s1", "r"]])
-    context = None
-    if importlib.util.find_spec("ber.features.context") is not None:
-        from . import context
-
     input_file = pq.ParquetFile(candidates_path)
     batch_size = cfg.param("batch_size", 100_000, int)
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
+    # Context depends on *all* candidates for exact rivalry and group counts.
+    # Compute it once when requested; per-batch context would silently change
+    # those values at batch boundaries. The string-only mode remains streaming.
+    context_features = None
+    if str(cfg.param("include_context", "false")).lower() in {"true", "1", "yes"}:
+        if importlib.util.find_spec("ber.features.context") is None:
+            raise ImportError("ber.features.context is required for include_context")
+        from . import context
+        raw = pq.read_table(records_path(cfg.split),
+                            columns=["eid", "source", "country", "name", "address"]).to_pandas()
+        s1_records = raw.loc[raw["source"] == 1,
+                             ["eid", "country", "name", "address"]].copy()
+        del raw
+        all_candidates = pq.read_table(candidates_path).to_pandas()
+        context_features = context.compute(all_candidates, s1_records)
+        if len(context_features) != len(all_candidates):
+            raise ValueError("context features are not row-aligned with candidates")
+        del all_candidates, s1_records
     output = artifact_path("features", cfg.require_tag(), cfg.split)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(output.name + ".tmp")
     rows = 0
+    candidate_offset = 0
     writer = None
     meta = provenance(cfg.command, {"norm": norm_tag, "candidates": candidate_tag},
                       kind="features", tag=cfg.require_tag(), split=cfg.split,
@@ -105,7 +120,14 @@ def run(cfg: RunConfig) -> dict:
     try:
         for batch in input_file.iter_batches(batch_size=batch_size):
             candidates = batch.to_pandas()
-            candidates = candidates.loc[_candidate_mask(candidates, cfg)].reset_index(drop=True)
+            mask = _candidate_mask(candidates, cfg)
+            batch_context = None
+            if context_features is not None:
+                batch_context = context_features.iloc[
+                    candidate_offset:candidate_offset + len(candidates)
+                ].loc[mask].reset_index(drop=True)
+            candidate_offset += len(candidates)
+            candidates = candidates.loc[mask].reset_index(drop=True)
             if candidates.empty:
                 continue
             left_rows = eid_index.get_indexer(candidates["s1"].to_numpy(dtype=np.int64))
@@ -125,11 +147,8 @@ def run(cfg: RunConfig) -> dict:
             if truth_index is not None:
                 base["y"] = pd.MultiIndex.from_frame(base[["s1", "r"]]).isin(truth_index).astype(np.int8)
             result = pd.concat([base, features], axis=1)
-            if context is not None:
-                context_features = context.compute(candidates, norm, cfg)
-                if len(context_features) != len(result):
-                    raise ValueError("context features are not row-aligned with candidates")
-                result = pd.concat([result, context_features.reset_index(drop=True)], axis=1)
+            if batch_context is not None:
+                result = pd.concat([result, batch_context], axis=1)
             table = pa.Table.from_pandas(result, preserve_index=False)
             if writer is None:
                 writer = pq.ParquetWriter(temporary,

@@ -10,7 +10,7 @@ from ber.features.string import FEATURES, compute
 from ber import artifacts
 from ber.config import RunConfig
 from ber.features import run
-from ber.paths import truth_path
+from ber.paths import records_path, truth_path
 
 
 def _record(name, address, number, *, extra="", indic=False):
@@ -73,3 +73,25 @@ def test_stage_writes_c8_pairs_labels_and_metadata(tmp_path, monkeypatch):
     assert set(FEATURES) <= set(out.columns)
     meta = artifacts.read_meta(result["path"])
     assert meta["inputs"] == {"norm": "bakshi-norm-v0", "candidates": "ameya-block-v0-dev"}
+
+    # Context uses the full candidate set and raw S1 records, independent of
+    # the string-feature batches. Keep a two-batch test to catch API drift.
+    raw = pd.DataFrame({
+        "eid": norm["eid"], "source": norm["source"], "country": norm["country"],
+        "name": ["Acme Solutions", "Acme Solutions", "Acme Solutions Exports"],
+        "address": ["4104 Market Road", "4104 Market Road", "4108 Market Road"],
+    })
+    records_path("train").parent.mkdir(parents=True, exist_ok=True)
+    raw.to_parquet(records_path("train"), index=False)
+    candidates["views"] = 64
+    candidates["score_tok"] = [0.9, 0.7]
+    candidates["rank_s1_tok"] = [0, 1]
+    candidates["rank_r_tok"] = [0, 0]
+    artifacts.write_table(candidates, "candidates", "ameya-block-v0-dev", "train")
+    cfg = RunConfig(split="train", tag="bakshi-feat-context-v0",
+                    inputs={"norm": "bakshi-norm-v0", "candidates": "ameya-block-v0-dev"},
+                    params={"batch_size": "1", "idf_docs": "2", "include_context": "true"})
+    run(cfg)
+    with_context = artifacts.read_table("features", "bakshi-feat-context-v0", "train")
+    assert with_context["ctx__log_cands_s1"].tolist() == [pytest.approx(1.0986123)] * 2
+    assert with_context["src__is_s3"].tolist() == [0.0, 1.0]
