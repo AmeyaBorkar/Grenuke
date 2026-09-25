@@ -5,7 +5,7 @@ Poisson(1) weights per entity (equivalent to the classic bootstrap at this scale
 over ~550k holdout entities take seconds and little memory.
 
 CLI (compares two C9 match artifacts on the holdout and prints a block to paste into the gate record):
-    python -m ber.eval.gates --base sachi-model-v0 --new sachi-model-v1 [--folds 0] [--min-gain 0.002]
+    python -m ber.eval.gates --base sachi-model-v0 --new sachi-model-v1 [--folds 0] [--sample dev] [--min-gain 0.002]
 """
 from __future__ import annotations
 
@@ -76,12 +76,13 @@ def _parse_folds(text: str | None):
 def main(argv: list[str] | None = None) -> int:
     from ..artifacts import read_table
     from ..records import load_records, load_truth
-    from .splits import in_folds, is_holdout
+    from .splits import in_dev_sample, in_folds, is_holdout
 
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", required=True, help="tag of the baseline matches (work/matches/<tag>/train.parquet)")
     ap.add_argument("--new", required=True, help="tag of the candidate matches")
     ap.add_argument("--folds", help="restrict to these folds, e.g. 0 or 0-4 (default: the shared holdout)")
+    ap.add_argument("--sample", choices=("dev",), help="restrict to the dev sample (ber.eval.splits.in_dev_sample)")
     ap.add_argument("--min-gain", type=float, default=MIN_GAIN)
     ap.add_argument("--n-boot", type=int, default=1000)
     ap.add_argument("--seed", type=int, default=0)
@@ -91,6 +92,8 @@ def main(argv: list[str] | None = None) -> int:
     s1 = rec[rec["source"] == 1]
     folds = _parse_folds(args.folds)
     mask = is_holdout(s1["eid"]) if folds is None else in_folds(s1["eid"], folds)
+    if args.sample == "dev":
+        mask &= in_dev_sample(s1["eid"])
     universe = s1["eid"].to_numpy()[mask]
     country = pd.Series(s1["country"].to_numpy(), index=s1["eid"].to_numpy())
     res = compare(read_table("matches", args.base, "train", ["s1", "r"]), read_table("matches", args.new, "train", ["s1", "r"]),
