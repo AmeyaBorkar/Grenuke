@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from ber.features.context import FEATURES, _group_top2, compute
+from ber.features.context import FEATURES, _group_top2, compute, numstreet_keys
 
 
 def test_group_top2():
@@ -27,3 +27,11 @@ def test_compute_margins_ranks_and_rival_counts():
     assert np.allclose(f["ctx__log_s1_same_name"], np.log1p(1))     # the French S1 is not a rival (other country)
     assert f["src__is_s3"].tolist() == [0, 1, 0]
     assert all(k.split("__")[0] in ("ret", "ctx", "src") for k in FEATURES)
+
+
+def test_numstreet_keys_skip_street_types_and_survive_reordering():
+    import pyarrow as pa
+    keys = numstreet_keys(pa.array([
+        "32 Rue André Maginot, Mérignac", "PA, AVELLA CITY, 972 OLD RIDGE RD", "4809 Harrison Ferry Road, Hurlock, MD",
+        "0020718 ADAMS MILL PLACE, VA", "Sno 32/2/1 Hno 1048, Gulabnagar", "HARRISON FERRY ROAD, HURLOCK, MD"]))
+    assert keys.tolist() == ["32|andre", "972|old", "4809|harrison", "20718|adams", "1048|gulabnagar", ""]

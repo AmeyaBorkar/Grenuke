@@ -428,8 +428,12 @@ def context_features(cands: pd.DataFrame, rec: dict, split: str) -> pd.DataFrame
     del s1_rec
     is_s1 = rec["source"] == 1
     name_key = _row_hash(rec["name"]["ptr"], rec["name"]["codes"], rec["cid"])
-    w1, n1 = rec["word"]["first"], rec["num1"]
-    ns_key = np.where((w1 >= 0) & (n1 >= 0), (n1 * 1_000_003 + w1) * 64 + rec["cid"] + 1, 0)
+    # (house number, street word) key of every record, the same definition as the S1 side (context.numstreet_keys)
+    addrs = pq.read_table(records_path(split), columns=["address"])["address"].combine_chunks()
+    ns = context.numstreet_keys(addrs)
+    codes, _ = pd.factorize(ns)
+    ns_key = np.where(ns != "", (codes.astype(np.int64) + 1) * 64 + rec["cid"] + 1, 0)
+    del addrs, ns, codes
     ii = rec["row_of"].get_indexer(cands["s1"].to_numpy())
     jj = rec["row_of"].get_indexer(cands["r"].to_numpy())
     for name, key in (("rname", name_key), ("rnumstreet", ns_key)):

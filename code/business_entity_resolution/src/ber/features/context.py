@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
 
 FEATURES = {
     "ret__<view>_score": "retrieval similarity of the pair in that blocking view (NaN if the view missed it)",
@@ -23,7 +25,7 @@ FEATURES = {
     "ctx__log_cands_s1": "log1p of the number of candidates of the S1",
     "ctx__log_cands_r": "log1p of the number of candidate S1 of the record",
     "ctx__log_s1_same_name": "log1p of the number of other S1 (same split and country) with the same name key",
-    "ctx__log_s1_same_numstreet": "log1p of the number of other S1 with the same (house number, first street word)",
+    "ctx__log_s1_same_numstreet": "log1p of the number of other S1 with the same (house number, street word) key",
     "src__is_s3": "1 if the record comes from Source 3, 0 if from Source 2",
 }
 
@@ -48,14 +50,34 @@ def s1_keys(s1_records: pd.DataFrame) -> pd.DataFrame:
     tok = pd.DataFrame({"row": nt.rows, "tok": nt.values.to_numpy(zero_copy_only=False)})
     tok = tok.drop_duplicates().sort_values(["row", "tok"], kind="stable")
     name_key = tok.groupby("row")["tok"].agg(" ".join).reindex(range(n), fill_value="").to_numpy()
-    words = text.address_words(addrs)
-    nums = text.address_numbers(addrs)
-    w1 = pd.Series(words.values.to_numpy(zero_copy_only=False)).groupby(words.rows).first().reindex(range(n), fill_value="")
-    d1 = pd.Series(nums.values.to_numpy(zero_copy_only=False)).groupby(nums.rows).first().reindex(range(n), fill_value="")
-    numstreet = np.where((d1.to_numpy() != "") & (w1.to_numpy() != ""), d1.to_numpy() + "|" + w1.to_numpy(), "")
+    numstreet = numstreet_keys(addrs)
     country = s1_records["country"].astype(str).to_numpy()
     return pd.DataFrame({"eid": s1_records["eid"].to_numpy(), "name_key": country + "|" + name_key.astype(str),
                          "numstreet_key": np.where(numstreet != "", country + "|" + numstreet, "")})
+
+
+# Words skipped between a house number and the street name: street types (US, India, France, canonical forms too),
+# articles and house/plot markers. "32 Rue André Maginot" -> 32|andre, "PA, AVELLA CITY, 972 OLD RIDGE RD" -> 972|old,
+# "Sno 32/2/1 Hno 1048, Gulabnagar" -> 1048|gulabnagar.
+_SKIP = ("rue|r|avenue|ave|av|boulevard|bd|blvd|impasse|imp|allee|all|chemin|ch|route|rte|place|pl|quai|cours|faubourg|fg|"
+         "de|du|des|la|le|les|l|d|st|saint|no|nr|n|nos|bis|ter|quater|street|road|rd|lane|ln|drive|dr|the|"
+         "hno|sno|h|plot|flat|door|house|shop|ward|block|sector|floor|fl|unit|apt|suite|ste|survey|khasra|gat|gut")
+NUMSTREET = r"(?:^|[^0-9])0*(?P<num>[0-9]+)[^a-z0-9]*(?P<word>[a-z]{2,})"  # applied after blanking _SKIP words
+
+
+def numstreet_keys(addresses: pa.Array) -> np.ndarray:
+    """(house number, street word) key per address: the first number followed by a street name, and that name's
+    first significant word. Reordered components and French street types no longer change the key. "" if none."""
+    from ..block import text
+
+    folded = pc.replace_substring_regex(text.fold(addresses), r"([0-9])(st|nd|rd|th)\b", r"\1")
+    folded = pc.replace_substring_regex(folded, r"\b(?:" + _SKIP + r")\b", " ")  # RE2 has no negative lookahead
+    ex = pc.extract_regex(folded, NUMSTREET)
+    num = pc.fill_null(ex.field("num"), "")
+    word = pc.fill_null(ex.field("word"), "")
+    key = pc.binary_join_element_wise(num, word, "|")
+    empty = pc.or_(pc.equal(num, ""), pc.equal(word, ""))
+    return np.asarray(pc.if_else(empty, "", key).to_numpy(zero_copy_only=False), dtype=object)
 
 
 def _group_top2(group: np.ndarray, score: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
