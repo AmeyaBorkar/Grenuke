@@ -2,7 +2,7 @@
 
 - **Author:** ameya (human; the agent was Claude Code)
 - **When (IST):** 2026-09-25 14:14
-- **Branch / PR / last commit:** `ameya/final-plan` / see the PR "docs(plans): adopt final plan, contracts v1 and roadmap" / the head of the branch
+- **Branch / PR / last commit:** `ameya/final-plan` / PR #3 / the head of the branch (the pipeline skeleton is PR #4)
 - **Area and paths touched:**
   - shared docs, in a dedicated PR requested by the coordinator: `plans/FINAL_PLAN.md` (new), `plans/DECISION.md`, `plans/README.md`, `docs/ROADMAP.md`, `docs/TEAM.md`, `docs/CONTRACTS.md`, `CHANGELOG.md` (new), `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `.github/CODEOWNERS`, `.github/pull_request_template.md`;
   - my own area: `experiments/ameya/plan-checks/`.
