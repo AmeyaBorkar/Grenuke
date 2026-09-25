@@ -205,6 +205,7 @@ def main() -> int:
     ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
     ap.add_argument("--cluster", action="store_true", help="add cluster-support features (G9)")
     ap.add_argument("--test-only", action="store_true", help="only score test with the saved models (lean re-run)")
+    ap.add_argument("--extra", default="", help="more features for stage 2, comma-separated (e.g. the leg__ group)")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -221,6 +222,7 @@ def main() -> int:
     b = xgb.Booster(model_file=str(artifact_dir("models", args.s1) / "stage1_g0.ubj"))
     gain = b.get_score(importance_type="gain")
     s1_feats = [f for f, _ in sorted(gain.items(), key=lambda kv: -kv[1])][:args.top]
+    s1_feats += [f for f in args.extra.split(",") if f and f not in s1_feats]
     del b
 
     sc = read_table("scores", args.s1, "train")
