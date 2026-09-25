@@ -102,7 +102,8 @@ def _expected_f(starts, order, q, own, scratch, sel, best_ef):
                 rank += 1
 
 
-def expected_f_select(s1: np.ndarray, p: np.ndarray, own: np.ndarray, shift: float) -> np.ndarray:
+def expected_f_select(s1: np.ndarray, p: np.ndarray, own: np.ndarray, shift: float, with_ef: bool = False):
+    """Selected pairs (bool mask); with ``with_ef`` also the model's expected F0.5 per S1 (pd.Series by s1)."""
     pc = np.clip(p.astype(np.float64), 1e-7, 1 - 1e-7)
     q = 1.0 / (1.0 + np.exp(-(np.log(pc / (1 - pc)) + shift)))
     order = np.lexsort((-q, s1))
@@ -112,7 +113,18 @@ def expected_f_select(s1: np.ndarray, p: np.ndarray, own: np.ndarray, shift: flo
     sel = np.zeros(p.size, np.bool_)
     best_ef = np.zeros(starts.size - 1, np.float64)
     _expected_f(starts, order.astype(np.int64), q, own, scratch, sel, best_ef)
+    if with_ef:
+        return sel, pd.Series(best_ef, index=k[starts[:-1]])
     return sel
+
+
+def expected_f_by_country(ef: pd.Series, universe: np.ndarray, country: pd.Series) -> dict:
+    """Mean expected F0.5 of the chosen sets per country and overall; S1 without candidates count as 1 (empty)."""
+    e = ef.reindex(universe).fillna(1.0)
+    c = country.reindex(universe).to_numpy()
+    out = {str(k): round(float(v), 5) for k, v in e.groupby(c).mean().items()}
+    out["all"] = round(float(e.mean()), 5)
+    return out
 
 
 def diagnostics(pred: pd.DataFrame, s1: np.ndarray, p: np.ndarray, own: np.ndarray, country: pd.Series,
@@ -190,16 +202,26 @@ def main() -> int:
     payload = {"rule": rule, "holdout": rep, "threshold_grid": thr, "dp_grid": dp, "g6_dp_vs_threshold": gate,
                "gate_vs_base": gate_base}
     payload["diagnostics"] = {"holdout": diagnostics(pred, s1, p, own, country, universe)}
+    if use_dp:  # the model's own forecast of macro F0.5, to compare with the real holdout score (and on test)
+        _, ef_h = expected_f_select(hs1, hp, hown, s_best, with_ef=True)
+        payload["expected_f05"] = {"holdout": expected_f_by_country(ef_h, universe, country)}
+        log.info("expected F0.5 on the holdout (model's forecast): %s", payload["expected_f05"]["holdout"])
 
     if not args.no_test:
         st = read_table("scores", args.scores, "test", ["s1", "r", args.col])
         s1t, rt, pt = st["s1"].to_numpy(), st["r"].to_numpy(), st[args.col].to_numpy(np.float32)
         own_t = argmax_owner(s1t, rt, pt)
-        sel_t = expected_f_select(s1t, pt, own_t, s_best) if use_dp else own_t & (pt > t_best)
+        if use_dp:
+            sel_t, ef_t = expected_f_select(s1t, pt, own_t, s_best, with_ef=True)
+        else:
+            sel_t = own_t & (pt > t_best)
         mt = st.loc[sel_t, ["s1", "r"]].reset_index(drop=True)
         write_table(mt, "matches", args.tag, "test", command=command, inputs={"scores": args.scores}, rule=rule)
         _, ct = holdout_universe("test")
         payload["diagnostics"]["test"] = diagnostics(mt, s1t, pt, own_t, ct, ct.index.to_numpy())
+        if use_dp:
+            payload["expected_f05"]["test"] = expected_f_by_country(ef_t, ct.index.to_numpy(), ct)
+            log.info("expected F0.5 on test (model's forecast): %s", payload["expected_f05"]["test"])
         log.info("diagnostics: %s", json.dumps(payload["diagnostics"], default=str))
     payload["runtime_s"] = round(time.perf_counter() - t0)
     write_report(args.tag, payload, command=command, inputs={"scores": args.scores})
