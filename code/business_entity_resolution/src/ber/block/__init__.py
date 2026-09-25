@@ -153,7 +153,9 @@ def run(cfg: RunConfig) -> dict:
                       tok.seed_cap_r, tok.seed_cap_s1, 200, 200)
     ns_max_tokens = cfg.param("ns_max_addr_tokens", 3, int)
     dev_tag = cfg.param("dev_tag")
-    params = {"tok": vars(tok), "name_short": vars(ns) if use_ns else None, "ns_max_addr_tokens": ns_max_tokens}
+    indic_dict = cfg.param("indic_dict")  # a models tag holding indic_dict.parquet (learned on train folds 5-19)
+    params = {"tok": vars(tok), "name_short": vars(ns) if use_ns else None, "ns_max_addr_tokens": ns_max_tokens,
+              "indic_dict": indic_dict}
 
     t0 = time.perf_counter()
     tbl = pq.read_table(records_path(cfg.split), columns=["eid", "source", "country", "name", "address"])
@@ -162,8 +164,13 @@ def run(cfg: RunConfig) -> dict:
     country = tbl["country"].to_numpy()
     names, addresses = tbl["name"].combine_chunks(), tbl["address"].combine_chunks()
     del tbl
+    name_map = None
+    if indic_dict:
+        from ..paths import artifact_dir
+        from .indic import load_name_map
+        name_map = load_name_map(artifact_dir("models", indic_dict) / "indic_dict.parquet")
     counts: dict = {}
-    indptr, keys = index.record_keys(names, addresses, counts)
+    indptr, keys = index.record_keys(names, addresses, counts, name_map)
     n_addr = counts["address_tokens"]
     del addresses
     log.info("tokens: %d records, %.1f keys per record, %.0fs", eid.size, keys.size / eid.size, time.perf_counter() - t0)
@@ -193,7 +200,7 @@ def run(cfg: RunConfig) -> dict:
             short = r_rows[n_addr[r_rows] <= ns_max_tokens]
             sub = np.concatenate([s1_rows, short])
             ns_ptr, ns_keys = index.record_keys(pc.take(names, pa.array(sub)),
-                                                pa.array([""] * sub.size, type=names.type))
+                                                pa.array([""] * sub.size, type=names.type), name_map=name_map)
             local_s1 = np.arange(s1_rows.size)
             local_r = np.arange(s1_rows.size, sub.size)
             if short.size:

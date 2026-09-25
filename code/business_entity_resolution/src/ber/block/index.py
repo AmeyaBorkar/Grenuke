@@ -88,14 +88,16 @@ def _fill_compound(n_ptr, n_codes, w_ptr, w_codes, d_ptr, d_codes, c_ptr, out):
                 p += 1
 
 
-def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None) -> tuple[np.ndarray, np.ndarray]:
+def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None,
+                name_map: dict[str, str] | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
 
-    Indic-script names are transliterated first; every name token of 3+ letters also adds its consonant skeleton
-    (namespace "k"), so "मार्केटिंग" and "marketing" share a key.
+    Indic-script names are transliterated first (``indic.name_tokens``: legal forms dropped, ``name_map`` applied);
+    every name token of 3+ letters also adds its consonant skeleton (namespace "k"), so "मार्केटिंग" and "marketing"
+    share a key.
     """
     n = len(names)
-    nt = text.name_tokens(indic.transliterate_array(names))
+    nt, _ = indic.name_tokens(names, name_map)
     nc = text.name_concat(nt, n)
     aw = text.address_words(addresses)
     ad = text.address_numbers(addresses)
