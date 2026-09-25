@@ -1,6 +1,7 @@
 """Stage ``evaluate``: the result report ``work/reports/<tag>.json`` (docs/CONTRACTS.md C7).
 
-- ``--split train``: scores the shared holdout (or ``--folds``) against the truth.
+- ``--split train``: scores the shared holdout (or ``--folds``) against the truth. ``--set sample=dev`` restricts it to
+  the dev sample (``ber.eval.splits.in_dev_sample``), e.g. ``--folds 0 --set sample=dev`` on a small machine.
   Adds ``holdout`` from C9 matches and ``blocking`` from C4 candidates, whichever exist for the input tags.
 - ``--split test``: no labels; adds ``test_diagnostics`` per country (mean predicted matches per S1, share of
   S2/S3 records assigned), which gate G8 compares with the holdout.
@@ -15,7 +16,7 @@ from .. import artifacts, ids
 from ..config import RunConfig
 from ..records import load_records, load_truth
 from .metric import oracle_f05, pair_recall, report
-from .splits import in_folds, is_holdout
+from .splits import in_dev_sample, in_folds, is_holdout
 
 
 def blocking_report(cands: pd.DataFrame, truth: pd.DataFrame, universe: np.ndarray, country: pd.Series) -> dict:
@@ -68,10 +69,15 @@ def run(cfg: RunConfig) -> dict:
     else:
         s1 = rec[rec["source"] == 1]
         mask = is_holdout(s1["eid"]) if cfg.folds is None else in_folds(s1["eid"], cfg.folds)
+        sample = cfg.param("sample")
+        if sample not in (None, "dev"):
+            raise ValueError(f"--set sample= must be 'dev', got {sample!r}")
+        if sample == "dev":
+            mask &= in_dev_sample(s1["eid"])
         universe = s1["eid"].to_numpy()[mask]
         country = pd.Series(s1["country"].to_numpy(), index=s1["eid"].to_numpy())
         truth = load_truth()
-        payload["evaluated_on"] = "holdout" if cfg.folds is None else f"folds {list(cfg.folds)}"
+        payload["evaluated_on"] = ("holdout" if cfg.folds is None else f"folds {list(cfg.folds)}") + (" (dev sample)" if sample else "")
         if has["matches"]:
             inputs["matches"] = cfg.input_tag("matches")
             m = artifacts.read_table("matches", inputs["matches"], "train", ["s1", "r"])

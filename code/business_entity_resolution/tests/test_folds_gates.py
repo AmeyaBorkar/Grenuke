@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ber.eval import compare, fold_of, in_folds, is_holdout, oof_group, paired_bootstrap
-from ber.eval.splits import N_OOF_GROUPS, TRAIN_FOLDS
+from ber.eval import compare, fold_of, in_dev_sample, in_folds, is_holdout, oof_group, paired_bootstrap
+from ber.eval.splits import DEV_SAMPLE_FOLDS, N_OOF_GROUPS, TRAIN_FOLDS
 
 
 def test_oof_group_follows_folds():
@@ -52,3 +52,15 @@ def test_compare_keep_rule():
     assert res["new_f05"] == 1.0 and res["delta"] > 0 and res["keep"]
     assert set(res["delta_by_group"]) == {"US", "India"}
     assert not compare(new, new, truth, universe, n_boot=50)["keep"]
+
+
+def test_dev_sample_spans_holdout_and_every_oof_group():
+    eids = np.arange(1_000_000_000, 1_000_400_000, dtype=np.int64)
+    dev = in_dev_sample(eids)
+    assert abs(dev.mean() - len(DEV_SAMPLE_FOLDS) / 20 / 4) < 0.002  # ~5% of S1
+    assert set(np.unique(fold_of(eids[dev]))) == set(DEV_SAMPLE_FOLDS)
+    assert set(np.unique(oof_group(eids[dev]))) == {-1, 0, 1, 2}
+    # within each chosen fold, about a quarter of the entities are kept
+    for f in DEV_SAMPLE_FOLDS:
+        in_f = fold_of(eids) == f
+        assert abs(dev[in_f].mean() - 0.25) < 0.02

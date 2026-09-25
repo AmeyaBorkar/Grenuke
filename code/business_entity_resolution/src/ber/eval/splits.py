@@ -14,6 +14,10 @@ HOLDOUT_FOLDS = (0, 1, 2, 3, 4)
 TRAIN_FOLDS = tuple(range(5, 20))
 N_OOF_GROUPS = 3
 DEV_FOLDS = (0,)  # quick iterations only; PR numbers use the full holdout
+# Dev sample for small machines: 1/4 of the S1 in folds 0, 5, 10 and 15 (~110k S1, ~5% of train S1).
+# Its fold-0 part (~27k S1) is a dev holdout; folds 5/10/15 give one fold per OOF group for training.
+DEV_SAMPLE_FOLDS = (0, 5, 10, 15)
+DEV_SAMPLE_MOD = 4
 
 _C0 = np.uint64(0x9E3779B97F4A7C15)
 _C1 = np.uint64(0xBF58476D1CE4E5B9)
@@ -44,6 +48,14 @@ def is_holdout(eids) -> np.ndarray:
 def in_folds(eids, folds) -> np.ndarray:
     """Boolean mask: True for eids whose fold is in ``folds`` (e.g. ``DEV_FOLDS`` for quick runs)."""
     return np.isin(fold_of(eids), np.asarray(tuple(folds), dtype=np.int8))
+
+
+def in_dev_sample(eids) -> np.ndarray:
+    """Boolean mask: True for S1 eids in the dev sample (DEV_SAMPLE_FOLDS, then 1 in DEV_SAMPLE_MOD by a second hash digit)."""
+    h = splitmix64(np.asarray(eids, dtype=np.int64))
+    fold = (h % np.uint64(N_FOLDS)).astype(np.int64)
+    keep = (h // np.uint64(N_FOLDS)) % np.uint64(DEV_SAMPLE_MOD) == 0
+    return np.isin(fold, DEV_SAMPLE_FOLDS) & keep
 
 
 def oof_group(eids) -> np.ndarray:
