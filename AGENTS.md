@@ -14,9 +14,8 @@ If it conflicts with an explicit instruction from the human member you work for,
 - **Data:** 23.7M records. Train covers US and India; test adds France, which never appears in train.
 - **Deadline:** **Sun 27 Sep 2026, 23:59 IST.**
 - **Team:** three members work in parallel.
-  - Plans: `plans/<member>/`.
-  - Chosen direction: `plans/DECISION.md` (once decided).
-  - Current work: `docs/ROADMAP.md`.
+  - **The plan we build: `plans/FINAL_PLAN.md`.** The reasons for it are in `plans/DECISION.md`. The candidate plans are kept in `plans/<member>/`.
+  - Current work: `docs/ROADMAP.md`. What changed: `CHANGELOG.md`.
 
 ---
 
@@ -27,10 +26,11 @@ If it conflicts with an explicit instruction from the human member you work for,
 1. `git fetch --all --prune`, then read in this order:
    1. this file
    2. `docs/ROADMAP.md`
-   3. `docs/TEAM.md` (who owns what)
-   4. `docs/status/<member>.md`
-   5. the 3 newest files in `docs/handover/` for your area
-   6. `docs/CONTRACTS.md`, if you touch data flow
+   3. `plans/FINAL_PLAN.md`: at least §0, the §4 section for your area, and §9 (gates)
+   4. `docs/TEAM.md` (who owns what)
+   5. `docs/status/<member>.md`
+   6. the 3 newest files in `docs/handover/` for your area
+   7. `docs/CONTRACTS.md` and `docs/DEVELOPMENT.md`, if you touch code or data flow
 2. **Find out which member you work for** and ask if unclear. You act only for that member, on that member's branches.
 3. `git config core.hooksPath` must print `.githooks`. If it doesn't, run `git config core.hooksPath .githooks`.
 4. Work on a branch **`<member>/<topic>`** created from the latest `origin/main`, e.g. `git switch -c ameya/blocking-v1 origin/main`. **Never work on `main`.**
@@ -78,6 +78,10 @@ If it conflicts with an explicit instruction from the human member you work for,
 - Use only models licensed **MIT or Apache-2.0** with **at most 8B parameters** in the final pipeline. Put the model name and license in the PR description.
 - Treat `country` as an **open set**. Never hard-code, filter or one-hot it to {US, India}.
 - Keep numbers comparable: evaluate with `ber.eval.metric` on the **shared holdout** from `ber.eval.splits` (§6).
+- Add a component beyond the v0 baseline only after its gate has passed and been recorded:
+  - the gates are in `plans/FINAL_PLAN.md` §9;
+  - the test is a paired bootstrap from `ber.eval.gates`;
+  - the result is a record in `docs/decisions/` (`docs/CONTRACTS.md` C10). Ties go to the simpler option.
 
 ---
 
@@ -85,10 +89,11 @@ If it conflicts with an explicit instruction from the human member you work for,
 
 - **Area owners** are listed in `docs/TEAM.md` and `.github/CODEOWNERS`.
 - **Shared files** change only through one small dedicated PR, reviewed by the coordinator:
-  - `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`
-  - `docs/ROADMAP.md`, `docs/TEAM.md`, `docs/CONTRACTS.md`
+  - `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `README.md`, `CHANGELOG.md`
+  - `plans/FINAL_PLAN.md`, `plans/DECISION.md`
+  - `docs/ROADMAP.md`, `docs/TEAM.md`, `docs/CONTRACTS.md`, `docs/DEVELOPMENT.md`
   - `code/business_entity_resolution/requirements.txt`, `pyproject.toml`
-  - `src/ber/io.py`, `src/ber/ids.py`, `src/ber/eval/**`
+  - `src/ber/{io,ids,paths,artifacts,config}.py`, `src/ber/eval/**`
   - `.github/**`, `.githooks/**`, `scripts/**`, `.claude/settings.json`
 - **One-writer files** have exactly one author, so they cannot conflict:
 
@@ -122,7 +127,7 @@ If it conflicts with an explicit instruction from the human member you work for,
 - **Python and package.** Python ≥ 3.11 (team default 3.13). The package lives in `code/business_entity_resolution/src/ber`. Install it with `pip install -e code/business_entity_resolution`.
 - **I/O.** Read data only through `ber.io` (tab separator, quoting disabled, because names contain quotes). Write outputs only through `ber.io.write_matching` / `ber.io.write_candidates`.
 - **IDs.** Use integer `eid`s from `ber.ids` (`source * 1_000_000_000 + number`) in artifacts. Never rely on row order.
-- **Artifacts.** Store them under `work/<stage>/<tag>/` (git-ignored), with the schemas in `docs/CONTRACTS.md`.
+- **Artifacts.** Store them under `work/<stage>/<tag>/` (git-ignored), with the schemas in `docs/CONTRACTS.md`. Name tags `<member>-<stage>-v<N>` (C0), and never write into someone else's tag.
 - **Evaluation.**
   - Shared holdout: `ber.eval.splits.is_holdout(...)`, 25% of train S1.
   - Metrics: `ber.eval.metric` (macro F0.5, blocking recall, oracle ceiling). Report them per country too.
@@ -152,8 +157,11 @@ python student_resource/utils/validate_submission.py --matching output/matching_
 | team rules (humans) | `CONTRIBUTING.md` |
 | who owns what, branch prefixes | `docs/TEAM.md` |
 | what to do next | `docs/ROADMAP.md` |
-| stage I/O schemas, holdout, reporting | `docs/CONTRACTS.md` |
-| plans and the decision | `plans/README.md`, `plans/<member>/PLAN.md`, `plans/DECISION.md` |
+| **the plan we build** (stages, gates, milestones) | `plans/FINAL_PLAN.md` |
+| why that plan, grafts, rejected ideas | `plans/DECISION.md` (candidates: `plans/<member>/PLAN.md`) |
+| stage I/O schemas, holdout, folds, reporting, gate records | `docs/CONTRACTS.md` |
+| how to run and extend the pipeline | `docs/DEVELOPMENT.md` |
+| what changed, and every leaderboard upload | `CHANGELOG.md` |
 | handovers / status / decisions | `docs/handover/`, `docs/status/`, `docs/decisions/` |
 | leaderboard protocol | `submissions/README.md` |
 | official problem statement, validator, doc template | `student_resource/` |

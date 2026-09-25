@@ -13,7 +13,9 @@ Private team repository. Deadline: **Sun 27 Sep 2026, 23:59 IST**. Leaderboard u
 |---|---|
 | a teammate | `CONTRIBUTING.md` (rules), `docs/TEAM.md` (owners), `docs/ROADMAP.md` (what's next) |
 | an AI coding agent | **`AGENTS.md`** (mandatory; `CLAUDE.md`, `GEMINI.md`, Copilot and Cursor files point there) |
-| comparing plans | `plans/README.md`, then `plans/<member>/PLAN.md` |
+| looking for the plan | **`plans/FINAL_PLAN.md`** (why this plan: `plans/DECISION.md`) |
+| building a stage | `docs/DEVELOPMENT.md` (how to run and extend the pipeline), `docs/CONTRACTS.md` (stage I/O) |
+| catching up | `CHANGELOG.md`, then the newest files in `docs/handover/` |
 | submitting to the leaderboard | `submissions/README.md` |
 
 ## One-time setup
@@ -40,8 +42,10 @@ Then copy the Unstop dataset into `student_resource/dataset/train/` and `student
 ```
 AGENTS.md  CLAUDE.md  GEMINI.md        agent rules (AGENTS.md is the source of truth)
 CONTRIBUTING.md                        team rules
-plans/<member>/PLAN.md|.pdf            candidate plans; plans/DECISION.md = what we chose
+CHANGELOG.md                           notable changes + every leaderboard upload
+plans/FINAL_PLAN.md                    the plan we build; DECISION.md = why; <member>/PLAN.md = candidates
 docs/ROADMAP.md  TEAM.md  CONTRACTS.md roadmap, owners, stage I/O contracts
+docs/DEVELOPMENT.md                    developer guide: run, extend and gate pipeline stages
 docs/status/  handover/  decisions/    one-writer coordination docs (+ TEMPLATE.md each)
 submissions/                           leaderboard protocol + one record per upload
 experiments/<member>/                  personal scratch space (notebooks, prototypes)
