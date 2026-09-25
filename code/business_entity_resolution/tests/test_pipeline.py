@@ -97,7 +97,7 @@ def test_evaluate_stage_train_and_test(env):
 def test_cli_rules(env):
     assert pipeline.stages_for("all", "test") == ["records", "normalize", "block", "features", "predict", "decide", "write", "evaluate"]
     assert "write" not in pipeline.stages_for("all", "train") and "train" in pipeline.stages_for("all", "train")
-    assert pipeline.main(["--stage", "normalize", "--split", "train", "--tag", "t"]) == 2  # stub: not implemented yet
+    assert pipeline.main(["--stage", "normalize", "--split", "train", "--tag", "t"]) == 0
     for bad in (["--stage", "write", "--split", "train", "--tag", "t"],
                 ["--stage", "block", "--split", "train"],
                 ["--stage", "block", "--split", "train", "--tag", "t", "--in", "nope=x"]):
