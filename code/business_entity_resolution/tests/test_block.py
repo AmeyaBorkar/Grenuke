@@ -203,3 +203,22 @@ def test_name_char_ngrams_survive_typos_and_never_collide_with_token_keys():
     ptr, plain = index.record_keys(pa.array(["Stormy Campbell"]), pa.array([""]))
     ptr2, with_grams = index.record_keys(pa.array(["Stormy Campbell"]), pa.array([""]), name_ngrams=4)
     assert set(plain.tolist()) < set(with_grams.tolist()) and (plain >= 0).all()
+
+
+def test_name_word_compounds_find_typo_names_with_numberless_addresses():
+    names = pa.array(["Dynamic Nasdaq P.C.", "Dynamic Nnsaq P.C.", "Dynamic Lighting", "Nasdaq Tools"])
+    addrs = pa.array(["3 Durham Drive, Andover, MA", "DURHAM DR, ANDOVER, MA", "9 Elm Street, Andover, MA",
+                      "5 Durham Road, Salem, MA"])
+    ptr, plain = index.record_keys(names, addrs)
+    ptr2, keys = index.record_keys(names, addrs, name_words=4)
+    k = [set(keys[ptr2[i]:ptr2[i + 1]].tolist()) for i in range(4)]
+    base = [set(plain[ptr[i]:ptr[i + 1]].tolist()) for i in range(4)]
+    nw = [k[i] - base[i] for i in range(4)]
+    assert all(x >> index.KIND_SHIFT == 0 and x >> index.A_SHIFT > 0 for s in nw for x in s)  # never a base token
+    assert len(nw[0] & nw[1]) == 2  # dynamic x durham, dynamic x andover: despite the typo and the missing number
+    assert len(nw[1] & nw[2]) == 1  # dynamic x andover only
+    assert not (nw[1] & nw[3])  # the other Durham business shares no (name, word) pair with the typo'd record
+    counts: dict = {}
+    index.record_keys(pa.array(["renterianaborweddle.com", "Renteria, Nabor and Weddle Partners"]),
+                      pa.array(["", ""]), counts)
+    assert counts["name_tokens"].tolist() == [1, 4] and counts["name_maxlen"].tolist() == [19, 8]

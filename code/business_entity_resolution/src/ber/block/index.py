@@ -5,7 +5,10 @@ Each record gets int64 token keys:
   in its own namespace (Indic-script names are transliterated first, ber.block.indic);
 - compound tokens, which stay rare where single tokens are common:
   (one of the first 2 numbers, one of the first 3 address words), (one of the first 2 numbers, one of the first 3
-  name tokens) and unordered pairs among the first 4 name tokens.
+  name tokens) and unordered pairs among the first 4 name tokens;
+- optional name-word compounds (``name_words`` > 0): (one of the first 2 name tokens, one of the first
+  ``name_words`` address words of 4+ letters). They keep a typo'd or shortened name with a number-less address
+  findable ("Dynamic Nnsaq P.C. | DURHAM DR, ANDOVER" -> dynamic x durham, dynamic x andover).
 Per country partition the keys are re-coded to a dense vocabulary with IDF weights (fitted on that partition's
 S1 + S2 + S3 records, so an unseen country such as France gets its own statistics).
 """
@@ -26,6 +29,8 @@ MAX_NAME_PAIR = 4
 MAX_NUM_WORD = 3
 MAX_NUM_NAME = 3
 MAX_NUMS = 2
+MAX_NW_NAMES = 2
+NW_MIN_LEN = 4
 
 
 def _prefixed(values: pa.Array, prefix: str) -> pa.Array:
@@ -88,6 +93,24 @@ def _fill_compound(n_ptr, n_codes, w_ptr, w_codes, d_ptr, d_codes, c_ptr, out):
                 p += 1
 
 
+@njit(cache=True)
+def _count_name_word(n_ptr, q_ptr, n_words, out):
+    for i in range(out.size):
+        out[i] = min(n_ptr[i + 1] - n_ptr[i], MAX_NW_NAMES) * min(q_ptr[i + 1] - q_ptr[i], n_words)
+
+
+@njit(parallel=True, cache=True)
+def _fill_name_word(n_ptr, n_codes, q_ptr, q_codes, n_words, c_ptr, out):
+    """Kind-0 compounds: (name code + 1) in bits 30-60, so they never equal a base token (bits 30-60 zero)."""
+    for i in prange(c_ptr.size - 1):
+        p = c_ptr[i]
+        for a in range(min(n_ptr[i + 1] - n_ptr[i], MAX_NW_NAMES)):
+            x = np.int64(n_codes[n_ptr[i] + a]) + 1
+            for b in range(min(q_ptr[i + 1] - q_ptr[i], n_words)):
+                out[p] = (x << A_SHIFT) | np.int64(q_codes[q_ptr[i] + b])
+                p += 1
+
+
 def char_ngrams(tok: text.Tokens, n_rows: int, n: int) -> tuple[np.ndarray, np.ndarray]:
     """Character ``n``-grams (n <= 7) of each row's name tokens joined without spaces, as negative int64 keys (they
     never collide with token codes or compound keys, which are non-negative). "stormy cbmpbell 8rokerage" still
@@ -109,20 +132,28 @@ def char_ngrams(tok: text.Tokens, n_rows: int, n: int) -> tuple[np.ndarray, np.n
 
 
 def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None,
-                name_map: dict[str, str] | None = None, name_ngrams: int = 0) -> tuple[np.ndarray, np.ndarray]:
+                name_map: dict[str, str] | None = None, name_ngrams: int = 0,
+                name_words: int = 0) -> tuple[np.ndarray, np.ndarray]:
     """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
 
     Indic-script names are transliterated first (``indic.name_tokens``: legal forms dropped, ``name_map`` applied);
     every name token of 3+ letters also adds its consonant skeleton (namespace "k"), so "मार्केटिंग" and "marketing"
     share a key. ``name_ngrams`` > 0 adds character n-grams of the name (typos; used by the name-only view).
+    ``name_words`` > 0 adds the name-word compounds. ``counts_out`` receives per-record address token counts, name
+    token counts and the longest name token's length.
     """
     n = len(names)
     nt, _ = indic.name_tokens(names, name_map)
     nc = text.name_concat(nt, n)
     aw = text.address_words(addresses)
     ad = text.address_numbers(addresses)
-    if counts_out is not None:  # per-record address token counts (the name_short view needs them)
+    if counts_out is not None:  # per-record counts (the name_short view needs them)
         counts_out["address_tokens"] = np.bincount(aw.rows, minlength=n) + np.bincount(ad.rows, minlength=n)
+        counts_out["name_tokens"] = np.bincount(nt.rows, minlength=n)
+        lens = pc.utf8_length(nt.values).to_numpy(zero_copy_only=False).astype(np.int64)
+        maxlen = np.zeros(n, np.int64)
+        np.maximum.at(maxlen, nt.rows, lens)
+        counts_out["name_maxlen"] = maxlen
     long = pc.greater_equal(pc.utf8_length(nt.values), 3)
     sk_values = indic.skeleton(pc.filter(nt.values, long))
     sk_rows = nt.rows[long.to_numpy(zero_copy_only=False)]
@@ -147,6 +178,20 @@ def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = 
 
     rows = [nt.rows, nc.rows, aw.rows, ad.rows, sk_rows, np.repeat(np.arange(n, dtype=np.int64), counts)]
     keys = [c_nt, c_nc, c_aw, c_ad, c_sk, compound]
+    if name_words:
+        street = pa.array(sorted(set(text.STREET.values())), type=aw.values.type)
+        ok = pc.and_(pc.greater_equal(pc.utf8_length(aw.values), NW_MIN_LEN),
+                     pc.invert(pc.is_in(aw.values, value_set=street))).to_numpy(zero_copy_only=False)
+        q_ptr, _ = _csr(aw.rows[ok], c_aw[ok], n)
+        q_codes = c_aw[ok]
+        nw_counts = np.empty(n, np.int64)
+        _count_name_word(n_ptr, q_ptr, name_words, nw_counts)
+        nw_ptr = np.zeros(n + 1, np.int64)
+        np.cumsum(nw_counts, out=nw_ptr[1:])
+        nw = np.empty(nw_ptr[-1], np.int64)
+        _fill_name_word(n_ptr, c_nt, q_ptr, q_codes, name_words, nw_ptr, nw)
+        rows.append(np.repeat(np.arange(n, dtype=np.int64), nw_counts))
+        keys.append(nw)
     if name_ngrams:
         g_rows, g_keys = char_ngrams(nt, n, name_ngrams)
         rows.append(g_rows)
