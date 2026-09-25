@@ -60,7 +60,10 @@ def main() -> int:
     ap.add_argument("--keep-pos", type=float, default=0.9995)
     ap.add_argument("--drop", default="", help="comma-separated features to leave out")
     ap.add_argument("--no-test", action="store_true")
+    ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
     args = ap.parse_args()
+    import common
+    common.GROUPS[:] = args.groups.split(",")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     command = "python experiments/ameya/model-v1/s1.py " + " ".join(f"--{k.replace('_', '-')} {v}" for k, v in vars(args).items())
     t0 = time.perf_counter()
