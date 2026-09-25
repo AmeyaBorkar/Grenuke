@@ -32,7 +32,7 @@ from ber.eval.splits import oof_group
 from ber.paths import artifact_dir, artifact_path, records_path
 
 log = logging.getLogger("ce")
-LO, HI = 0.01, 0.995
+LO, HI = 0.02, 0.99
 MAX_LEN = 96
 BATCH = 128
 EPOCHS = 1
@@ -40,11 +40,13 @@ LR = 5e-5
 SEED = 26
 
 
-def band_pairs(s1_tag: str, split: str) -> pd.DataFrame:
+def band_pairs(s1_tag: str, split: str, sample: float = 1.0) -> pd.DataFrame:
     cfg = json.loads((artifact_dir("models", s1_tag) / "config.json").read_text())
     cols = ["s1", "r", "p0", "p1"] + (["fold", "y"] if split == "train" else [])
     sc = read_table("scores", s1_tag, split, cols)
     band = (sc["p0"].to_numpy() >= cfg["tau0"]) & (sc["p1"].to_numpy() >= LO) & (sc["p1"].to_numpy() <= HI)
+    if sample < 1.0:  # smoke tests only
+        band &= np.random.default_rng(SEED).random(band.size) < sample
     out = sc.loc[band].copy()
     out["row"] = np.flatnonzero(band)
     return out.reset_index(drop=True)
@@ -52,10 +54,14 @@ def band_pairs(s1_tag: str, split: str) -> pd.DataFrame:
 
 def encode(tok, split: str, pairs: pd.DataFrame) -> tuple[list, np.ndarray]:
     ids = np.unique(np.concatenate([pairs["s1"].to_numpy(), pairs["r"].to_numpy()]))
-    t = pq.read_table(records_path(split), columns=["eid", "name", "address"]).to_pandas()
-    t = t[t["eid"].isin(ids)].set_index("eid")
+    parts = []  # read in batches and keep only the needed records (low memory)
+    for b in pq.ParquetFile(records_path(split)).iter_batches(batch_size=1_000_000, columns=["eid", "name", "address"]):
+        m = np.isin(b.column(0).to_numpy(), ids)
+        if m.any():
+            parts.append(b.filter(pa.array(m)).to_pandas())
+    t = pd.concat(parts).set_index("eid")
     text = (t["name"].fillna("") + " ; " + t["address"].fillna("")).str.slice(0, 300)
-    del t
+    del t, parts
     a, b = text.reindex(pairs["s1"]).tolist(), text.reindex(pairs["r"]).tolist()
     enc = []
     for i in range(0, len(a), 100_000):
@@ -151,6 +157,7 @@ def main() -> int:
     ap.add_argument("--tag", default="ameya-ce-v1")
     ap.add_argument("--model", default="intfloat/multilingual-e5-small")
     ap.add_argument("--limit", type=int, default=0, help="train on at most N pairs per model (smoke test)")
+    ap.add_argument("--sample", type=float, default=1.0, help="keep this share of the band pairs (smoke test)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     command = "python experiments/ameya/model-v1/ce.py " + " ".join(f"--{k} {v}" for k, v in vars(args).items())
@@ -158,14 +165,14 @@ def main() -> int:
     tok = AutoTokenizer.from_pretrained(args.model)
     pad = tok.pad_token_id
 
-    tr = band_pairs(args.s1, "train")
+    tr = band_pairs(args.s1, "train", args.sample)
     enc, lens = encode(tok, "train", tr)
     fold, y = tr["fold"].to_numpy(), tr["y"].to_numpy()
     train_rows = fold >= 5
     grp = np.where(train_rows, oof_group(np.where(train_rows, tr["s1"].to_numpy(), 0)), -1)
     log.info("train band: %d pairs (%.3f positive), tokens p50 %d (%.0fs)", len(tr), y.mean(), np.median(lens),
              time.perf_counter() - t0)
-    te = band_pairs(args.s1, "test")
+    te = band_pairs(args.s1, "test", args.sample)
     enc_t, lens_t = encode(tok, "test", te)
     log.info("test band: %d pairs (%.0fs)", len(te), time.perf_counter() - t0)
 
