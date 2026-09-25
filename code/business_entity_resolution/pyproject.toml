@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ber"
-version = "0.1.0"
+version = "0.2.0"
 description = "Team Grenuke: Business Entity Resolution (Amazon ML Challenge 2026)"
 requires-python = ">=3.11"
 # Light core deps only (CI installs these). The full pinned environment is requirements.txt.
