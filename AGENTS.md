@@ -32,6 +32,7 @@ If it conflicts with an explicit instruction from the human member you work for,
    6. the 3 newest files in `docs/handover/` for your area
    7. `docs/CONTRACTS.md` and `docs/DEVELOPMENT.md`, if you touch code or data flow
 2. **Find out which member you work for** and ask if unclear. You act only for that member, on that member's branches.
+   - Their tasks are GitHub issues assigned to them: `gh issue list --assignee <handle>` (handles in `docs/TEAM.md`). Each issue has the spec, the contract, the due time and "done when". Link the issue in the PR (`Closes #N`).
 3. `git config core.hooksPath` must print `.githooks`. If it doesn't, run `git config core.hooksPath .githooks`.
 4. Work on a branch **`<member>/<topic>`** created from the latest `origin/main`, e.g. `git switch -c ameya/blocking-v1 origin/main`. **Never work on `main`.**
 5. If another agent session may run at the same time on this machine, give each session its own `git worktree`. Two agents must never share one working tree.
@@ -132,7 +133,7 @@ If it conflicts with an explicit instruction from the human member you work for,
   - Shared holdout: `ber.eval.splits.is_holdout(...)`, 25% of train S1.
   - Metrics: `ber.eval.metric` (macro F0.5, blocking recall, oracle ceiling). Report them per country too.
 - **Scale.** Never write Python loops over pairs. Use numpy/pandas/pyarrow, rapidfuzz `process.cpdist`, numba or the GPU.
-  - Watch memory: teammates may have 16–32 GB.
+  - Watch memory: teammates have 8–16 GB (`docs/TEAM.md`, machines). Develop on the **dev sample** (`ber.eval.splits.in_dev_sample`, `--set sample=dev`); full-scale runs happen on the integration machine.
   - Guard entry points with `if __name__ == "__main__":` (Windows uses spawn).
 - **Reproducibility.** Fix seeds. Log the config and git commit with every reported number.
 
