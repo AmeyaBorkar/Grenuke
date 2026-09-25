@@ -35,3 +35,5 @@ def test_numstreet_keys_skip_street_types_and_survive_reordering():
         "32 Rue André Maginot, Mérignac", "PA, AVELLA CITY, 972 OLD RIDGE RD", "4809 Harrison Ferry Road, Hurlock, MD",
         "0020718 ADAMS MILL PLACE, VA", "Sno 32/2/1 Hno 1048, Gulabnagar", "HARRISON FERRY ROAD, HURLOCK, MD"]))
     assert keys.tolist() == ["32|andre", "972|old", "4809|harrison", "20718|adams", "1048|gulabnagar", ""]
+    large = numstreet_keys(pa.array(["32 Rue André Maginot", "HARRISON FERRY ROAD"], type=pa.large_string()))
+    assert large.tolist() == ["32|andre", ""]  # the records cache stores large_string columns
