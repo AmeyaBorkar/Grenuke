@@ -71,7 +71,7 @@ def run(cfg: RunConfig) -> dict:
 
 - **Contracts first.** Write exactly the columns in `docs/CONTRACTS.md`. Adding documented columns is fine; renaming or removing one needs a contracts PR.
 - **Provenance is automatic.** `write_table` stores the git commit (`+dirty` if you have uncommitted changes), the command, the time and the inputs. Commit before a run whose numbers you will report.
-- **Keep the package importable in CI.** Import heavy libraries (rapidfuzz, numba, xgboost, torch) **inside** your functions, not at module top level. CI installs only numpy, pandas and pyarrow.
+- **Keep the package importable in CI.** CI installs numpy, pandas, pyarrow and numba (numba kernels are `@njit` at module level). Import the other heavy libraries (rapidfuzz, xgboost, torch) **inside** your functions, not at module top level.
 - **Split big stages into modules** inside your package, and keep `run()` thin. The suggested modules are in each package docstring.
 - **Seeds:** use `cfg.seed` everywhere (numpy, xgboost, sampling).
 - **Leakage (C2).** Anything fitted on labels uses training folds 5–19 only:
