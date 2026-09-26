@@ -143,6 +143,37 @@
     {"tag": "probe-v7nst-fr095r", "reported_final_french_pairs_removed": 11101, "reported_s1_changed": 10663, "verified_here": false},
     {"_note": "These three packages are on the integration machine, not on this laptop (submissions/files/ does not exist in any local checkout). Their counts are reports. For scale: fr090r's 7,190 changed S1 is 2.77% of the 259,452 French test S1 verified here."}
   ],
+  "toolchain_verified_this_session": {
+    "control_audit_v6all_pair": {
+      "what": "The v6all matching/candidate pair audited with the SAME tool and data as the v7nst check, to prove the 3,790 outside-pairs is a real acr_join delta and not a tool artefact.",
+      "matching_sha256": "544ffdf89410c2fe00d09c20941f57ca5e9afb998db1d8251f161c362ac98710",
+      "candidate_sha256": "cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae",
+      "matches_outside_candidates": 0,
+      "verdict": "AUDIT PASS",
+      "caveat": "This local v6 matching file is 544ffdf8..., NOT the packaged v6all 0f6d8985... recorded in RECIPE.md, so it is a different v6 build. Subset-cleanliness shows the two files are CONSISTENT (same candidate base); it does not identify them as the uploaded pair. Subset-consistency is necessary but not sufficient — only the hash identifies a package. This is why make_package.py gates on sha256.",
+      "report": "experiments/bakshi/final-package/audit_v6all_pair.json"
+    },
+    "package_builder_dry_run": {
+      "what": "make_package.py exercised end-to-end on the v6all pair. Not a submission; a proof the builder works before the real candidate file arrives.",
+      "files_staged": 103,
+      "zip_bytes": 87494049,
+      "zip_sha256": "ca36346fdfb72903e3c12c11ebab78fc827a5452bbd48f66556adcba55e6cc1b",
+      "determinism": "Identical zip sha256 across two independent runs.",
+      "verified_after_extraction": ["all 103 manifest hashes match", "all 15 required paths present", "byte-compile of code/ ok", "organiser validator PASS", "strict audit PASS"],
+      "defects_found_and_fixed": ["child-process output was interleaved ahead of buffered prints, so a failure could be read under the wrong heading (now flushed)", "the strict audit was not applied to the extracted bytes, only the organiser validator (now both)"]
+    },
+    "fam_blend_test": {
+      "what": "Synthetic test of the Track B blend builder, run before any real logits exist.",
+      "script": "verified with scratchpad/test_fam_blend.py (not committed; synthetic fixtures only)",
+      "results": {
+        "reproduces_zmean_ce_bit_for_bit": true,
+        "z_mask_train_folds_differs_from_all": true,
+        "blend_arithmetic_matches_hand_computation": true,
+        "guards_fail_hard": ["missing band row", "--out equal to a source dir", "zero standard deviation"]
+      },
+      "defect_found_and_fixed": "The builder computed in float64 while zmean_ce.py computes in float32, giving a 2.384e-07 difference — one float32 ULP, enough to break the bit-for-bit alignment proof. Default is now float32, matching production and the dtype the submitted stage 2 was trained on; --compute-dtype float64 remains available."
+    }
+  },
   "targets": {
     "best_measured": 0.990179,
     "stretch": 0.991,

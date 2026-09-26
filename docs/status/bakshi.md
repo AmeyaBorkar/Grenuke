@@ -1,9 +1,27 @@
 # Status: bakshi
 
-- **Last updated (IST):** 2026-09-26 15:45
-- **Current focus:** V7 residual diagnostics; user now works alone and intends to submit v7.
-- **Branch(es):** `bakshi/v7-france`, based on main `faa0244908`.
-- **ETA:** Diagnostic implementation complete; improved v7 and final TSV need full inputs or rebuild.
-- **Blocked on / need:** Full v6 scores, pre-rule matches, final candidates and string features. All GitHub branches/releases/assets checked; only older dev artifacts are published.
-- **Latest handover:** `docs/handover/2026-09-26_1545_bakshi_v7-france.md`.
-- **Next up:** Recover/rebuild full artifacts, inspect France residuals and gate narrowed changes. Address guard vetoed 3 true dev additions; swap_list was overwhelmingly true; multi-append additions lacked support. New rules stay disabled. No v7 gain claimed.
+- **Last updated (IST):** 2026-09-27 01:30
+- **Current focus:** Final packaging of the submitted model **v7nst** (public 0.990179), and preparing
+  Tracks A/B so they can run the moment their inputs arrive.
+- **Branch(es):** `bakshi/opus-exec`, based on main `2023ffbae034e274aab5cb262c982d6fef762e5c`. PR #50.
+- **ETA:** Package tooling complete and proven end to end on a control pair. The real
+  `Grenuke_submission.zip` is ~10 minutes' work once the v7nst candidate file arrives.
+- **Blocked on / need:** **The v7nst `candidate_pairs.tsv` (`510a33ea…f3e258aa`).** Not on this machine —
+  the only candidate TSV here is v6all's, and **3,790 matched pairs over 3,725 S1 fall outside it**, so it
+  cannot substitute. Also needed: the cached CE logits (`out_bge`, `out_e5l`, `out_e5l2`, `out_cem2`, band
+  files, `rule_pop` output) for Track B, the producing machine's `torch`/`transformers` pins, and the
+  portal's real upload quota. Full prioritised list: `experiments/bakshi/final-package/ARTIFACT_REQUEST.md`.
+- **Latest handover:** `docs/handover/2026-09-27_0111_bakshi_final-package.md`.
+- **Next up:** On arrival — confirm the candidate hash and the predicted 6,410,247 pairs, build and
+  self-verify the zip, hand it to the captain. Then Track B screening locally (reproduce `out_cem2`
+  bit-for-bit as an alignment proof first, then the 50/50 E5-family/BGE arm). Track B's downstream stage-2
+  fit cannot run here: it peaks at ~19 GB against this machine's 16 GB.
+- **Verified this session (measured, not reported):** the v7nst matching file's hash matches `sub04`, and it
+  passes every hard check against the full test data — 1,732,544 rows (one per test S1), 5,856,096 pairs,
+  100,137 empty, **0** records claimed by more than one S1, **0** cross-country pairs, **0** targets absent
+  from `test_source2/3.tsv`. France 259,452 S1 / 871,242 pairs; India 809,986 / 2,735,918;
+  US 663,106 / 2,248,936. Control: the v6all pair audits clean (0 outside candidates), so the 3,790 above is
+  a real `acr_join` delta and not a tool artefact. 115/115 repository tests pass.
+- **Flag for owners:** `AGENTS.md` line 15 still says the deadline is 23:59 IST; issue #45 says the window
+  closes at **21:00 IST**. It is a shared file so it was not edited here, but it is the first file every
+  agent reads.

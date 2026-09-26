@@ -1,0 +1,47 @@
+{
+  "matching": {
+    "path": "C:\\Users\\baksh\\Downloads\\New folder\\matching_resultsv6all.tsv",
+    "bytes": 97914336,
+    "sha256": "544ffdf89410c2fe00d09c20941f57ca5e9afb998db1d8251f161c362ac98710"
+  },
+  "candidate": {
+    "path": "C:\\Users\\baksh\\Downloads\\New folder\\candidate_pairsv6all.tsv",
+    "bytes": 104979142,
+    "sha256": "cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae"
+  },
+  "checks": {
+    "n_test_s1": 1732544,
+    "n_test_targets": 9969589,
+    "matching_rows": 1732544,
+    "matching_pairs": 5856439,
+    "matching_empty_rows": 100041,
+    "matching_mean_matches_per_s1": 3.380254123416202,
+    "owner_conflicts": 0,
+    "cross_country_pairs": 0,
+    "per_country": {
+      "France": {
+        "s1": 259452,
+        "s1_nonempty": 244589,
+        "pairs": 871864,
+        "pairs_per_s1": 3.360405778332794
+      },
+      "India": {
+        "s1": 809986,
+        "s1_nonempty": 763148,
+        "pairs": 2735650,
+        "pairs_per_s1": 3.377404053897228
+      },
+      "US": {
+        "s1": 663106,
+        "s1_nonempty": 624766,
+        "pairs": 2248925,
+        "pairs_per_s1": 3.391501509562574
+      }
+    },
+    "candidate_rows": 1732544,
+    "candidate_pairs": 6406457,
+    "matches_outside_candidates": 0,
+    "s1_with_matches_outside_candidates": 0
+  },
+  "errors": []
+}
