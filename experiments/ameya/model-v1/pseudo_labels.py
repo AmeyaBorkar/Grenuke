@@ -1,7 +1,8 @@
 """Pseudo-labels for the France (target-country) test pairs, from a finished chain's decisions (self-training input
 for ce_box.py --pseudo and s2.py --pseudo).
 
-    python experiments/ameya/model-v1/pseudo_labels.py ameya-model-v7ce3-s3 ameya-s3-v7ce3 ameya-model-v7ce3-s3-ops3         ameya-model-v7ce3-s3-ops3a <band_test.parquet | s1:ameya-s1-v6all> <out.parquet>
+    python experiments/ameya/model-v1/pseudo_labels.py ameya-model-v7ce3-s3 ameya-s3-v7ce3 ameya-model-v7ce3-s3-ops3 ameya-model-v7ce3-s3-ops3a \
+        s1:ameya-s1-v6all <out.parquet>
 
 y = 1: in the final matches with pc >= POS, or added by the rules / the acronym join;
 y = 0: not in the final matches with pc <= NEG, or an op-B prediction the rules dropped;
