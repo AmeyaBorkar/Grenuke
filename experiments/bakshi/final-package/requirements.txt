@@ -25,24 +25,30 @@ pytest==8.3.4
 # ---------------------------------------------------------------------------------------------------------
 # Cross-encoder feature (src/model_v1/ce.py and ce_box.py). Needs a CUDA GPU.
 #
-# NOT PINNED — deliberately left unpinned rather than guessed. Neither package is installed in the
-# environment these pins were verified in, so any version written here would be an invention.
+# The submitted chain trained its cross-encoders on THREE different machines, which are not equally
+# recoverable. Recorded precisely rather than collapsed into one guessed pin:
 #
-# The submitted chain used TWO different machines for its cross-encoders, and they are not equally
-# recoverable:
+#   1. ce_box.py -> multilingual-e5-large x1ep seed 26 and x2ep seed 7 (feature `cem2`, the one v7nst
+#      actually uses), and e5-base for the v7ce3 teacher.
+#      Ran on the FIRST rented H100, which was a spot instance destroyed at 21:40 on 26 Sep with
+#      non-persistent disk (RESEARCH_v6.md 6.9). **torch 2.14** — inferred from PR #51, which records that
+#      the replacement box on torch 2.11 hit a non-finite gradient step that "the first box, on torch 2.14,
+#      never hit". Its transformers version was not recorded and is UNRECOVERABLE.
 #
-#   * ce.py           -> multilingual-e5-small, feature group `ce`.   Ran on the INTEGRATION MACHINE,
-#                        which still exists. These versions ARE recoverable; ask for them with
-#                            pip freeze | grep -E "^(torch|transformers|tokenizers|safetensors|huggingface-hub)=="
-#                        and replace the two lines below, matching the CUDA build
-#                        (e.g. torch==2.x.y+cu124 with --extra-index-url https://download.pytorch.org/whl/cu124).
+#   2. ce_box.py -> bge-reranker-v2-m3, and ce_llm_st.py -> Qwen2.5-1.5B.
+#      Ran on the REPLACEMENT on-demand H100. Fully recorded in RECIPE.md:
+#          Ubuntu 24.04, torch 2.11.0+cu128, transformers 5.17.0, peft 0.21.0, H100 80 GB
+#      Note torch 2.11 REQUIRES the non-finite-step guard now in ce.train_one; without it a single bad
+#      gradient step turns every weight into NaN. If you reproduce on 2.11, that guard is mandatory.
 #
-#   * ce_box.py       -> multilingual-e5-large x2 (and e5-base for the v7ce3 teacher), feature `cem2`.
-#                        Ran on a RENTED H100 that has since been destroyed (RESEARCH_v6.md 6.9), with
-#                        non-persistent disk. Its exact versions are UNRECOVERABLE and are recorded as
-#                        unknown rather than guessed. Any recent torch/transformers with CUDA support
-#                        reproduces the method; it will not reproduce those logits bit-for-bit in any case,
-#                        because the cross-encoders are not bit-reproducible across GPUs.
-torch
-transformers
+#   3. ce.py -> multilingual-e5-small (feature group `ce`). Ran on the INTEGRATION MACHINE, which still
+#      exists, so these versions ARE recoverable but were not available here. Ask for:
+#          pip freeze | grep -E "^(torch|transformers|tokenizers|safetensors|huggingface-hub)=="
+#
+# The two lines below are therefore left unpinned on purpose. Reproducing the METHOD needs only a recent
+# CUDA-enabled torch/transformers; reproducing the logits bit-for-bit is impossible regardless, because the
+# cross-encoders are not bit-reproducible across GPUs. The reference check is the holdout macro F0.5.
+torch           # >= 2.11; use the guard in ce.train_one on 2.11 (see above)
+transformers    # 5.17.0 on the replacement box; the first box's version is unrecorded
 # tokenizers and safetensors are transitive dependencies of transformers; pin them alongside it.
+# peft==0.21.0 is needed only for the Qwen LoRA cross-encoder, which is NOT in the submitted model.
