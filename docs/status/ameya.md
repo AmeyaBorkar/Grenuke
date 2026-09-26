@@ -1,8 +1,8 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-27 02:45
+- **Last updated (IST):** 2026-09-27 05:20
 - **Current focus:** the 5 uploads of 27 Sep. The window closes **21:00 IST**; the final upload counts, so the chosen best goes up last.
-- **Branch(es):** `ameya/final-day` (RESEARCH_v6.md §6.14, `fhs.py`, this file). #35–#53 merged.
+- **Branch(es):** `ameya/final-stack` (the stacked rules `experiments/ameya/model-v1/stack/`, RESEARCH_v6.md §6.16, an `fhs.py` fix, this file). #35–#57 merged.
 - **Leaderboard vs holdout:**
 
   | model | holdout (s3) | leaderboard | France implied |
@@ -10,30 +10,35 @@
   | v5all + rules v2 + cut (26 Sep #01) | 0.99016 | 0.98781 | 0.971 |
   | v6all + stage 3 + rules v3 + acronym join | 0.99084 | 0.988609 | 0.973 |
   | v7n (e5-small + mean of two e5-large) | 0.99121 | 0.989721 | 0.978 |
-  | **v7nst** (v7n + France stage-2 self-training) | 0.99119 | **0.990179 (rank 7)** | **0.981** |
+  | **v7nst** (v7n + France stage-2 self-training) | 0.99119 | **0.990179 (rank 7; now 13)** | **0.981** |
 
   LB = US/India part + 0.14975 × F_France; US/India part 0.843210 for v7nst.
 
-- **Candidates** (validator PASS, `submissions/files/`), against v7nst:
+- **Models** (`final_memo.py`, against v7nst):
 
-  | package | France changes per 1000 S1 | net true copies (`fhs.py`) | US/India part | verdict |
+  | model | holdout (s3) | US/India part | France changes per 1000 S1 | `fhs.py` per 1000 |
   |---|---|---|---|---|
-  | `2026-09-27-v7nst-s3-ops3a-c2` | uploaded | — | 0.843210 | **best so far; fallback** |
-  | `2026-09-27-v7mst-s3-ops3a-c2` (+ bge) | +2.7 / −5.3 | −0.85 | 0.843223 | ≈ v7nst |
-  | `2026-09-27-v7ens2-s3-ops3a-c2` | +2.0 / −4.4 | −0.65 | 0.843210 | ≈ v7nst |
-  | `2026-09-27-v7nst2-s3-ops3a-c2` (round 2) | +3.4 / −7.5 | −1.54 | 0.843202 | worse: round 2 drifts |
-  | `frs2` variants | | −3.86 | | **withdrawn** (§6.14) |
+  | v7nst (uploaded) | 0.991194 | 0.843210 | — | — |
+  | v7mst (+ bge) | 0.991206 | 0.843223 | +2.7 / −5.3 | −0.56 |
+  | **v7s** (e5l + French self-trained e5-large + bge) | **0.991229** | **0.843247** | +7.1 / −9.5 | +0.02 |
+  | v7sb (v7s with bge replaced by its French self-trained version) | 0.991226 | 0.843241 | +12.0 / −11.1 | +0.33 |
 
-- **Coming overnight (automatic):**
-  - **v7s** (e5l + self-trained e5-large + bge): e5ls lands about 02:55, packaged about 04:00.
-  - **v7sq** (+ self-trained Qwen2.5-1.5B): Qwen's group 0 OOF AUC is 0.9334 (gate 0.93). It finishes about 05:00; v7sq is packaged about 06:15.
-  - **v7ensall** (bag of v7nst, v7mst, v7s, v7sq), then Bakshi's strict audits: about 07:30.
-- **Upload plan for 27 Sep** (5 slots, no pure probes):
-  1. The best-gated of v7s / v7sq, by US/India part, French changes and true copies.
-  2. The other one.
-  3. v7ensall.
-  4. Flexible, decided by 1–3.
-  5. The best so far, uploaded last.
-- **Vast.ai:** on-demand H100 `grenuke-vast` (key `grenuke_vast2`) runs e5ls and Qwen. **Destroy it after Qwen's logits are fetched** (about 05:00).
-- **Blocked on / need from others:** the captain's uploads and their scores.
+- **Upload candidates** (`submissions/files/`, validator PASS; `stack/stack.sh <model>` builds them):
+
+  | package | US/India rules (holdout on v7s) | France rules | `fhs` vs v7nst | notes |
+  |---|---|---|---|---|
+  | **`2026-09-27-v7s-s3-ops3a-dpc-c2`** | expected-F0.5 + crowd shift + acr + cap: **+48.1e-6 [+7.1, +91.2]** | +16 acronym copies, +332 exact copies, −89 cross-commune | +1.11 | **recommended first upload**; strict audit PASS |
+  | `2026-09-27-v7sb-s3-ops3a-dpc-c2` | same rule | same kind (+254 / −83) | +1.13 | level with v7s |
+  | `2026-09-27-v7nst-s3-ops3a-dpc-c2` | same rule (not gated on v7nst: DP part +34.0e-6) | +417 / −140 | +1.43 | fallback if v7s's French changes hurt |
+  | `-h2pc` versions | threshold + acr + cap + nsa: +9.4e-6 [+1.7, +17.5] | same | same | the conservative US/India rules |
+
+- **Coming (automatic):** v7sq (+ Qwen) about 06:10; v7ensall, v7sq2, v7ensall2 by about 08:15; v7s2 (a second seed of the French e5-large) about 09:05. Each gets the same stack.
+- **Upload plan for 27 Sep** (5 slots, no pure probes; the LB resolves gaps of about ±0.00004 between these candidates only):
+  1. `v7s-dpc` (best expected value; a LB far below about 0.9902 would flag a French regression).
+  2. and 3. The best of v7sq / v7ensall / v7s2 stacks, as they land.
+  4. Flexible.
+  5. The chosen best, uploaded last.
+- **Crash and memory:** the integration laptop froze at 03:35 (memory) and rebooted; at 04:46 the memory reaper killed the background wrappers, but every script survived. Nothing was lost (§6.16).
+- **Vast.ai:** `grenuke-vast` runs the second e5-large seed; it **stops itself** once that output is fetched (about 06:40). Destroy it in the console after the competition.
+- **Blocked on / need from others:** the captain's uploads and their scores; Bakshi: the `stack/stack.sh` step in `reproduce.sh`.
 - **Latest handover:** `docs/handover/2026-09-26_2049_ameya_squeeze-v7n.md`.

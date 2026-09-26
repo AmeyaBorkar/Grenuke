@@ -21,8 +21,8 @@ def norm_name(s):
     return " ".join(NORM.get(w, w) for w in po.tokens(s))
 def classify(d):
     s1, r = d.s1.to_numpy(), d.r.to_numpy()
-    sn = fold(pa.array(t.name.reindex(s1).fillna("").tolist())).to_pylist(); rn = fold(pa.array(t.name.reindex(r).fillna("").tolist())).to_pylist()
-    sa = fold(pa.array(t.address.reindex(s1).fillna("").tolist())).to_pylist(); ra = fold(pa.array(t.address.reindex(r).fillna("").tolist())).to_pylist()
+    sn = fold(pa.array(t.name.reindex(s1).fillna("").tolist(), type=pa.string())).to_pylist(); rn = fold(pa.array(t.name.reindex(r).fillna("").tolist(), type=pa.string())).to_pylist()
+    sa = fold(pa.array(t.address.reindex(s1).fillna("").tolist(), type=pa.string())).to_pylist(); ra = fold(pa.array(t.address.reindex(r).fillna("").tolist(), type=pa.string())).to_pylist()
     out = []
     for a, b, x, y in zip(sn, rn, sa, ra):
         kind, pos, add, drop = po.name_edit(norm_name(a), norm_name(b))
