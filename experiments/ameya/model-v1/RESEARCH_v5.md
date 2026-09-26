@@ -330,11 +330,11 @@ Total: about +0.0003–0.0005 on the holdout, +0.0003–0.0004 on the leaderboar
 |---|---|---|---|---|---|
 | 1 | France can only be measured on the leaderboard | upload `2026-09-26-v4`, `-probe-v4-frab` and the final candidate `-v5all-ops-c2`; `probe-v4-fr0` gives France exactly | the France level and the rules' true value | uploads | captain |
 | 2 | organisers rank smaller candidate sets | p1 ≥ 0.02 and the record's top 2 S1 | 4.68 → 3.70 per S1, holdout tie | done | `2026-09-26-v5all-ops-c2` |
-| 3 | France patterns a–e | extend `post_ops.py`: typo-tolerant street key for op B; list-word appends without a drop; same-address acronyms; −1/−2 and digit edits | +0.003 France F0.5 ≈ +0.0005 LB | 1 h | next |
+| 3 | France patterns a–e | `post_ops.py` v2: typo-tolerant street key for B and A, list-word appends, acronyms; number edits and code typos measured and not applied | about +0.002 France F0.5 ≈ +0.0003 LB | done | §8.1, `2026-09-26-v5all-ops2-c2` |
 | 4 | weak-address and unrelated-name acceptance in France (123 per 1000 S1) | verified with generator invariants | none: profiling artifacts (section 8); France's identical-name ties are worth at most +0.0005 France F0.5 | done | no fix |
-| 5 | unsigned house-number features | `feats_nx.py` (signed difference, nudge set, digit substitution/swap, leading digits dropped), stages 1–2 refit | +0.0001–0.0002 holdout, plus France d | 1.5 h compute | running (`ameya-model-v6nx`) |
-| 6 | the rival S1 is invisible to stage 2 | stage-3 joint re-scoring (A + B) | +0.0001 LB | 1–2 h | queued |
-| 7 | blocking misses: domains, OCR, ordinals | segmentation, OCR repair, ordinal → digit; full rebuild | +0.0003 LB | 3–4 h | if time |
+| 5 | unsigned house-number features | `feats_nx.py` (signed difference, nudge set, digit substitution/swap, leading digits dropped), stages 1–2 refit | **+0.00021 [0.00016, 0.00025] holdout** | done | §8.3; in the rebuild |
+| 6 | the rival S1 is invisible to stage 2 | stage-3 joint re-scoring (A + B) | +0.00005 [0.00002, 0.00008] holdout | done | §8.4; optional, not in the recipe |
+| 7 | blocking misses: domains, OCR, ordinals | segmentation, OCR repair, ordinal → digit; full rebuild | dev-pool forward recall 0.972 → 0.979; about +0.0003 LB | 3.5 h | §8.5; v6all rebuild running |
 
 Items that are **not** worth doing, from this research:
 - self-training;
@@ -344,7 +344,7 @@ Items that are **not** worth doing, from this research:
 - vendor-format normalisation beyond today's;
 - source caps (they bind 4 times).
 
-## 8. Solutions, round 1 (26 Sep, 06:00–08:00 IST)
+## 8. Solutions, round 1 (26 Sep, 06:00–11:30 IST)
 
 ### 8.1 France rules, version 2 (`post_ops.py`)
 
@@ -400,4 +400,65 @@ Checked against the generator's invariants (`deep2/sol_france/`):
   - So either about 0.027 of France's loss is invisible to every label-free check, or US/India on test sit about 0.005 below the holdout.
   - **`probe-v4-fr0` settles it:** LB_fr0 = 0.38274 F_US + 0.46751 F_India + 0.14975 × 0.0559. So it gives the US/India test level directly (expected 0.8507 if they score like the re-weighted holdout), and LB_v4 − LB_fr0 gives France.
 
-8.3–8.5 (signed number features, stage-3 joint re-scoring, blocking repairs) follow with their results.
+### 8.3 Signed house-number relations (`feats_nx.py`): +0.0002
+
+`nx` group:
+- signed first-number difference;
+- look-alike nudge set;
+- one digit substituted or swapped;
+- leading digits dropped;
+- length difference.
+
+The v5 recipe with and without it, three OOF groups, same candidates:
+
+| | v5 | **v6nx** (+ `nx`) |
+|---|---|---|
+| stage-1 early-stopping log-loss (groups 0/1/2) | 0.0504 / 0.0525 / 0.0509 | 0.0496 / 0.0513 / 0.0500 |
+| stage-1 holdout (best threshold) | 0.9869 | 0.9873 |
+| **holdout macro F0.5 (DP)** | 0.99013 | **0.99034** |
+| gate vs v5 (paired bootstrap) | | **Δ +0.00021 [+0.00016, +0.00025]**; US +0.00029, India +0.00007 |
+| test predicted per S1 (US / India / France) | 3.382 / 3.367 / 3.399 | 3.386 / 3.370 / 3.414 |
+
+The DP picks shift +0.25 (v5: 0). France gains 0.015 predictions per S1: the model now accepts the true-copy number edits that France rejected (§6 d). It is in the rebuild (§8.5).
+
+### 8.4 Stage-3 joint re-scoring (`stage3.py`): +0.00005, optional
+
+The structure thread's A + B as a pipeline step between stage 2 and the decision:
+- A: an out-of-fold XGBoost on contested records, seeing the rival S1's pc and copies per source;
+- B: record-mass calibration of empty-address records.
+
+Runtime 72 s, peak 1.7 GB.
+
+| variant (with the candidate cut) | holdout | Δ vs v5all-c2 |
+|---|---|---|
+| A + B | 0.990207 | +0.000051 [+0.000023, +0.000079] |
+| A only | 0.990198 | +0.000042 [+0.000016, +0.000067] |
+
+- It is half the prototype's +0.00011. The prototype was the best of three variants on the same holdout, and with the top-2 cut every contested record has two S1, which leaves little for B.
+- Test predictions per S1 move by at most 0.001.
+- **Not in the final recipe** (+0.00004 LB for one more stage). It is kept for a last step if everything else is done.
+
+### 8.5 Blocking repairs (`ameya/block-v3`) and the v6all rebuild
+
+Decision record `docs/decisions/2026-09-26_1122_blocking-v3-repairs.md`. `ber/block/repair.py` adds extra name tokens for S2/S3 records:
+- domain/handle names segmented into the country's S1 words;
+- OCR digits repaired when the result is an S1 word;
+- ordinal street words become digits.
+
+Honorifics as stop words were tried and reverted. Dev pool (110k S1, 2.6M records):
+
+| slice | forward recall before → after |
+|---|---|
+| all | 0.97240 → 0.97939 |
+| domain/handle names | 0.86813 → 0.93713 |
+| OCR digits | 0.90632 → 0.95215 |
+| ordinal words | 0.97165 → 0.98984 |
+
+Candidates per S1 are unchanged.
+
+**The v6all rebuild runs now** (`run_v6all.sh` in the session scratchpad; resumable per step, and each heavy step waits for free memory):
+
+    blocking v3 → features fx5 (+ nx) → lo, lg, lop, lo0 → s1 --all → cross-encoder → s2 --all →
+    decision with the candidate cut (gate vs v5all-c2) → candidate set → France rules v2 → 2026-09-26-v6all-ops-c2
+
+About 3.5 h.
