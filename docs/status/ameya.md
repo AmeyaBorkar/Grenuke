@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 23:45
+- **Last updated (IST):** 2026-09-27 02:10
 - **Current focus:** France, the only gap left (`RESEARCH_v6.md` §6).
   - v6all scored **0.988609**. The US/India part is 0.8429 (re-weighted holdout), so France is about **0.973**, 0.018 below US/India. US/India have about +0.0003 left.
   - **v7nst scored 0.990179 (rank 7)**: self-training on France works (France about 0.981). v7n scored 0.989721 (rank 8).
@@ -44,5 +44,9 @@
 
   Traffic so far about 24 GB of the 30 GB cap.
 - **Blocked on / need from others:** the captain's uploads and their scores.
+- **Tonight's live plan** (issue #45, 02:05 comment):
+  - running: the France self-trained e5-large and Qwen on the H100, and v7mst → v7s → v7sq (Qwen gated) on the laptop;
+  - packaged: v7nst2, v7ens2 and the frs2 variants;
+  - the exact recipe for all of them is in `experiments/ameya/model-v1/RECIPE.md`.
 - **Latest handover:** `docs/handover/2026-09-26_2049_ameya_squeeze-v7n.md`.
 - **Next up:** read tomorrow's scores against the plan above. The France probes decide the France threshold for the final.
