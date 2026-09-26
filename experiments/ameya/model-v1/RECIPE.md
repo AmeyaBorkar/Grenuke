@@ -28,6 +28,36 @@ The exact commands behind the final candidates, from raw data to `output/*.tsv`,
 4. **Does `feats_legal.py` need `--group`? No.** It only renames the output group; the default `lg` is what stages 1/2 read.
 5. **Can `decide.py --base` be optional? Yes.** It now defaults to empty and skips the comparison.
 
+## The next candidate: v7ce3 (v6all + larger cross-encoders + stage 3 + rules v3 + acronym join)
+
+**Status 26 Sep 19:40: holdout gate passed.**
+- Holdout 0.991138 vs v6all-s3 0.990842: Δ +0.000296 [+0.000252, +0.000342]. vs v6all-c2: +0.00035.
+- Decision record `docs/decisions/2026-09-26_1933_model-v7ce3.md`.
+- Output `2026-09-27-v7ce3-s3-ops3a-c2`: matching sha256 `671dca1e96484c6a16618f9c26901f6cd73659a92894a28a39ebb48ef65386fd`, candidates `85a1ca7d0519329baa87995cbaf5cc621ba91e043eb2bd52564545b8c15fb476`.
+
+Steps 0–5 of v6all below, then:
+```
+cd experiments/ameya/model-v1
+# 5b. larger cross-encoders on a GPU (multilingual-e5-base and -large, MIT, 278M / 560M; about 40 / 60 min on an H100)
+python -c "from ce import band_pairs; [band_pairs('ameya-s1-v6all', s)[['s1','r','row','p1'] + (['fold','y'] if s == 'train' else [])].to_parquet(f'$CE_BOX_DIR/band_{s}.parquet', index=False) for s in ('train', 'test')]"
+python ce_box.py --model intfloat/multilingual-e5-large --lr 2e-5 --name e5l      # CE_BOX_DIR must hold the band files
+python ce_box.py --model intfloat/multilingual-e5-base  --lr 3e-5 --name e5b
+python ce_import.py --feats ameya-fx5 --src $CE_BOX_DIR/out_e5l --group cel --column cel__logit
+python ce_import.py --feats ameya-fx5 --src $CE_BOX_DIR/out_e5b --group ceb --column ceb__logit
+# 5c. stage 2 with all three cross-encoder logits
+python s2.py --feats ameya-fx5 --s1 ameya-s1-v6all --tag ameya-s2-v7ce3 --groups str,cx,lo0,lg,ce,cel,ceb,nx --cluster --extra $LEG,ce__logit,cel__logit,ceb__logit,$NX --all
+# 6. decision, candidate set, stage 3, rules v3, acronym join
+python decide.py --scores ameya-s2-v7ce3 --col pc --tag ameya-model-v7ce3-c2 --p-cand 0.02 --top-r 2
+python cands_final.py --s1 ameya-s1-v6all --tag ameya-cands-v6all-c2 --p-cand 0.02 --top-r 2
+python stage3.py --scores ameya-s2-v7ce3 --tag ameya-s3-v7ce3 --p-cand 0.02 --top-r 2
+python decide.py --scores ameya-s3-v7ce3 --col pc --tag ameya-model-v7ce3-s3 --p-cand 0.02 --top-r 2
+python post_ops.py --matches ameya-model-v7ce3-s3 --scores ameya-s3-v7ce3 --cands ameya-cands-v6all-c2 --feats ameya-fx5 --tag ameya-model-v7ce3-s3-ops3 --robust-addr
+python acr_join.py --split test --matches ameya-model-v7ce3-s3-ops3 --cands ameya-cands-v6all-c2 --tag ameya-model-v7ce3-s3-ops3a --cands-tag ameya-cands-v7ce3-c2a
+cd ../../..
+# 7. write and validate
+python -m ber.pipeline --stage write --split test --tag ameya-model-v7ce3-s3-ops3a --in candidates=ameya-cands-v7ce3-c2a --in matches=ameya-model-v7ce3-s3-ops3a
+```
+
 ## The final recipe: v6all (current main), if its gate passes
 
 **Status 26 Sep 14:27: final.** Holdout 0.990788 vs v5all-c2 0.990156, Δ +0.00063 [0.00057, 0.00070]; `decide.py` picks a threshold of 0.70 (G6). Output `2026-09-26-v6all-ops-c2`: matching sha256 `0f6d8985be05877276e16a4d95562d8d72f36c38f962441f1a6f9928d22890be`, candidates `cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae`; 3.70 candidates per S1.

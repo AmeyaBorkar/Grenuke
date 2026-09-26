@@ -37,10 +37,11 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=128)
     ap.add_argument("--epochs", type=int, default=1)
     ap.add_argument("--max-len", type=int, default=96)
+    ap.add_argument("--seed", type=int, default=26)
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     torch.backends.cuda.matmul.allow_tf32 = True
-    ce.LR, ce.BATCH, ce.EPOCHS, ce.MAX_LEN = args.lr, args.batch, args.epochs, args.max_len
+    ce.LR, ce.BATCH, ce.EPOCHS, ce.MAX_LEN, ce.SEED = args.lr, args.batch, args.epochs, args.max_len, args.seed
     out = f"{BOX}/out_{args.name}"
     os.makedirs(out, exist_ok=True)
     t0 = time.perf_counter()
