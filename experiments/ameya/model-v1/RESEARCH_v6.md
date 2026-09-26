@@ -692,3 +692,64 @@ The second epoch sharpens US/India but slightly hurts France: it specializes on 
 | e5l2 alone | 0.9441 |
 
 Self-training on French pseudo-labels cost e5ls nothing on US/India (e5ls holdout 0.9439, OOF 0.9403).
+
+### 6.16 v7s, the crash, and the rules stacked on the final model (27 Sep, 03:30–05:00)
+
+**v7s** (cross-encoder mean `cms` = e5l + e5ls + bge; round-1 labels):
+- **Holdout:** c2 0.991196 (+0.000097 [+0.000062, +0.000133]), s3 **0.991229** (+0.000091 [+0.000058, +0.000126]).
+- **US/India part 0.843247, +0.000037 over v7nst**, three times v7mst's +0.000013. This was Bakshi's falsifiable test for dropping e5l2: it came out positive, so the swap to e5ls costs US/India nothing.
+- **France against v7nst:** +7.1 / −9.5 changes per 1000 S1. `fhs.py` scores +0.02 per 1000 (COPY +2.30 / −2.24, SWAP +0.94 / −0.91): the only variant that doesn't lose true copies.
+- Package `2026-09-27-v7s-s3-ops3a-c2`, validator PASS.
+
+**The integration laptop froze at about 03:35 and rebooted at 03:40.**
+- There was no bugcheck and no GPU-hang report, which fits memory exhaustion. The commit limit is 42.6 GB and 23 GB is committed at idle. On top of that ran stage 2 (16.5 GB), three analysis scripts (about 7 GB) and the acronym join (30M initials matches).
+- **Nothing was lost.** Artifact writes are atomic (a temp file, then `os.replace`), and the chain resumed from its step markers. v7s was packaged at 03:49.
+- **Since then:** one stage-2 chain at a time, a 15 GB memory guard before stage 2, and a pause flag that keeps analysis scripts off while a pipeline step runs.
+
+**Rules stacked on the final model** (`stack/`, ported from the three analysis runs of 27 Sep 03:00–04:30). Every gate is a paired bootstrap on the US/India holdout, with the fold-parity halves A/B.
+
+| layer | countries | v7s test changes | evidence |
+|---|---|---|---|
+| hunt `acr`: add an owned, unheld pair (pc ≥ 0.1) whose record name is the S1's initials and whose record address is not empty | all | US +12, India +25, France +16 | 37 of 37 true on the holdout |
+| hunt `cap`: at most 5 S2, 6 S3 and 11 records per S1 (train truth never exceeds them); the lowest pc goes first | with labels | US −9, India −13 | the dropped pairs are false on the holdout (2 of 2) |
+| hunt `nsa`: drop a prediction with pc in (threshold, 0.75] when 4 or more S1 compete for its record | with labels | US −161, India −163 | these pairs are 65–68% true, below the 72–77% break-even |
+| polish `copy`: add same-name copies at the exact address (legal forms, word order, Cie/Compagnie, Ets, St, Ste) | without labels | France +332 | the population is 99.99% true in US/India; v7s predicts 99.90% of the French one |
+| polish `city`: drop a pair whose S1 and record name different communes | without labels | France −89 | French true copies change commune in 3 of 546,465 pairs; the drops are mostly the same name and house number on another street in another commune |
+| decision: expected-F0.5 per S1 with logit shift +0.2, phantom 0.01 and crowd shift −0.3 (replaces the threshold and `nsa`) | with labels | US +334 / −1,116, India +384 / −1,162 (with `acr` and `cap`) | **+48.1e-6 [+7.1, +91.2]** on v7s, P(better) 0.987 |
+
+- **The hunt narrowed for France:**
+  - 5 of its 21 French acronym adds carry a different house number or street (3 → 335, 41 → 542). These are the generator's nudged look-alikes, so they are left out.
+  - Its 22 French cap drops include perfect copies at pc 0.997–1.000, which the French pc cannot rank. Dropping at random among an S1's predictions loses F0.5, so none is applied.
+  - `fhs.py` against v7s: the hunt's own French changes score −0.02 per 1000; the narrowed hunt plus polish scores **+1.09**.
+- **Gates on v7s** (×1e-6, full [CI] / A / B):
+
+  | rules on the labelled countries | full [CI] | A | B |
+  |---|---|---|---|
+  | threshold + acr + cap + nsa | +9.4 [+1.7, +17.5] | +10.0 | +8.6 |
+  | + rank0 (empty-S1 rescue, pc 0.6–0.7) | +33.1 [+9.4, +56.3] | +18.1 | +55.6 |
+  | expected-F0.5 + acr + cap | +35.9 [−4.8, +77.6] | −4.8 | +97.1 |
+  | **expected-F0.5 with crowd shift + acr + cap** | **+48.1 [+7.1, +91.2]** | +7.7 | +108.7 |
+
+- **Selection bias, checked:** repeated 2-fold CV (42 out-of-sample evaluations on v7nst) gives the expected-F0.5 rule with a phantom +23.7, positive in 86% of splits. Tuning the flat threshold the same way gives −18.8.
+- **Correction to 6.15:** the stage-3 comparison ran the plain expected-F0.5 rule (no phantom, no crowd shift). With both, it beats the threshold.
+- **Correction to 6.14:** the "small leak, not fixed" of the acronym join across cities is fixed by `city`.
+
+**v7sb** (v7s with bge replaced by `bges`, bge-reranker-v2-m3 self-trained on the French pseudo-labels; `bges` holdout band AUC 0.9424 against bge's 0.9417):
+- **Holdout:** c2 0.991202, s3 0.991226. It is level with v7s.
+- **US/India part:** 0.843241.
+- **France against v7nst:** +12.0 / −11.1 changes per 1000 S1, COPY net +1.22 and `fhs` +0.33. The self-trained bge finds more of the true copies by itself.
+
+**The stacked candidates against v7nst** (`fhs.py`, per 1000 French S1):
+
+| package | COPY + / − | SWAP + / − | other + / − | score |
+|---|---|---|---|---|
+| v7s | +2.30 / −2.24 | +0.94 / −0.91 | +3.85 / −6.32 | +0.02 |
+| v7s-dpc | +3.42 / −2.28 | +0.94 / −0.92 | +3.88 / −6.44 | +1.11 |
+| v7sb-dpc | +4.68 / −2.67 | +1.92 / −1.04 | +6.28 / −7.57 | +1.13 |
+| v7nst-dpc | +1.61 / −0.19 | 0 / −0.01 | +0.03 / −0.34 | +1.43 |
+
+- `copy` adds back most of the true copies a model misses, so after the stack the models differ mainly in the "other" changes. Their sign is unknown for France.
+- On expected value, v7s-dpc leads: its US/India part is +0.000037 over v7nst's, against about −0.000004 on `fhs`.
+- The DP rule converges on the same prediction density from any model: 3.389 (US) and 3.376 (India) per S1 on v7s, v7sb and v7nst alike, starting from thresholds of 0.70 and 0.675.
+
+**Memory peaks of the post-stage-2 steps** (v7sb): `decide.py` 9.8 GB, `acr_join.py` 6.0 GB, `post_ops.py` 3.3 GB, `stage3.py` 2.8 GB. Stage 2 itself peaks at 16.5–17.5 GB.
