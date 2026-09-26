@@ -98,7 +98,7 @@ def train_one(model_name: str, enc, lens, y, pad_id) -> torch.nn.Module:
         opt, lambda k: min(1.0, (k + 1) / max(1, int(0.05 * steps))) * max(0.0, (steps - k) / steps))
     yt = torch.from_numpy(y.astype(np.float32))
     model.train()
-    k, t0, run = 0, time.perf_counter(), 0.0
+    k, t0, run, skipped = 0, time.perf_counter(), 0.0, 0
     for ep in range(EPOCHS):
         for bi in rng.permutation(len(batches)):
             idx = batches[bi]
@@ -107,14 +107,18 @@ def train_one(model_name: str, enc, lens, y, pad_id) -> torch.nn.Module:
                 logit = model(input_ids=ids, attention_mask=mask).logits.squeeze(-1)
             loss = torch.nn.functional.binary_cross_entropy_with_logits(logit.float(), yt[idx].cuda())
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            opt.step()
+            gn = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            if torch.isfinite(gn):  # a rare non-finite gradient (seen with torch 2.11) would turn every weight into NaN
+                opt.step()
+                run = 0.98 * run + 0.02 * float(loss) if k else float(loss)
+            else:
+                skipped += 1
             sched.step()
             opt.zero_grad(set_to_none=True)
-            run = 0.98 * run + 0.02 * float(loss) if k else float(loss)
             k += 1
             if k % 1000 == 0:
-                log.info("step %d/%d loss %.4f (%.0f pairs/s)", k, steps, run, k * BATCH / (time.perf_counter() - t0))
+                log.info("step %d/%d loss %.4f (%.0f pairs/s; %d non-finite steps skipped)", k, steps, run,
+                         k * BATCH / (time.perf_counter() - t0), skipped)
     model.eval()
     return model
 
