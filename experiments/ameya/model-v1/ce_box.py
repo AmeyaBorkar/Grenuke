@@ -9,6 +9,11 @@ ce_{train,test}.parquet (row, ce__logit) and config.json, which ce_import.py tur
 Models: intfloat/multilingual-e5-large (MIT, 560M parameters), intfloat/multilingual-e5-base (MIT, 278M).
 26 Sep, one H100 80 GB (both runs together): e5-large 61 min, band AUC OOF 0.9350 / holdout 0.9391; e5-base 37 min,
 0.9244 / 0.9287 (e5-small 0.9191 / 0.9240; stage-1 p1 on the holdout band 0.9297). Resumable per OOF group.
+
+Self-training (``--pseudo``): test band pairs of the countries without labels (France), pseudo-labelled from a finished
+chain's decisions (scratchpad make_pseudo.py: y 1/0, -1 unlabelled), join the training set, cross-fitted: their S1 are
+split three ways (fold_of % 3); model g trains on the pseudo-labels of the other two thirds and alone scores the
+target pairs of third g. The other test pairs get the mean of the three models, as before.
 """
 import argparse
 import json
@@ -23,7 +28,7 @@ from sklearn.metrics import roc_auc_score
 from transformers import AutoTokenizer
 
 import ce
-from ber.eval.splits import oof_group
+from ber.eval.splits import fold_of, oof_group
 
 log = logging.getLogger("ce_box")
 BOX = os.environ.get("CE_BOX_DIR", "/workspace/grenuke/box")
@@ -38,6 +43,7 @@ def main() -> int:
     ap.add_argument("--epochs", type=int, default=1)
     ap.add_argument("--max-len", type=int, default=96)
     ap.add_argument("--seed", type=int, default=26)
+    ap.add_argument("--pseudo", default="", help="parquet (s1, r, y) of target-country test band pairs: self-training")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -54,31 +60,50 @@ def main() -> int:
     fold, y = tr["fold"].to_numpy(), tr["y"].to_numpy()
     train_rows = fold >= 5
     grp = np.where(train_rows, oof_group(np.where(train_rows, tr["s1"].to_numpy(), 0)), -1)
+    tgt = np.array([], np.int64)
+    if args.pseudo:  # target-country test pairs: positions in te, pseudo-labels, cross-fitting third
+        ps = te[["s1", "r"]].reset_index().merge(pd.read_parquet(args.pseudo), on=["s1", "r"])
+        tgt, tgt_y = ps["index"].to_numpy(), ps["y"].to_numpy()
+        tgt_g = (fold_of(ps["s1"].to_numpy()) % 3).astype(np.int64)
+        log.info("pseudo: %d target pairs, %d labelled (%.3f positive)", tgt.size, int((tgt_y >= 0).sum()),
+                 float((tgt_y[tgt_y >= 0] == 1).mean()))
+    rest_t = np.setdiff1d(np.arange(len(te)), tgt)
     log.info("band: train %d (%.3f positive), test %d; tokens p50 %d (%.0fs)", len(tr), y.mean(), len(te),
              np.median(lens), time.perf_counter() - t0)
     logit = np.full(len(tr), np.nan, np.float32)
     hold = np.flatnonzero(~train_rows)
     hold_sum = np.zeros(hold.size, np.float32)
     test_sum = np.zeros(len(te), np.float32)
+    tgt_logit = np.full(len(te), np.nan, np.float32)
     done = []
     ck = f"{out}/checkpoint.npz"
     if os.path.exists(ck):  # resume after a crash: groups already scored are kept
         z = np.load(ck)
         logit, hold_sum, test_sum, done = z["logit"], z["hold_sum"], z["test_sum"], list(z["done"])
+        if "tgt_logit" in z:
+            tgt_logit = z["tgt_logit"]
         log.info("resuming: groups done %s", done)
     for g in range(3):
         if g in done:
             continue
         fit = np.flatnonzero(train_rows & (grp != g))
-        model = ce.train_one(args.model, [enc[i] for i in fit], lens[fit], y[fit], pad)
+        if tgt.size:
+            pl = (tgt_g != g) & (tgt_y >= 0)
+            model = ce.train_one(args.model, [enc[i] for i in fit] + [enc_t[i] for i in tgt[pl]],
+                                 np.r_[lens[fit], lens_t[tgt[pl]]], np.r_[y[fit], tgt_y[pl]], pad)
+        else:
+            model = ce.train_one(args.model, [enc[i] for i in fit], lens[fit], y[fit], pad)
         own = np.flatnonzero(train_rows & (grp == g))
         logit[own] = ce.predict(model, [enc[i] for i in own], lens[own], pad)
         hold_sum += ce.predict(model, [enc[i] for i in hold], lens[hold], pad)
-        test_sum += ce.predict(model, enc_t, lens_t, pad)
+        test_sum[rest_t] += ce.predict(model, [enc_t[i] for i in rest_t], lens_t[rest_t], pad)
+        if tgt.size:
+            mine = tgt[tgt_g == g]
+            tgt_logit[mine] = ce.predict(model, [enc_t[i] for i in mine], lens_t[mine], pad)
         del model
         torch.cuda.empty_cache()
         done.append(g)
-        np.savez(ck, logit=logit, hold_sum=hold_sum, test_sum=test_sum, done=np.array(done))
+        np.savez(ck, logit=logit, hold_sum=hold_sum, test_sum=test_sum, tgt_logit=tgt_logit, done=np.array(done))
         log.info("group %d: trained on %d pairs; OOF AUC %.4f (%.0fs)", g, fit.size,
                  roc_auc_score(y[own], logit[own]), time.perf_counter() - t0)
     logit[hold] = hold_sum / 3
@@ -88,8 +113,10 @@ def main() -> int:
         auc["holdout_p1"] = float(roc_auc_score(y[hold], tr["p1"].to_numpy()[hold]))
     log.info("AUC in the band: %s", auc)
     pd.DataFrame({"row": tr["row"].to_numpy(), "ce__logit": logit}).to_parquet(f"{out}/ce_train.parquet", index=False)
-    pd.DataFrame({"row": te["row"].to_numpy(), "ce__logit": test_sum / 3}).to_parquet(f"{out}/ce_test.parquet", index=False)
-    json.dump({"model": args.model, "lr": args.lr, "batch": args.batch, "epochs": args.epochs, "max_len": args.max_len,
+    test_logit = test_sum / 3
+    test_logit[tgt] = tgt_logit[tgt]  # target pairs: the cross-fitted model's logit
+    pd.DataFrame({"row": te["row"].to_numpy(), "ce__logit": test_logit}).to_parquet(f"{out}/ce_test.parquet", index=False)
+    json.dump({"model": args.model, "pseudo": args.pseudo, "lr": args.lr, "batch": args.batch, "epochs": args.epochs, "max_len": args.max_len,
                "auc": auc, "train_band": len(tr), "test_band": len(te), "seconds": time.perf_counter() - t0},
               open(f"{out}/config.json", "w"), indent=1)
     log.info("done in %.0fs", time.perf_counter() - t0)
