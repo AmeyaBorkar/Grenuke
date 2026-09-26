@@ -232,3 +232,61 @@ def test_name_word_compounds_find_typo_names_with_numberless_addresses():
     index.record_keys(pa.array(["renterianaborweddle.com", "Renteria, Nabor and Weddle Partners"]),
                       pa.array(["", ""]), counts)
     assert counts["name_tokens"].tolist() == [1, 4] and counts["name_maxlen"].tolist() == [19, 8]
+
+
+def test_ordinal_words_read_as_numbers():
+    addrs = pa.array(["35 Twentieth Ave, Queens", "200 FIFTEENTH STREET", "4 Twenty-First St", "Firstenberg Rd",
+                      "2 Second Floor, 9 Thirty Second Street"])
+    nums = _rows(text.address_numbers(addrs))
+    assert nums[0] == ["35", "20"] and nums[1] == ["200", "15"] and nums[2] == ["4", "21"]
+    assert 3 not in nums  # "firstenberg" is not an ordinal
+    assert nums[4] == ["2", "2", "9", "32"]
+    words = _rows(text.address_words(addrs))
+    assert words[0] == ["ave", "queens"] and words[1] == ["st"] and words[3] == ["firstenberg", "rd"]
+
+
+def test_honorific_prefixes_are_stop_words():
+    tok = _rows(text.name_tokens(pa.array(["Shree Ganesh Traders", "Om Sai Enterprises", "Maa Engineering Pvt Ltd",
+                                           "Sree Balaji Stores"])))
+    assert tok == {0: ["ganesh", "traders"], 1: ["sai", "enterprises"], 2: ["engineering"], 3: ["balaji", "stores"]}
+
+
+def test_domain_names_segment_into_s1_words():
+    from ber.block import repair
+    vocab = {"blue": 40, "grill": 12, "acn": 25, "services": 900, "northern": 30, "platinum": 5, "renteria": 1,
+             "nabor": 1, "weddle": 1, "ze": 99, "ph": 99, "lou": 3}
+    assert repair.segment("bluegrill", vocab, 10_000) == ["blue", "grill"]
+    assert repair.segment("acnservicescom", vocab, 10_000) == ["acn", "services"]  # trailing domain suffix
+    assert repair.segment("wwwnorthernplatinum", vocab, 10_000) == ["northern", "platinum"]
+    assert repair.segment("renterianaborweddle", vocab, 10_000) == ["renteria", "nabor", "weddle"]
+    assert repair.segment("jbluegrill", vocab, 10_000) == ["blue", "grill"]  # one initial
+    assert repair.segment("zephbeloumbra", vocab, 10_000) is None  # pseudo-word: no cover by S1 words
+    assert repair.segment("services", vocab, 10_000) is None  # already an S1 word
+
+
+def test_ocr_digits_repair_into_s1_words_only():
+    from ber.block import repair
+    vocab = {"capital": 5, "suarez": 2, "brokerage": 7, "dental": 3, "lily": 2}
+    assert repair.ocr_repair("capita1", vocab) == "capital"
+    assert repair.ocr_repair("5uarez", vocab) == "suarez" and repair.ocr_repair("8rokerage", vocab) == "brokerage"
+    assert repair.ocr_repair("1i1y", vocab) == "lily"  # 1 -> l or i, both tried
+    assert repair.ocr_repair("c0rp", {"corp": 50}) is None  # legal forms are not name words
+    assert repair.ocr_repair("24x7", vocab) is None and repair.ocr_repair("dental", vocab) is None
+
+
+def test_record_keys_repairs_connect_domain_and_ocr_records_to_their_s1():
+    names = pa.array(["Blue Grill Enterprises LLC", "Blue Harbor Inc", "BLUEGRILL.COM", "Capital Motors Corp",
+                      "CAPITA1 MOTORS", "Grill House"])
+    addrs = pa.array(["", "", "", "", "", ""])
+    rep = {"is_s1": np.array([True, True, False, True, False, True]), "country": np.array(["US"] * 6, object),
+           "segment": True, "ocr": True}
+    ptr0, plain = index.record_keys(names, addrs)
+    counts: dict = {}
+    ptr1, fixed = index.record_keys(names, addrs, counts, repair=rep)
+    k0 = [set(plain[ptr0[i]:ptr0[i + 1]].tolist()) for i in range(6)]
+    k1 = [set(fixed[ptr1[i]:ptr1[i + 1]].tolist()) for i in range(6)]
+    assert counts["repaired_tokens"] == 3  # blue, grill; capital
+    assert len(k1[2] & k1[0]) > len(k0[2] & k0[0])  # the domain now shares name keys with its S1
+    assert len(k1[4] & k1[3]) > len(k0[4] & k0[3])  # the OCR'd name too
+    assert all(k1[i] == k0[i] for i in (0, 1, 3, 5))  # S1 records are never repaired
+    assert counts["name_tokens"].tolist() == [3, 2, 1, 2, 2, 2]  # own tokens only

@@ -15,8 +15,10 @@ This exact set becomes candidate_pairs.tsv.
 Parameters (``--set key=value``): k_s1 (40), k_r (8), trim_s1 (30), trim_r (2), seed_cap_r (3000), seed_cap_s1 (1000),
 verify_s1 (400), verify_r (200); name_short (1 = on), ns_k (10), ns_trim_s1 (5), ns_trim_r (5), ns_max_addr_tokens (3),
 ns_ngrams (0: character n-grams of names in name_short), ns_domain_len (0 = off), nw_words (0 = off: name-word
-compound keys in the tok view, ``index.record_keys``); indic_dict (a models tag holding indic_dict.parquet: the
-Indic -> Latin token dictionary learned on train folds 5-19); dev_tag (train only: also write the dev-sample subset).
+compound keys in the tok view, ``index.record_keys``); seg_domains (1 = on: S2/S3 domain/handle names segmented into
+the country's S1 words, ``ber.block.repair``), ocr_repair (1 = on: S2/S3 name words with OCR digits repaired into S1
+words); indic_dict (a models tag holding indic_dict.parquet: the Indic -> Latin token dictionary learned on train
+folds 5-19); dev_tag (train only: also write the dev-sample subset).
 Blocking always searches the full record pool of the split; partitions are exact country labels (open set).
 """
 from __future__ import annotations
@@ -159,10 +161,13 @@ def run(cfg: RunConfig) -> dict:
     ns_ngrams = cfg.param("ns_ngrams", 0, int)  # character n-grams of names in the name_short view (0 = off)
     ns_domain_len = cfg.param("ns_domain_len", 0, int)  # one-token names this long also join name_short (0 = off)
     nw_words = cfg.param("nw_words", 0, int)  # name-word compound keys in the tok view (0 = off)
+    seg_domains = cfg.param("seg_domains", 1, int) == 1  # S2/S3 domain/handle names -> S1 words (ber.block.repair)
+    ocr_repair = cfg.param("ocr_repair", 1, int) == 1  # S2/S3 OCR digits in name words -> S1 words
     dev_tag = cfg.param("dev_tag")
     indic_dict = cfg.param("indic_dict")  # a models tag holding indic_dict.parquet (learned on train folds 5-19)
     params = {"tok": vars(tok), "name_short": vars(ns) if use_ns else None, "ns_max_addr_tokens": ns_max_tokens,
-              "ns_ngrams": ns_ngrams, "ns_domain_len": ns_domain_len, "nw_words": nw_words, "indic_dict": indic_dict}
+              "ns_ngrams": ns_ngrams, "ns_domain_len": ns_domain_len, "nw_words": nw_words, "indic_dict": indic_dict,
+              "seg_domains": int(seg_domains), "ocr_repair": int(ocr_repair)}
 
     t0 = time.perf_counter()
     tbl = pq.read_table(records_path(cfg.split), columns=["eid", "source", "country", "name", "address"])
@@ -177,12 +182,16 @@ def run(cfg: RunConfig) -> dict:
         from .indic import load_name_map
         name_map = load_name_map(artifact_dir("models", indic_dict) / "indic_dict.parquet")
     counts: dict = {}
-    indptr, keys = index.record_keys(names, addresses, counts, name_map, name_words=nw_words)
+    is_s1 = source == 1
+    repair = ({"is_s1": is_s1, "country": country, "segment": seg_domains, "ocr": ocr_repair}
+              if seg_domains or ocr_repair else None)
+    indptr, keys = index.record_keys(names, addresses, counts, name_map, name_words=nw_words, repair=repair)
     n_addr = counts["address_tokens"]
     domain_like = ((counts["name_tokens"] == 1) & (counts["name_maxlen"] >= ns_domain_len) if ns_domain_len
                    else np.zeros(eid.size, bool))
     del addresses
-    log.info("tokens: %d records, %.1f keys per record, %.0fs", eid.size, keys.size / eid.size, time.perf_counter() - t0)
+    log.info("tokens: %d records, %.1f keys per record, %d repaired name tokens, %.0fs", eid.size, keys.size / eid.size,
+             counts.get("repaired_tokens", 0), time.perf_counter() - t0)
 
     s1_mask = source == 1
     s1_query = s1_mask.copy()
@@ -208,9 +217,11 @@ def run(cfg: RunConfig) -> dict:
         if use_ns:
             short = r_rows[(n_addr[r_rows] <= ns_max_tokens) | domain_like[r_rows]]
             sub = np.concatenate([s1_rows, short])
+            sub_repair = (None if repair is None else
+                          {**repair, "is_s1": is_s1[sub], "country": np.asarray(country)[sub]})
             ns_ptr, ns_keys = index.record_keys(pc.take(names, pa.array(sub)),
                                                 pa.array([""] * sub.size, type=names.type), name_map=name_map,
-                                                name_ngrams=ns_ngrams)
+                                                name_ngrams=ns_ngrams, repair=sub_repair)
             local_s1 = np.arange(s1_rows.size)
             local_r = np.arange(s1_rows.size, sub.size)
             if short.size:

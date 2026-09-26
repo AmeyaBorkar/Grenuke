@@ -2,7 +2,8 @@
 
 Each record gets int64 token keys:
 - base tokens: name tokens (+ the joined name and consonant skeletons), address words and address numbers, each
-  in its own namespace (Indic-script names are transliterated first, ber.block.indic);
+  in its own namespace (Indic-script names are transliterated first, ber.block.indic). With ``repair``, S2/S3 names
+  that are domains/handles or carry OCR digits add the S1 words they hide (ber.block.repair);
 - compound tokens, which stay rare where single tokens are common:
   (one of the first 2 numbers, one of the first 3 address words), (one of the first 2 numbers, one of the first 3
   name tokens) and unordered pairs among the first 4 name tokens;
@@ -133,26 +134,38 @@ def char_ngrams(tok: text.Tokens, n_rows: int, n: int) -> tuple[np.ndarray, np.n
 
 def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = None,
                 name_map: dict[str, str] | None = None, name_ngrams: int = 0,
-                name_words: int = 0) -> tuple[np.ndarray, np.ndarray]:
+                name_words: int = 0, repair: dict | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Token keys of every record: CSR ``(indptr, keys)``, keys int64, possibly with duplicates inside a row.
 
     Indic-script names are transliterated first (``indic.name_tokens``: legal forms dropped, ``name_map`` applied);
     every name token of 3+ letters also adds its consonant skeleton (namespace "k"), so "मार्केटिंग" and "marketing"
     share a key. ``name_ngrams`` > 0 adds character n-grams of the name (typos; used by the name-only view).
     ``name_words`` > 0 adds the name-word compounds. ``counts_out`` receives per-record address token counts, name
-    token counts and the longest name token's length.
+    token counts and the longest name token's length (of the record's own tokens).
+    ``repair`` = {"is_s1": bool per record, "country": label per record, "segment": bool, "ocr": bool} adds the
+    S2/S3 name repairs of ``ber.block.repair`` (domain/handle segments, OCR-repaired words) as extra name tokens:
+    they get name keys, skeletons and compounds; the joined name and the character n-grams keep the own tokens.
     """
     n = len(names)
-    nt, _ = indic.name_tokens(names, name_map)
-    nc = text.name_concat(nt, n)
+    own, _ = indic.name_tokens(names, name_map)
+    nc = text.name_concat(own, n)
+    nt = own
+    if repair and (repair.get("segment") or repair.get("ocr")):
+        from . import repair as rp
+
+        extra = rp.extra_name_tokens(names, own, np.asarray(repair["is_s1"], bool), np.asarray(repair["country"]),
+                                     bool(repair.get("segment")), bool(repair.get("ocr")))
+        nt = rp.merge(own, extra)
+        if counts_out is not None:
+            counts_out["repaired_tokens"] = int(extra.rows.size)
     aw = text.address_words(addresses)
     ad = text.address_numbers(addresses)
     if counts_out is not None:  # per-record counts (the name_short view needs them)
         counts_out["address_tokens"] = np.bincount(aw.rows, minlength=n) + np.bincount(ad.rows, minlength=n)
-        counts_out["name_tokens"] = np.bincount(nt.rows, minlength=n)
-        lens = pc.utf8_length(nt.values).to_numpy(zero_copy_only=False).astype(np.int64)
+        counts_out["name_tokens"] = np.bincount(own.rows, minlength=n)
+        lens = pc.utf8_length(own.values).to_numpy(zero_copy_only=False).astype(np.int64)
         maxlen = np.zeros(n, np.int64)
-        np.maximum.at(maxlen, nt.rows, lens)
+        np.maximum.at(maxlen, own.rows, lens)
         counts_out["name_maxlen"] = maxlen
     long = pc.greater_equal(pc.utf8_length(nt.values), 3)
     sk_values = indic.skeleton(pc.filter(nt.values, long))
@@ -193,7 +206,7 @@ def record_keys(names: pa.Array, addresses: pa.Array, counts_out: dict | None = 
         rows.append(np.repeat(np.arange(n, dtype=np.int64), nw_counts))
         keys.append(nw)
     if name_ngrams:
-        g_rows, g_keys = char_ngrams(nt, n, name_ngrams)
+        g_rows, g_keys = char_ngrams(own, n, name_ngrams)
         rows.append(g_rows)
         keys.append(g_keys)
     return _group_by_row(np.concatenate(rows), np.concatenate(keys), n)
