@@ -74,3 +74,5 @@ Notable changes to the pipeline, the plan, the contracts and the team process. N
 |---|---|---|---|---|---|---|
 | earlier | 25 Sep | — | — | v2 0.98436; v3 0.98882 | v2 0.97608; v3 0.97961 | recorded in `docs/status/ameya.md`; France ≈ 0.93 (`RESEARCH_v5.md` §1) |
 | 2026-09-26 #01 | 26 Sep | `sub/2026-09-26-01` | `75655e5` | 0.990156 / 0.98997 / 0.99043 | **0.98781** (rank 15) | v5all + France rules v2 + 3.70 candidates per S1 (`2026-09-26-v5all-ops2-c2`); France implied 0.971–0.976; record `submissions/records/2026-09-26_sub01.md` |
+| 2026-09-26 #02 | 26 Sep | `sub/2026-09-26-02` | `017f2e6` | 0.990842 / 0.99070 / 0.99106 | **0.988609** (rank 15) | v6all + stage 3 + rules v3 + acronym join (`2026-09-26-v6all-s3-ops3a-c2`); France implied 0.973; record `submissions/records/2026-09-26_sub02.md` |
+| 2026-09-26 #03 | 26 Sep | `sub/2026-09-26-03` | PR #43 | 0.991211 / 0.99102 / 0.99150 | **0.989721** (rank 8) | v7n: stage 2 with the mean of two multilingual-e5-large cross-encoders (`2026-09-27-v7n-s3-ops3a-c2`); France implied 0.978; record `submissions/records/2026-09-26_sub03.md` |
