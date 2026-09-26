@@ -25,11 +25,12 @@ LEGAL = frozenset("""
     inc incorporated llc ltd limited pvt private corp corporation co company cos lp llp pllc pc plc gmbh
     sarl sas sasu eurl sa sci snc ei
 """.split())
-# Honorific prefixes: shri/sri/smt never occur in train S1 names but the generator adds them to about 1.6k copies each;
-# sree/shree/om/maa occur in S1 names and are dropped from 32-45% of their true copies (train, 26 Sep).
+# Honorific prefixes: shri/sri/smt never occur in train S1 names but the generator adds them to about 1.6k copies each.
+# sree/shree/om/maa stay name tokens: S1 names carry them and 32-45% of their true copies drop them, but they are
+# often the name's only distinctive word ("Om Services Private Limited", "maamarketing.com"); as stop words the
+# reduced dev pool lost 95 forward pairs and found 64 (block-v3 measurement, 26 Sep).
 NAME_STOP = frozenset("""
     the and of a an de du des la le les et www com net org dba aka shri sri smt dr mr mrs ms
-    sree shree shre om maa
 """.split())
 ADDR_STOP = frozenset("""
     null none na no nos h hno house plot door flat unit apt apartment suite ste floor fl bldg building
