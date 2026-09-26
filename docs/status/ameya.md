@@ -1,19 +1,14 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 06:30
-- **Current focus:** solutions (`RESEARCH_v5.md` §7–8).
-  - Done:
-    - candidate cut (3.70 per S1);
-    - France rules v2 (B/A/APP/ACR, checked on the holdout);
-    - the France weak-address/unrelated families are profiling artifacts, not errors.
-  - Running:
-    - v6nx (signed number features; stage 1 +0.0004);
-    - stage-3 joint re-scoring (agent);
-    - next, the full rebuild with the blocking repairs (`ameya/block-v3`: dev-pool forward recall 0.972 → 0.979).
-- **Branch(es):**
-  - `ameya/france-rules-v2`: `post_ops.py` v2, research §8.1–8.2, decision record;
-  - `ameya/block-v3`: blocking repairs (domains, OCR, ordinals), to be rebased and rebuilt;
-  - `ameya/cands-cut`: merged (#25).
+- **Last updated (IST):** 2026-09-26 11:30
+- **Current focus:** the v6all rebuild (running since 11:22, about 3.5 h), which bundles:
+  - blocking v3 repairs (dev-pool forward recall 0.972 → 0.979);
+  - signed number features (holdout +0.00021);
+  - the candidate cut;
+  - France rules v2.
+
+  Stage 3 (+0.00005) is optional.
+- **Branch(es):** `ameya/solutions-r1` (blocking v3 + `stage3.py` + research §8.3–8.5), PR open. `ameya/france-rules-v2` merged (#26).
 - **Leaderboard vs holdout:**
 
   | model | holdout | leaderboard | gap | France implied |
@@ -22,6 +17,7 @@
   | v3 | 0.98882 | 0.97961 | −0.0092 | 0.925–0.931 |
   | v4 | 0.99015 | | | |
   | v5all + rules (final candidate) | 0.99016 | | | |
+  | v6nx (+ signed number features, 3 groups) | 0.99034 | | | |
 
   For v4 and later: LB ≈ 0.8423 + 0.14975 × F_France, so F_France = (LB − 0.8423) / 0.14975.
 
@@ -39,13 +35,9 @@
      - `2026-09-26-probe-v4-in0/`.
 - **Candidate set:** the organisers rank a smaller `candidate_pairs.tsv` per S1 higher. Done: p1 ≥ 0.02 and each record's top 2 S1 (4.68 → 3.70 per S1, holdout tie). Decision record `2026-09-26_0532`.
 - **Deadline:** the submission-round page says the window closes 27 Sep 15:30 UTC = **21:00 IST**, and the private leaderboard uses the **final** submission. To be confirmed in the logged-in portal.
-- **ETA for the current task:**
-  - v6nx result about 07:00;
-  - `post_ops` patterns a–e about 07:30.
+- **ETA for the current task:** v6all about 15:00 (gate vs v5all-c2, then package `2026-09-26-v6all-ops-c2`).
 - **Blocked on / need from others:** the captain's uploads and their scores.
-- **Latest handover:** `docs/handover/2026-09-26_0554_ameya_research-part2-plan.md`.
+- **Latest handover:** `docs/handover/2026-09-26_1123_ameya_solutions-round1.md`.
 - **Next up:**
-  - France patterns a–e;
-  - the v6nx gate;
-  - research agents (France weak-address/unrelated families, stage 3);
-  - blocking rebuild if time.
+  - the v6all gate and package;
+  - then, if time, stage 3 on v6all and the rule adds outside the candidate set (+0.00005 each).
