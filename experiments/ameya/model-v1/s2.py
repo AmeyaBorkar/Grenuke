@@ -238,6 +238,26 @@ def main() -> int:
     s1_feats += [f for f in args.extra.split(",") if f and f not in s1_feats]
     del b
 
+    # built before the training matrix so the two test-side builds never sit in memory with it
+    tmask = None
+    if args.pseudo:  # target-country test rows with pseudo-labels, cross-fitted by S1 group
+        common.GROUPS[:] = (args.test_groups or args.groups).split(",")
+        st = read_table("scores", args.s1, "test")
+        rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
+        ps = pd.read_parquet(args.pseudo)
+        lab = pd.Series(ps["y"].to_numpy(np.float32), index=ps["s1"].to_numpy() * 4_000_000_000 + ps["r"].to_numpy())
+        lab = lab[~lab.index.duplicated()]
+        yt_all = lab.reindex(st["s1"].to_numpy() * 4_000_000_000 + st["r"].to_numpy()).to_numpy()
+        tmask = rows_t & ~np.isnan(yt_all)
+        Xtg, _ = build(st, args.feats, "test", s1_feats, tmask, args.cluster)
+        ytg = yt_all[tmask]
+        gtg = fold_of(st["s1"].to_numpy()[tmask]) % (4 if args.all else 3)
+        p2tg = np.zeros(ytg.size, np.float32)
+        del st, yt_all, rows_t
+        common.GROUPS[:] = args.groups.split(",")
+        log.info("pseudo: %d target stage-2 rows, %d labelled (%.3f positive)", ytg.size, int((ytg >= 0).sum()),
+                 float((ytg[ytg >= 0] == 1).mean()))
+
     sc = read_table("scores", args.s1, "train")
     fold, y = sc["fold"].to_numpy(), sc["y"].to_numpy()
     rows = (sc["p0"].to_numpy() >= cfg["tau0"]) & (sc["p1"].to_numpy() >= P_MIN)  # stage-1 rows only
@@ -254,25 +274,6 @@ def main() -> int:
     es = s1_hash_slice(sc["s1"].to_numpy()[rows], SALT2, 50)
     log.info("stage 2: %d rows (%.3f of pairs, %.5f of positives), %d features (%.0fs)", rows.sum(), rows.mean(),
              rows[y == 1].mean(), len(names), time.perf_counter() - t0)
-
-    tmask = None
-    if args.pseudo:  # target-country test rows with pseudo-labels, cross-fitted by S1 group
-        common.GROUPS[:] = (args.test_groups or args.groups).split(",")
-        st = read_table("scores", args.s1, "test")
-        rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
-        ps = pd.read_parquet(args.pseudo)
-        lab = pd.Series(ps["y"].to_numpy(np.float32), index=ps["s1"].to_numpy() * 4_000_000_000 + ps["r"].to_numpy())
-        lab = lab[~lab.index.duplicated()]
-        yt_all = lab.reindex(st["s1"].to_numpy() * 4_000_000_000 + st["r"].to_numpy()).to_numpy()
-        tmask = rows_t & ~np.isnan(yt_all)
-        Xtg, _ = build(st, args.feats, "test", s1_feats, tmask, args.cluster)
-        ytg = yt_all[tmask]
-        gtg = fold_of(st["s1"].to_numpy()[tmask]) % n_groups
-        p2tg = np.zeros(ytg.size, np.float32)
-        del st, yt_all, rows_t
-        common.GROUPS[:] = args.groups.split(",")
-        log.info("pseudo: %d target stage-2 rows, %d labelled (%.3f positive)", ytg.size, int((ytg >= 0).sum()),
-                 float((ytg[ytg >= 0] == 1).mean()))
 
     p2 = sc["p1"].to_numpy(np.float32).copy()
     boosters, best_its = [], []
