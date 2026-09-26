@@ -28,6 +28,59 @@ The exact commands behind the final candidates, from raw data to `output/*.tsv`,
 4. **Does `feats_legal.py` need `--group`? No.** It only renames the output group; the default `lg` is what stages 1/2 read.
 5. **Can `decide.py --base` be optional? Yes.** It now defaults to empty and skips the comparison.
 
+## The self-training family: v7n, v7nst (uploaded 0.990179), v7nst2, v7ens2, frs2, v7mst, v7s, v7sq
+
+All start from **v7ce3's inputs**: blocking v3, `ameya-fx5`, `ameya-s1-v6all`, the band exported with `ce.band_pairs("ameya-s1-v6all", split)`, and e5-small's `ce` group. v7ce3 itself is only the **teacher**: its final decisions are the source of the pseudo-labels, so it must be built first (see the v7ce3 section above; it also uses e5-base).
+
+```
+# 0. Cross-encoders on a GPU box (ce_box.py; CE_BOX_DIR holds band_{train,test}.parquet; torch 2.11 needs the
+#    non-finite-step guard now in ce.train_one)
+python ce_box.py --model intfloat/multilingual-e5-large --name e5l  --lr 2e-5 --batch 128 --epochs 1 --seed 26
+python ce_box.py --model intfloat/multilingual-e5-large --name e5l2 --lr 2e-5 --batch 128 --epochs 2 --seed 7
+python ce_box.py --model BAAI/bge-reranker-v2-m3        --name bge  --lr 2e-5 --batch 128 --epochs 1 --seed 26
+# cross-encoder means (z from the train band) -> one stage-2 group each
+python zmean_ce.py out_cem2 out_e5l out_e5l2          # v7n, v7nst, v7nst2
+python zmean_ce.py out_cem  out_e5l out_e5l2 out_bge  # v7mst
+python ce_import.py --feats ameya-fx5 --src out_cem2 --group cem2 --column cem2__logit   # likewise cem, cms, cmq
+
+# 1. Pseudo-labels from the teacher's final decisions (round 1: v7ce3; round 2: v7nst)
+python pseudo_labels.py ameya-model-v7ce3-s3 ameya-s3-v7ce3 ameya-model-v7ce3-s3-ops3 ameya-model-v7ce3-s3-ops3a \
+    s1:ameya-s1-v6all pseudo_s2_fr_v7ce3.parquet          # all French stage-2 rows (for s2.py --pseudo)
+python pseudo_labels.py ... band_test.parquet pseudo_fr_v7ce3.parquet   # the band only (for ce_box/ce_llm_st --pseudo)
+
+# 2. Stage 2 (v7n: without --pseudo; v7nst: with it), then the usual chain
+python s2.py --feats ameya-fx5 --s1 ameya-s1-v6all --tag ameya-s2-v7nst --groups str,cx,lo0,lg,ce,cem2,nx --cluster \
+    --extra $LEG,ce__logit,cem2__logit,$NX --all --pseudo pseudo_s2_fr_v7ce3.parquet
+python decide.py --scores ameya-s2-v7nst --col pc --tag ameya-model-v7nst-c2 --base ameya-model-v7ce3-c2 --p-cand 0.02 --top-r 2
+python stage3.py --scores ameya-s2-v7nst --tag ameya-s3-v7nst --p-cand 0.02 --top-r 2
+python decide.py --scores ameya-s3-v7nst --col pc --tag ameya-model-v7nst-s3 --base ameya-model-v7ce3-s3 --p-cand 0.02 --top-r 2
+python post_ops.py --matches ameya-model-v7nst-s3 --scores ameya-s3-v7nst --cands ameya-cands-v6all-c2 --feats ameya-fx5 \
+    --tag ameya-model-v7nst-s3-ops3 --robust-addr
+python acr_join.py --split test --matches ameya-model-v7nst-s3-ops3 --cands ameya-cands-v6all-c2 \
+    --tag ameya-model-v7nst-s3-ops3a --cands-tag ameya-cands-v7nst-c2a
+python -m ber.pipeline --stage write --split test --tag ameya-model-v7nst-s3-ops3a \
+    --in candidates=ameya-cands-v7nst-c2a --in matches=ameya-model-v7nst-s3-ops3a
+```
+
+**The variants:**
+
+| variant | how it differs from v7nst |
+|---|---|
+| v7nst2 | `--pseudo` from v7nst's own decisions (round 2) |
+| v7ens2 | `bag_scores.py --scores ameya-s2-v7nst,ameya-s2-v7nst2`, then the chain from `decide.py` |
+| `<tag>-frs2` | France takes the stage-2 decision (`ameya-model-<tag>-c2`), the rest stage 3 (scratchpad `split_s3.py`); then `post_ops.py --scores ameya-s2-<tag>`, acronym join, write |
+| v7mst | group `cem` (e5l, e5l2, bge) instead of `cem2` |
+| v7s | group `cms` = z-mean of e5l, **e5ls** and bge. e5ls is `ce_box.py --name e5ls --epochs 2 --seed 7 --pseudo pseudo_fr_v7ce3.parquet` (French pseudo-labels, cross-fitted) |
+| v7sq | group `cmq` = z-mean of e5l, **qst**, e5ls and bge. qst is `ce_llm_st.py --model Qwen/Qwen2.5-1.5B --name qst --pseudo pseudo_fr_v7ce3.parquet --us-in-frac 0.5 --batch 64 --lr 1e-4` (Sachi's LoRA classifier + French pseudo-labels), included only if its US/India holdout band AUC ≥ 0.93 and its correlation with e5l ≤ 0.975 |
+
+**Models:**
+- XGBoost (Apache-2.0);
+- intfloat/multilingual-e5-small / -base / -large (MIT; 118M / 278M / 560M);
+- BAAI/bge-reranker-v2-m3 (Apache-2.0, 568M);
+- Qwen/Qwen2.5-1.5B (Apache-2.0, 1.5B; LoRA r=16).
+
+**Box environment:** Ubuntu 24.04, torch 2.11.0+cu128, transformers 5.17.0, peft 0.21.0, H100 80 GB.
+
 ## The next candidate: v7ce3 (v6all + larger cross-encoders + stage 3 + rules v3 + acronym join)
 
 **Status 26 Sep 19:40: holdout gate passed.**
