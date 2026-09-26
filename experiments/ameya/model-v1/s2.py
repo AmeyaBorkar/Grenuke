@@ -13,6 +13,10 @@
   honest scores; the holdout and test get the mean of the three stage-2 models. With ``--all`` (final fit, on the
   scores of ``s1.py --all``) the holdout is a fourth group: four models, calibration on all four groups' OOF p2.
 - Isotonic calibration fitted on the out-of-fold p2 of training folds only (never the holdout), applied everywhere.
+- Self-training (``--pseudo``, parquet s1, r, y with y 1/0 or -1 unlabelled): the stage-2 test rows of the countries
+  without labels join the training set with their pseudo-labels, cross-fitted: their S1 are split like the groups
+  (fold_of % n_groups); model g trains on the other groups' pseudo-labels and alone scores its own group's target rows.
+  Early stopping and calibration use labelled rows only.
 Writes work/scores/<tag>/{train,test}.parquet: s1, r, p1, p2, pc (calibrated p2), plus fold, y on train.
 """
 from __future__ import annotations
@@ -29,7 +33,7 @@ from numba import njit, prange
 
 from ber.artifacts import read_table, write_report, write_table
 from ber.eval.gates import compare
-from ber.eval.splits import oof_group
+from ber.eval.splits import fold_of, oof_group
 from ber.paths import artifact_dir, artifact_path
 from ber.records import load_truth
 from common import FastEval, argmax_owner, holdout_report, holdout_universe, load_matrix, s1_hash_slice
@@ -214,6 +218,7 @@ def main() -> int:
     ap.add_argument("--all", action="store_true", help="final fit: the holdout is a fourth OOF group")
     ap.add_argument("--seed", type=int, default=0, help="XGBoost seed (row/column sampling), for seed bagging")
     ap.add_argument("--param", action="append", default=[], help="override a stage-2 XGBoost parameter: key=value")
+    ap.add_argument("--pseudo", default="", help="self-training: parquet (s1, r, y) of target-country test pairs")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -250,12 +255,35 @@ def main() -> int:
     log.info("stage 2: %d rows (%.3f of pairs, %.5f of positives), %d features (%.0fs)", rows.sum(), rows.mean(),
              rows[y == 1].mean(), len(names), time.perf_counter() - t0)
 
+    tmask = None
+    if args.pseudo:  # target-country test rows with pseudo-labels, cross-fitted by S1 group
+        common.GROUPS[:] = (args.test_groups or args.groups).split(",")
+        st = read_table("scores", args.s1, "test")
+        rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
+        ps = pd.read_parquet(args.pseudo)
+        lab = pd.Series(ps["y"].to_numpy(np.float32), index=ps["s1"].to_numpy() * 4_000_000_000 + ps["r"].to_numpy())
+        lab = lab[~lab.index.duplicated()]
+        yt_all = lab.reindex(st["s1"].to_numpy() * 4_000_000_000 + st["r"].to_numpy()).to_numpy()
+        tmask = rows_t & ~np.isnan(yt_all)
+        Xtg, _ = build(st, args.feats, "test", s1_feats, tmask, args.cluster)
+        ytg = yt_all[tmask]
+        gtg = fold_of(st["s1"].to_numpy()[tmask]) % n_groups
+        p2tg = np.zeros(ytg.size, np.float32)
+        del st, yt_all, rows_t
+        common.GROUPS[:] = args.groups.split(",")
+        log.info("pseudo: %d target stage-2 rows, %d labelled (%.3f positive)", ytg.size, int((ytg >= 0).sum()),
+                 float((ytg[ytg >= 0] == 1).mean()))
+
     p2 = sc["p1"].to_numpy(np.float32).copy()
     boosters, best_its = [], []
     for g in range(n_groups):
         tr = train_rows & (g2 != g) & ~es
         va = train_rows & (g2 != g) & es
-        dtr = xgb.QuantileDMatrix(X[tr], yr[tr], feature_names=names)
+        if tmask is not None:
+            pl = (gtg != g) & (ytg >= 0)
+            dtr = xgb.QuantileDMatrix(np.vstack([X[tr], Xtg[pl]]), np.r_[yr[tr], ytg[pl]], feature_names=names)
+        else:
+            dtr = xgb.QuantileDMatrix(X[tr], yr[tr], feature_names=names)
         dva = xgb.QuantileDMatrix(X[va], yr[va], feature_names=names, ref=dtr)
         over = {k: (float(v) if v.replace(".", "", 1).isdigit() else v) for k, v in (x.split("=", 1) for x in args.param)}
         over = {k: (int(v) if isinstance(v, float) and v.is_integer() and k in ("max_depth", "max_bin") else v)
@@ -265,6 +293,8 @@ def main() -> int:
         del dtr, dva
         own = train_rows & (g2 == g)
         p2[idx[own]] = bst.inplace_predict(X[own], iteration_range=(0, bst.best_iteration + 1))
+        if tmask is not None:
+            p2tg[gtg == g] = bst.inplace_predict(Xtg[gtg == g], iteration_range=(0, bst.best_iteration + 1))
         boosters.append(bst)
         best_its.append(int(bst.best_iteration))
         log.info("stage 2 group %d: best iteration %d, es logloss %.5f (%.0fs)", g, bst.best_iteration,
@@ -274,6 +304,8 @@ def main() -> int:
         p2[idx[hold]] = np.mean([bst.inplace_predict(X[hold], iteration_range=(0, bst.best_iteration + 1))
                                  for bst in boosters], axis=0)
     del X
+    if tmask is not None:
+        del Xtg
 
     # isotonic calibration on out-of-fold p2 of training folds (stage-2 rows only; the rest are ~0)
     from sklearn.isotonic import IsotonicRegression
@@ -289,7 +321,8 @@ def main() -> int:
         bst.save_model(str(out_dir / f"stage2_g{g}.ubj"))
     pd.DataFrame({"x": iso.X_thresholds_, "y": iso.y_thresholds_}).to_parquet(out_dir / "isotonic.parquet")
     (out_dir / "config.json").write_text(json.dumps({"features": names, "s1_feats": s1_feats, "p_min": P_MIN,
-                                                     "params2": PARAMS2, "best_iterations": best_its}, indent=1))
+                                                     "params2": PARAMS2, "best_iterations": best_its,
+                                                     "pseudo": args.pseudo}, indent=1))
     out = pd.DataFrame({"s1": sc["s1"], "r": sc["r"], "fold": fold, "y": y, "p1": sc["p1"], "p2": p2, "pc": pc})
     write_table(out, "scores", args.tag, "train", command=command, inputs={"scores": args.s1, "features": args.feats})
 
@@ -325,6 +358,8 @@ def main() -> int:
         p2t[idt] = np.mean([bst.inplace_predict(Xt, iteration_range=(0, bst.best_iteration + 1)) for bst in boosters],
                            axis=0)
         del Xt
+        if tmask is not None:  # target-country rows: the cross-fitted model's score
+            p2t[np.flatnonzero(tmask)] = p2tg
         pct = p2t.copy()
         pct[idt] = iso.predict(p2t[idt].astype(np.float64)).astype(np.float32)
         write_table(pd.DataFrame({"s1": st["s1"], "r": st["r"], "p1": st["p1"], "p2": p2t, "pc": pct}), "scores",
