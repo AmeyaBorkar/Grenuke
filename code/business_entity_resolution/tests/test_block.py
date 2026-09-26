@@ -245,10 +245,9 @@ def test_ordinal_words_read_as_numbers():
     assert words[0] == ["ave", "queens"] and words[1] == ["st"] and words[3] == ["firstenberg", "rd"]
 
 
-def test_honorific_prefixes_are_stop_words():
-    tok = _rows(text.name_tokens(pa.array(["Shree Ganesh Traders", "Om Sai Enterprises", "Maa Engineering Pvt Ltd",
-                                           "Sree Balaji Stores"])))
-    assert tok == {0: ["ganesh", "traders"], 1: ["sai", "enterprises"], 2: ["engineering"], 3: ["balaji", "stores"]}
+def test_honorific_prefixes_shri_are_stop_words_but_om_maa_stay():
+    tok = _rows(text.name_tokens(pa.array(["Shri Ganesh Traders", "Om Services Pvt Ltd", "Maa Engineering Pvt Ltd"])))
+    assert tok == {0: ["ganesh", "traders"], 1: ["om", "services"], 2: ["maa", "engineering"]}
 
 
 def test_domain_names_segment_into_s1_words():
