@@ -399,3 +399,18 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
   - −0.0001 LB if the band is calibrated (pc 0.79);
   - +0.0003 LB if it is 50% true.
 - Package `2026-09-27-probe-v7-fr090r` (validator PASS). It replaces `probe-v7-fr090` in the upload plan.
+
+### 6.5 The second e5-large and bge-reranker-v2-m3
+
+| cross-encoder (band, same OOF groups) | band AUC, OOF | band AUC, holdout |
+|---|---|---|
+| e5-large, 1 epoch (v7ce3's `cel`) | 0.9350 | 0.9391 |
+| **e5-large, seed 7, 2 epochs** (`ce2`) | **0.9403** | **0.9441** |
+| mean of the two (v7b's `cea`) | 0.9400 | 0.9429 |
+| z-scored 0.3 / 0.7 blend | | 0.9436 |
+| e5-base (`ceb`) | 0.9244 | 0.9287 |
+| stage-1 p1, same pairs | | 0.9297 |
+
+- **A second epoch is worth 0.005 AUC.** The two e5-large runs correlate at 0.986 on the holdout band, so averaging the weaker one in only dilutes the stronger.
+- **v7b** (the mean as one feature) was therefore stopped before its stage-2 retrain.
+- **v7c** gives stage 2 every logit as its own feature and lets the trees weigh them.
