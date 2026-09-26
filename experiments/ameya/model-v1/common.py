@@ -83,6 +83,23 @@ def argmax_owner(s1: np.ndarray, r: np.ndarray, p: np.ndarray) -> np.ndarray:
     return out
 
 
+def candidate_mask(s1: np.ndarray, r: np.ndarray, p1: np.ndarray, p_min: float, top_r: int = 0) -> np.ndarray:
+    """The final candidate set (the matching model's input): p1 >= p_min and, if top_r > 0, the pair is one of its
+    record's top_r S1 by p1 (ties: lower s1 first). Ownership is an argmax over a record's S1, so the record's
+    lower-ranked S1 are almost never predicted (cand_size.py)."""
+    keep = p1 >= p_min
+    if top_r > 0:
+        idx = np.flatnonzero(keep)
+        order = idx[np.lexsort((s1[idx], -p1[idx], r[idx]))]
+        rs = r[order]
+        start = np.ones(rs.size, bool)
+        start[1:] = rs[1:] != rs[:-1]
+        first = np.maximum.accumulate(np.where(start, np.arange(rs.size), 0))
+        keep = np.zeros(p1.size, bool)
+        keep[order[np.arange(rs.size) - first < top_r]] = True
+    return keep
+
+
 def s1_hash_slice(s1: np.ndarray, salt: int, mod: int) -> np.ndarray:
     """Deterministic S1 slice independent of the folds: hash(s1 ^ salt) % mod == 0."""
     return (splitmix64(np.asarray(s1, np.int64) ^ np.int64(salt)) % np.uint64(mod)) == 0

@@ -10,6 +10,8 @@
   where S_-i (Poisson binomial) counts the true matches among all the S1's other candidates (owned or not). One
   global shift is tuned on the holdout. Candidates with q < Q_MIN are ignored (at most MAX_C per S1).
 - The paired bootstrap (ber.eval.gates) decides between the two; ties go to the threshold (G6 rule).
+- With --p-cand/--top-r, only the final candidate set (cands_final.py with the same options) can be owned or
+  predicted, so the matches stay inside the smaller candidate file.
 Writes C9 matches work/matches/<tag>/{train,test}.parquet and a report with per-country numbers and test diagnostics.
 """
 from __future__ import annotations
@@ -27,7 +29,7 @@ from ber.artifacts import read_table, write_report, write_table
 from ber.eval.gates import compare
 from ber.eval.metric import per_entity_f05
 from ber.records import load_truth
-from common import FastEval, argmax_owner, holdout_report, holdout_universe
+from common import FastEval, argmax_owner, candidate_mask, holdout_report, holdout_universe
 
 log = logging.getLogger("decide")
 Q_MIN = 1e-3
@@ -158,13 +160,28 @@ def main() -> int:
     ap.add_argument("--tag", default="ameya-model-v1")
     ap.add_argument("--base", default="ameya-baseline-v0")
     ap.add_argument("--no-test", action="store_true")
+    ap.add_argument("--p-cand", type=float, default=0.0,
+                    help="decide only among the final candidate set: p1 >= this (cands_final.py --p-cand)")
+    ap.add_argument("--top-r", type=int, default=0, help="... and the record's top-r S1 by p1 (0: all)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     command = "python experiments/ameya/model-v1/decide.py " + " ".join(f"--{k.replace('_', '-')} {v}" for k, v in vars(args).items())
     t0 = time.perf_counter()
+    cut = args.p_cand > 0 or args.top_r > 0
 
-    sc = read_table("scores", args.scores, "train", ["s1", "r", args.col])
-    s1, r, p = sc["s1"].to_numpy(), sc["r"].to_numpy(), sc[args.col].to_numpy(np.float32)
+    def read_scores(split: str) -> tuple[pd.DataFrame, np.ndarray]:
+        cols = ["s1", "r", args.col] + (["p1"] if cut and args.col != "p1" else [])
+        df = read_table("scores", args.scores, split, cols)
+        p = df[args.col].to_numpy(np.float32)
+        if cut:  # pairs outside the final candidate set are never owned or predicted
+            keep = candidate_mask(df["s1"].to_numpy(), df["r"].to_numpy(), df["p1"].to_numpy(), args.p_cand, args.top_r)
+            p = np.where(keep, p, np.float32(0))
+            log.info("%s: %d of %d pairs in the candidate set (p1 >= %g, top %d S1 per record)", split,
+                     int(keep.sum()), keep.size, args.p_cand, args.top_r)
+        return df, p
+
+    sc, p = read_scores("train")
+    s1, r = sc["s1"].to_numpy(), sc["r"].to_numpy()
     truth = load_truth()
     universe, country = holdout_universe()
     th = truth[truth["s1"].isin(universe)]
@@ -191,7 +208,8 @@ def main() -> int:
     gate = compare(pred_thr, pred_dp, th, universe, groups=country)
     use_dp = gate["delta"] > 0 and gate["ci_low"] > 0
     pred = pred_dp if use_dp else pred_thr
-    rule = {"method": "expected_f05" if use_dp else "threshold", "threshold": t_best, "shift": s_best}
+    rule = {"method": "expected_f05" if use_dp else "threshold", "threshold": t_best, "shift": s_best,
+            "p_cand": args.p_cand, "top_r": args.top_r}
     log.info("G6 expected-F0.5 vs threshold: %+.5f CI [%.5f, %.5f] -> %s", gate["delta"], gate["ci_low"],
              gate["ci_high"], rule["method"])
     base = read_table("matches", args.base, "train")
@@ -208,8 +226,8 @@ def main() -> int:
         log.info("expected F0.5 on the holdout (model's forecast): %s", payload["expected_f05"]["holdout"])
 
     if not args.no_test:
-        st = read_table("scores", args.scores, "test", ["s1", "r", args.col])
-        s1t, rt, pt = st["s1"].to_numpy(), st["r"].to_numpy(), st[args.col].to_numpy(np.float32)
+        st, pt = read_scores("test")
+        s1t, rt = st["s1"].to_numpy(), st["r"].to_numpy()
         own_t = argmax_owner(s1t, rt, pt)
         if use_dp:
             sel_t, ef_t = expected_f_select(s1t, pt, own_t, s_best, with_ef=True)
