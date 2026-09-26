@@ -527,3 +527,31 @@ The holdout cannot score the France effect, because it has no French pairs. The 
 **Next:**
 - bge and the France self-trained e5-large (e5ls) are running on a new on-demand H100;
 - they feed v7m (v7n + bge) and v7s (self-trained cross-encoder + stage-2 self-training) tonight.
+
+### 6.11 v7nst on the leaderboard: 0.990179 (rank 7). Self-training on France works
+
+**v7nst scored 0.990179**, +0.000458 over v7n:
+- its US/India part equals v7n's to within 0.00002;
+- so **France rose by +0.0031, to about 0.981**;
+- the leaderboard now sits above 0.99.
+
+**Tonight, sequential on the laptop** (the H100 trains the cross-encoders):
+
+| variant | what changes against v7nst | tests |
+|---|---|---|
+| `v7nst2` | pseudo-labels from v7nst's own decisions (round 2) | does iterating help, or does it amplify its own errors? |
+| `v7mst` | bge joins the cross-encoder mean (e5l, e5l2, bge), round-1 labels | v7m's better French consensus (rule AUC 0.878 vs 0.872), now with self-training |
+| `v7s` | the France self-trained e5-large (`e5ls`) replaces e5l2 in the mean (with bge), round-1 labels | self-training inside the cross-encoder, where France's text disagreement lives |
+
+**Cross-encoder-level French check** (`ce_rule_auc.py`): the AUC of raw cross-encoder logits on France's rule populations, within the band. It ranks new cross-encoders, such as Sachi's Qwen2.5-1.5B LoRA, without a stage-2 run.
+
+**Cross-encoder-level French rule AUC** (raw logits, 53,290 rule-population pairs in the band, 57.6% true copies):
+
+| cross-encoder | French rule AUC | holdout band AUC (US/India) |
+|---|---|---|
+| e5-base | 0.687 | 0.929 |
+| e5-large, 1 epoch | 0.803 | 0.939 |
+| e5-large, 2 epochs | 0.792 | 0.944 |
+| **mean of the two** | **0.806** | 0.943 |
+
+The second epoch sharpens US/India but slightly hurts France: it specializes on the training countries. The mean is the most robust for France, which supports feeding stage 2 the average rather than the single best logit.
