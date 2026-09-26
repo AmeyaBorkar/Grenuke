@@ -95,7 +95,12 @@ python s2.py ... --all --pseudo <out>
 - `submissions/files/2026-09-27-probe-v7n-fr090r/`:
   - matching `f18f08981261f65ad3a93292612061f282a504c33c909041e5f973c03826329c`;
   - candidates `40ddeeb143a845a332cc86e1e4303f5074b67c0fdeb29cae2dd8792caa8de8a4`.
-- `-fr095r`, `-fr080r`: see their `v7n_fr0*.log`.
+- `submissions/files/2026-09-27-probe-v7n-fr095r/` (drops 114.1 per 1000 French S1 before the rules):
+  - matching `33a7b2db85f67274bd8fe170ea264a9cbd5d53e103f5cf0801f856ac21492459`;
+  - candidates `3386ad04a75d9c578a8cf9114a28da7c8573f7fe0b187b141a56f8ee08c58db7`.
+- `submissions/files/2026-09-27-probe-v7n-fr080r/` (drops 36.5 per 1000):
+  - matching `cb0f02fd7ef7b1c0ac15056f1ea251cf5164aa2393c1b9382e69914dbb32fe73`;
+  - candidates `8c5205a98a2ccb75a2ab4739d561a3dafc62d01b4f523fb84d75c9009ae287cf`.
 - The cross-encoder logits are in the scratchpad (`box/out_e5l`, `out_e5l2`, `out_e5b`, `out_cem2`), and the pseudo-labels in `box/pseudo_*`.
 
 ## Next steps (ordered, with suggested owner)
