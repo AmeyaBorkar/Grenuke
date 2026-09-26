@@ -6,7 +6,7 @@ look-alike records of the data add or change the legal form ("Bright Voya LP" ->
 the v2 holdout, pairs scored 0.8-0.9 are true 94% of the time when the legal form is the same, 18% when it changed.
 
 - Latin names: folded, dots removed ("l.l.c." -> "llc"), whole tokens looked up in ``WORDS`` with single-character
-  OCR variants (c0rp, lnc, 1td).
+  OCR variants (c0rp, lnc, 1td, 5arl).
 - Indic-script names: transliterated (``ber.block.indic``); a token's consonant skeleton maps to a legal form
   (praaivet/piraivet -> prvt -> pvt, limited/limitet -> lmtd/lmt -> ltd, elaelapii -> elp -> llp, "pra. li." -> pvt,
   ltd).
@@ -30,7 +30,7 @@ _BASE = {"pvt": "pvt", "private": "pvt", "prvt": "pvt", "ltd": "ltd", "limited":
          "llp": "llp", "lp": "lp", "pllc": "pllc", "pc": "pc", "plc": "plc", "opc": "opc", "sas": "sas",
          "sarl": "sarl", "sa": "sa", "sasu": "sasu", "eurl": "eurl", "sci": "sci", "snc": "snc", "gmbh": "gmbh",
          "ei": "ei", "eirl": "ei"}
-_OCR = {"o": "0", "l": "1i", "i": "l1"}
+_OCR = {"o": "0", "l": "1i", "i": "l1", "s": "5"}  # "5arl", "5as": France's OCR'd forms (RESEARCH_v5.md §6)
 # consonant skeletons of transliterated Indic legal words (see ber.block.indic.LEGAL_SKELETONS)
 _SKELETON = {"prvt": "pvt", "prbt": "pvt", "prvr": "pvt", "lmt": "ltd", "lmtd": "ltd", "lmrd": "ltd", "elp": "llp"}
 
