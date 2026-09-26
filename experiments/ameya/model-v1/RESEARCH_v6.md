@@ -22,6 +22,11 @@ This note checks the other session's gap budget (pool size, crowding, France), a
   - On the holdout the newly matched look-alikes are 0.0–1.2% true and the newly matched copies 87–99% true.
   - About +0.001 France F0.5 (§2.7).
 - **Stage 3 on v6all:** holdout +0.000055 [+0.000025, +0.000085] (§2.8).
+- **Why France is less confident (SHAP, §2.9):** exact copies are fine. True-copy families lose 1–5 logits, from two France-specific biases:
+  - the proxy odds treat "groupe", "france" and "developpement" as pure look-alike words;
+  - French house numbers are small and shared, which depresses the retrieval margin.
+
+  Fixing either moves only about 1–2% of French predictions (about +0.0004 and ±0.001 France F0.5), so neither is the missing 0.01.
 - **Families checked and fine:**
   - France's visible uncertainty is mostly intrinsic ties: French names are reused, e.g. "Deleves Amis SAS" names more than 12 S1.
   - Domains with accents dropped, acronyms, and brand names at the address are true copies.
@@ -160,6 +165,26 @@ That is **1,291 predicted look-alikes (5.0 per 1000 French S1).** The same misre
 - **Same name + same number + "different street word"** (France 218 per 1000 S1 predicted): mostly street-type typos ("Avcnue De L'aérodrome"), which the key reads as the street word. True copies, pc ≈ 1.
 - **Same name + same street + a random other number** (France 16.5 per 1000 S1 predicted): US/India have the same copy operation ("Great Partners | 24 Manhattan Ave" → "205 Manhattan Ave", true). The model predicts those at 99.6–99.9% precision there; France's rate sits between India's (10.7) and the US's (52.7).
 - **Record-mass calibration of empty-address records** (stage 3 B) on v6all: holdout about +0.00005 (with A), as in `RESEARCH_v5.md` §8.4.
+
+### 2.9 Why France is less confident: SHAP attribution (agent report, `r6/agentA/`)
+
+- **Method:**
+  - stage-1 SHAP from the four group models, averaged; it reproduces p1 exactly;
+  - the stage-2 matrix rebuilt exactly per country (the candidate graph is closed within a country; p2 max difference 0.0 on 123k rows).
+  - France is compared with US/India inside the same edit family.
+- **Exact copies are not the problem:** France gives 99.57% of them pc ≥ 0.999, against 99.73–99.83%.
+- **The deficit is 1–5 logits, inside true-copy families:**
+  - list-word swaps and appends: 58–63% at pc ≥ 0.999, against 89–98%;
+  - acronyms: 17%, against 81–83%;
+  - garbled or dropped words;
+  - same-name pairs with part of the address missing.
+
+| cause | cost | fix and its measured effect |
+|---|---|---|
+| **The proxy word odds treat France's dual-use words as pure look-alike words.** "groupe", "france" and "developpement" are both op-A list words (about 6,500 same-address pairs each) and look-alike insert words (about 26k nudged pairs each). The proxy gives −4.84, the value of "holding" | −5 to −6 logits on about 75 pairs per 1000 French S1 | Cap at −1.25 (US "partners" label odds; the US holdout loses −0.00106 if "partners" gets the proxy value). France +8,512 / −311 model predictions: 6,078 were already added by the rules, 2,434 are new, none of them nudged look-alikes. About +0.0004 France F0.5. Not packaged yet |
+| **The retrieval margin is depressed:** French house numbers are small and shared, so a rival S1 on the same street scores almost as high | −0.4 to −2.8 logits (`ret__margin_r`, `gap_r_best`, `tok_rank_r`; stage 2 inherits it through `s2__r_margin`) | Tested label-free (`r6/margin_test.py`). For pairs whose S1 and record share the house number, the margin was recomputed against rivals at that number only, then stages 1–2 were re-scored with the saved models; the baseline reproduces v6all's French decisions with 0 differences. **France +4,460 / −1,423 predictions (+17.2 / −5.5 per 1000 S1).** The additions are mostly one-word swaps at the address, which the rules already sort, and "same name, same number, other street" (4.6 per 1000), which in France holds generic-name look-alikes. Mixed and small, and without a retrain it cannot be checked on the holdout. **Not adopted** |
+| rival counts `ctx__*`, cluster support | about 0 | none |
+| `ce__logit` | helps France on list-word and acronym pairs (+0.4 to +0.6); hurts only other-street pairs, which are mostly look-alikes | none |
 
 ## 3. What can still move the score
 
