@@ -432,3 +432,42 @@ Test band pairs by country (label-free):
   - a stage 2 that gets each logit separately (v7c) has learned its splits where the models agree. On France it extrapolates on their disagreements.
 - **The robust variant, v7m**, gives stage 2 one logit for the large models: the mean of the z-scored e5l, e5l2 and bge logits (z from the train band). It also keeps v6all's e5-small logit, and drops e5-base, the model that diverges most on France.
 - **Both are gated against v7ce3 on the holdout.** If they tie there, v7m is preferred: it has fewer features, and its inputs are the models' consensus.
+
+### 6.7 Gates for v7c and v7m, and self-training on France
+
+**Gates** (holdout, against `ameya-model-v7ce3-c2` 0.991099):
+- **v7c** (five separate cross-encoder logits): 0.991170, +0.000071 [+0.000027, +0.000115];
+- **v7m** (e5-small plus the z-mean of e5l, e5l2 and bge): 0.991149, +0.000050 [+0.000008, +0.000097].
+
+They tie (a 0.00002 gap), and **v7m is the candidate**: it has fewer features and a consensus input for France (§6.6).
+
+**Why self-training now.**
+- The leaderboard has moved: 0.99+ is the top 7.
+- v6all's 0.988609 puts France at about 0.973 (US/India part 0.8429 re-weighted), 0.018 below US/India.
+- US/India have about 0.0003 left. So the next step has to come from France, and it has to be large.
+- The India stand-in capped label-free retrains at about 5% of the unseen-country gap (§4). But France's specific weakness, the text models disagreeing, is what self-training on the target domain addresses.
+
+**Pseudo-labels** (`pseudo_labels.py`, from v7ce3's final decisions):
+
+| pair | label |
+|---|---|
+| in the final matches with pc ≥ 0.9; rule adds (A/APP/ACR); acronym-join adds | 1 |
+| not in the final matches with pc ≤ 0.05; op-B predictions the rules dropped | 0 |
+| the rest | unlabelled |
+
+- Cross-encoder band (385k French pairs): 62,189 positive (8,921 rule adds), 238,334 negative (10,891 op-B drops), 84,751 unlabelled.
+- All French stage-2 rows (1.43M): 851,116 positive, 493,352 negative (19,537 op-B drops), 85,198 unlabelled.
+
+**Cross-fitting.**
+- French S1 are split by `fold_of % n` (3 cross-encoder groups, 4 stage-2 groups).
+- Model g trains on the pseudo-labels of the other groups and alone scores its own group's French pairs.
+- So no French pair is scored by a model that saw its own label or its S1's other labels.
+- US/India pairs are handled exactly as before, and early stopping and calibration use labelled rows only.
+
+| variant | what changes |
+|---|---|
+| `v7mst` | v7m + stage-2 self-training (`s2.py --pseudo`) |
+| `e5ls` | e5-large, 2 epochs, seed 7 (as e5l2), plus the French band pseudo-labels (`ce_box.py --pseudo`) |
+| `v7s` | v7m with e5ls in place of e5l2 in the mean, + stage-2 self-training |
+
+The holdout cannot score the France effect, because it has no French pairs. The gates only check that US/India do not move, so the leaderboard decides.
