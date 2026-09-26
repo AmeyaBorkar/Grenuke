@@ -309,7 +309,19 @@ These records match their S1 through the address only. French house numbers are 
 | **multilingual-e5-large** (MIT, 560M) | **0.9350** | **0.9391** | 61 min (shared H100) |
 | stage-1 p1 itself, same holdout pairs | | 0.9297 | |
 
-e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new information. All three logits go into a stage-2 retrain (`ameya-s2-v7ce3`), gated against v6all on the holdout. Running.
+e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new information.
+
+**Stage 2 with all three logits** (`ameya-s2-v7ce3`; decision record `2026-09-26_1933_model-v7ce3.md`):
+
+| | holdout macro F0.5 | gate |
+|---|---|---|
+| v6all-c2 → **v7ce3-c2** | 0.990788 → **0.991099** | **+0.000311 [+0.000258, +0.000362]** (US +0.00026, India +0.00039) |
+| v6all-s3 → **v7ce3-s3** | 0.990842 → **0.991138** | **+0.000296 [+0.000252, +0.000342]** |
+
+- Precision goes up (0.9987 → 0.9991) at the same recall.
+- The expected-F0.5 DP now beats the threshold on v7ce3-c2 (+0.00005 [+0.00001, +0.00009]).
+- **Next candidate `2026-09-27-v7ce3-s3-ops3a-c2`** (validator PASS, matching `671dca1e…`), with probes `2026-09-27-probe-v7-fr0` (`ad92c0b6…`) and `-fr090`.
+- A second e5-large (seed 7, 2 epochs) is training on the box, for a v7b with the two runs averaged.
 
 ### 5.2 Acronym copies at the S1's address, found by a join (`acr_join.py`)
 

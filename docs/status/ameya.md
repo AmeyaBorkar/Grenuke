@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 19:00
+- **Last updated (IST):** 2026-09-26 19:45
 - **Current focus:** where the rest of the leaderboard is (`RESEARCH_v6.md`).
   - 26 Sep #01 (v5all + rules v2) scored **0.98781 (rank 15)**. Top 3: 0.990556 / 0.989141 / 0.988842.
   - The other session's gap budget, checked on v6all:
@@ -25,7 +25,8 @@
   | v6nx (+ signed number features, 3 groups) | 0.99034 | | | |
   | **v5all + rules v2 + cut** (26 Sep #01) | 0.99016 | **0.98781 (rank 15)** | −0.0024 | **0.971–0.976** |
   | v6all + rules v2 + cut | 0.99079 | | | |
-  | **v6all + stage 3 + rules v3 + cut (next candidate)** | **0.99084** | | | |
+  | v6all + stage 3 + rules v3 + cut | 0.99084 | | | |
+  | **v7ce3 (e5-large/base CE) + stage 3 + rules v3 + acronyms (next candidate)** | **0.99114** | | | |
 
   For v4 and later: LB ≈ 0.8423 + 0.14975 × F_France, so F_France = (LB − 0.8423) / 0.14975.
 
@@ -33,7 +34,8 @@
   - If US/India score like the re-weighted holdout, LB_fr0 ≈ 0.8513.
   - France = (LB_candidate − LB_fr0) / 0.14975 + 0.0559.
 - **Ready to upload** (validator PASS), in this order:
-  0. `2026-09-26-v6all-s3-ops3a-c2`: **the best packaged candidate** (below plus 3,872 French acronym copies at the S1's address; `acr_join.py`); matching `8d4e3bbc…`, candidates `5e991eca…`.
+  00. `2026-09-27-v7ce3-s3-ops3a-c2`: **the new best candidate**. v6all + stage 2 with e5-small/base/large cross-encoder logits + stage 3 + rules v3 + acronym join. Holdout 0.991138 (+0.000296 over v6all-s3). Matching `671dca1e…`, candidates `85a1ca7d…`. Probes: `2026-09-27-probe-v7-fr0` (`ad92c0b6…`), `2026-09-27-probe-v7-fr090`.
+  0. `2026-09-26-v6all-s3-ops3a-c2`: the previous best (below plus 3,872 French acronym copies at the S1's address; `acr_join.py`); matching `8d4e3bbc…`, candidates `5e991eca…`.
   1. `2026-09-26-v6all-s3-ops3-c2`: v6all + stage 3 + rules v3; matching `544ffdf8…` (candidate file `cc3750d0…`).
   2. `2026-09-26-probe-v6s3-fr0`: #1 with France emptied (`48ddacd4…`). It gives US/India on test exactly (expected about 0.8513 if they score like the re-weighted holdout), and #1 − #2 gives France.
   3. `2026-09-26-probe-v6s3-fr090`: #1 without France's model predictions below pc 0.9 (`0914b6d6…`). It prices France's uncertain band.
