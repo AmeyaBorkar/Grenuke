@@ -51,10 +51,14 @@
         "sha256_verified_locally": true
       },
       "candidate": {
-        "expected_sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa",
-        "local_path": null,
-        "status": "MISSING ON THIS LAPTOP — blocks a complete final package",
-        "searched": "all of C:/Users/baksh/{Documents/Codex,Desktop,Downloads} recursively; the only candidate_pairs TSV present is candidate_pairsv6all.tsv (cc3750d0...)"
+        "sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa",
+        "sha256_verified_locally": true,
+        "local_path": "C:/Users/baksh/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi/candidate_pairs.tsv",
+        "bytes": 105027973,
+        "pairs": 6410247,
+        "empty_rows": 75361,
+        "status": "RESOLVED 2026-09-27 ~01:40 IST. Delivered by ameya and hash-verified against both the sub04 record and the folder's own SHA256SUMS.txt.",
+        "prediction_check": "Predicted 6,410,247 pairs before the file arrived (v6all's 6,406,457 + acr_join's 3,790). The delivered file has exactly 6,410,247. This independently confirms the --cands input was ameya-cands-v6all-c2 and that the 3,790 gap was acr_join's new_c."
       },
       "validation": {
         "own_audit": "experiments/bakshi/final-package/audit_matching.py",
@@ -72,8 +76,26 @@
         "mean_matches_per_s1": 3.3801,
         "s2_targets": 2838803,
         "s3_targets": 3017293,
-        "package_pairing": "FAIL — cannot be validated: the paired candidate file is absent. Against candidate_pairsv6all.tsv, 3790 matched pairs over 3725 S1 fall outside the candidate set.",
-        "verified_locally": true
+        "package_pairing": "PASS. Against the correct candidate file (510a33ea..., 6,410,247 pairs): 0 matched pairs outside the candidate set. AUDIT PASS on every hard check. Earlier FAIL was against the wrong candidate file (v6all's), which is 3,790 pairs short over 3,725 S1.",
+        "verified_locally": true,
+        "report": "experiments/bakshi/final-package/audit_v7nst_FINAL.json"
+      },
+      "final_package": {
+        "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
+        "zip_bytes": 87512856,
+        "zip_sha256": "d2e62fb9d03d28b7a84b366078d4b893f89a80c56084c981d5c1844d068fba91",
+        "n_files": 103,
+        "built_ist": "2026-09-27T01:45+05:30",
+        "verified_after_extraction": [
+          "all 103 manifest hashes match",
+          "all 15 required paths present",
+          "output/matching_results.tsv sha256 = 659f5169... (the protected bytes, shipped verbatim)",
+          "output/candidate_pairs.tsv sha256 = 510a33ea...",
+          "byte-compile of code/ ok",
+          "organiser validator PASS",
+          "strict audit PASS, 0 matches outside candidates"
+        ],
+        "manifest": "C:/Users/baksh/Downloads/New folder/grenuke_dist/package_manifest.json"
       },
       "affected_by_country": {
         "France": {"s1": 259452, "s1_nonempty": 244429, "pairs": 871242, "pairs_per_s1": 3.358},
@@ -137,12 +159,32 @@
     {"variant": "v7s", "what": "France self-trained e5-large (e5ls) in the z-mean, plus stage-2 self-training", "reported_eta_ist": "~02:40", "status_verified_here": false},
     {"variant": "qwen2.5-1.5b LoRA", "what": "independent LLM cross-encoder, PR46, separate GPU", "status_verified_here": false, "note": "do not restart; PR discussion flags missing pair separators in tokenisation"}
   ],
-  "packaged_probes_reported_not_verified_here": [
-    {"tag": "probe-v7nst-fr080r", "reported_final_french_pairs_removed": 3629, "reported_s1_changed": 3601, "verified_here": false},
-    {"tag": "probe-v7nst-fr090r", "reported_final_french_pairs_removed": 7353, "reported_s1_changed": 7190, "verified_here": false},
-    {"tag": "probe-v7nst-fr095r", "reported_final_french_pairs_removed": 11101, "reported_s1_changed": 10663, "verified_here": false},
-    {"_note": "These three packages are on the integration machine, not on this laptop (submissions/files/ does not exist in any local checkout). Their counts are reports. For scale: fr090r's 7,190 changed S1 is 2.77% of the 259,452 French test S1 verified here."}
+  "packaged_probes": [
+    {"tag": "2026-09-27-probe-v7nst-fr080r", "matching_sha256": "f16af635f0d1d51003f2f947d922006a47c07ff3fea52d573efc9ddcd5696093", "candidate_sha256": "27acc10c7a34bfeaeffe5e7bdd7dae95b5721d336e4df9e1930d0cd4409784b7", "reported_final_french_pairs_removed": 3629, "reported_s1_changed": 3601, "files_held_locally": false, "audited_here": false},
+    {"tag": "2026-09-27-probe-v7nst-fr090r", "matching_sha256": "a0da9110e622870280d126e6799c85a4c7c3f8f2b3ea001646017bb3fbd491b2", "candidate_sha256": "3adf9c5b9ef2527ede0aff8c644d0f4419781284097f0e1f1c07222bf6b3182a", "reported_final_french_pairs_removed": 7353, "reported_s1_changed": 7190, "files_held_locally": false, "audited_here": false},
+    {"tag": "2026-09-27-probe-v7nst-fr095r", "matching_sha256": "8d1290fa2ddaf3135a7f8dad0700144f3f50c7abce1c83006da86415f61013e4", "candidate_sha256": "93acec6e013da66555b65a6d3bf96d2c9fa0ad0de4917f98090f67cfc4486b1e", "reported_final_french_pairs_removed": 11101, "reported_s1_changed": 10663, "files_held_locally": false, "audited_here": false},
+    {"_note": "Hashes are now known, from SHA256SUMS_submission_tsvs.txt in the delivered folder, and are distinct from the older v7n probe hashes in the 2049 handover — these are genuinely v7nst-parented probes. The FILES are still only on the integration machine, so the change counts remain reports and no audit has been run on them here. For scale: fr090r's 7,190 changed S1 is 2.77% of the 259,452 French test S1 verified here."}
   ],
+  "track_b": {
+    "status": "CLOSED with evidence. See experiments/bakshi/final-package/TRACK_B_FINDINGS.md",
+    "designed_hypothesis": "Give model FAMILIES votes rather than checkpoints, so two correlated e5-large runs do not outvote an independent model (BGE).",
+    "why_it_cannot_run": "out_bge and out_q15 do not exist — ameya confirms neither is on the integration machine, and the spot box that would have produced BGE's logits was destroyed at 21:40 (RESEARCH_v6 6.9). With only out_e5l and out_e5l2 there is no independent family: they correlate +0.9757 on the test band (measured here). out_e5b was not delivered and is far weaker on France (rule AUC 0.687) anyway.",
+    "alignment_proof": "fam_blend.py reproduces out_cem2 from out_e5l + out_e5l2 BIT-IDENTICALLY (max|diff| 0.000e+00 on both splits), with fitted moments matching out_cem2/config.json exactly. Production standardises on all 1,568,554 train band rows, not training folds only.",
+    "screener_validated": "French rule AUC measured here vs published: out_e5l 0.8026 vs 0.803, out_e5l2 0.7919 vs 0.792, out_cem2 0.8062 vs 0.806. Exact agreement on 53,290 band pairs at 57.6% true-copy share.",
+    "fallback_question": "Is the equal mean the best e5l/e5l2 weighting for France? RESEARCH_v6 6.5 left this open: a 0.3/0.7 blend had a better holdout band AUC but its French behaviour was never measured.",
+    "sweep_french_rule_auc": {"1.0/0.0": 0.8026, "0.7/0.3": 0.8071, "0.6/0.4": 0.8070, "0.5/0.5 (production cem2)": 0.8062, "0.4/0.6": 0.8047, "0.3/0.7": 0.8024, "0.0/1.0": 0.7919},
+    "best_vs_production": {"delta_auc": 0.00086, "ci95": [0.00037, 0.00136], "bootstrap": "cluster over 47,985 S1, 1,000 resamples, 100% favour the challenger", "verdict": "distinguishable from zero"},
+    "recommendation": "Do not spend a stage-2 fit or an upload slot. Statistically real, practically negligible: ~1/4 of the e5l->equal-mean step, so of order +0.0001 public, below the ~+0.00015 that separates us from rank 3. The 0.7/0.3 optimum was also selected as the argmax of a sweep scored on the same proxy it is credited on, so the CI does not correct for that selection, and the effect would still have to survive stage 2, self-training, stage 3, the rules and the acronym join.",
+    "what_would_reopen_it": "out_bge, or a usable out_q15. An independent family is the whole premise."
+  },
+  "delivered_folder": {
+    "path": "C:/Users/baksh/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi",
+    "received_ist": "2026-09-27T01:25+05:30",
+    "size_mb": 201.4,
+    "hash_verification": "13 of 13 files OK against the folder's own SHA256SUMS.txt, 0 failures",
+    "contents": ["band_train.parquet (1,568,554 rows; folds 0-4 holdout 389,668, >=5 train 1,178,886)", "band_test.parquet (1,490,930)", "out_e5l/", "out_e5l2/", "out_cem2/", "rulepop_fr.parquet (128,856: A 38,304 + ACR 14,884 + APP 11,652 = 64,840 true-copy, B 64,016)", "candidate_pairs.tsv", "SHA256SUMS.txt", "SHA256SUMS_submission_tsvs.txt"],
+    "absent": ["out_bge (kills Track B)", "out_q15 (Qwen)", "out_e5b (e5-base)"]
+  },
   "toolchain_verified_this_session": {
     "control_audit_v6all_pair": {
       "what": "The v6all matching/candidate pair audited with the SAME tool and data as the v7nst check, to prove the 3,790 outside-pairs is a real acr_join delta and not a tool artefact.",

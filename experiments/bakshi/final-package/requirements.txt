@@ -25,15 +25,24 @@ pytest==8.3.4
 # ---------------------------------------------------------------------------------------------------------
 # Cross-encoder feature (src/model_v1/ce.py and ce_box.py). Needs a CUDA GPU.
 #
-# NOT YET PINNED — and deliberately left unpinned rather than guessed. These two packages are not installed
-# in the environment that was available to verify pins, so any version written here would be an invention.
-# They must be read from the machine that actually produced the submitted v7nst logits (the integration
-# machine for ce.py / e5-small, and the rented H100 for ce_box.py / e5-large), with:
+# NOT PINNED — deliberately left unpinned rather than guessed. Neither package is installed in the
+# environment these pins were verified in, so any version written here would be an invention.
 #
-#     pip freeze | grep -E "^(torch|transformers|tokenizers|safetensors|huggingface-hub)=="
+# The submitted chain used TWO different machines for its cross-encoders, and they are not equally
+# recoverable:
 #
-# and pasted below, replacing these two lines. torch must match the CUDA build used there
-# (e.g. torch==2.x.y+cu124 plus --extra-index-url https://download.pytorch.org/whl/cu124).
+#   * ce.py           -> multilingual-e5-small, feature group `ce`.   Ran on the INTEGRATION MACHINE,
+#                        which still exists. These versions ARE recoverable; ask for them with
+#                            pip freeze | grep -E "^(torch|transformers|tokenizers|safetensors|huggingface-hub)=="
+#                        and replace the two lines below, matching the CUDA build
+#                        (e.g. torch==2.x.y+cu124 with --extra-index-url https://download.pytorch.org/whl/cu124).
+#
+#   * ce_box.py       -> multilingual-e5-large x2 (and e5-base for the v7ce3 teacher), feature `cem2`.
+#                        Ran on a RENTED H100 that has since been destroyed (RESEARCH_v6.md 6.9), with
+#                        non-persistent disk. Its exact versions are UNRECOVERABLE and are recorded as
+#                        unknown rather than guessed. Any recent torch/transformers with CUDA support
+#                        reproduces the method; it will not reproduce those logits bit-for-bit in any case,
+#                        because the cross-encoders are not bit-reproducible across GPUs.
 torch
 transformers
 # tokenizers and safetensors are transitive dependencies of transformers; pin them alongside it.
