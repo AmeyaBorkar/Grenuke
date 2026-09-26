@@ -571,3 +571,24 @@ The second epoch sharpens US/India but slightly hurts France: it specializes on 
 - in the models (self-trained cross-encoders, the Qwen cross-encoder, averaging the self-trained variants);
 - in stage 3's French effect (`frs2`);
 - not in new rules.
+
+### 6.13 Cross-encoder diversity is what helps France (27 Sep, 01:45)
+
+`ce_rule_auc.py`: raw cross-encoder logits on France's rule populations in the band (53,290 pairs), against the US/India holdout band AUC.
+
+| cross-encoder input | French rule AUC | US/India holdout band AUC |
+|---|---|---|
+| e5-base | 0.687 | 0.929 |
+| bge-reranker-v2-m3 | 0.774 | 0.942 |
+| e5-large, 2 epochs | 0.792 | 0.944 |
+| e5-large, 1 epoch | 0.803 | 0.939 |
+| mean of the two e5-large runs (v7n / v7nst) | 0.806 | 0.943 |
+| mean of e5-large ×2 + bge (v7mst) | 0.826 | 0.943 |
+| **mean of e5-large (1 epoch) + bge** | **0.829** | |
+| mean of e5-large ×2 + bge + e5-base | 0.813 | 0.942 |
+
+- **bge is the weakest single model on France, yet it lifts the mean the most** (+0.020). It is a different model family (an XLM-R reranker), so its French errors are decorrelated from e5's.
+- **The second e5-large epoch specializes on US/India** (holdout up, France down) and dilutes the French mean. e5-base is too weak to help.
+- **The French-optimal mean combines diverse families and leaves out the US/India-specialized run.**
+  - v7s (e5l, e5ls, bge) and v7sq (e5l, qst, e5ls, bge) are built that way.
+  - The Qwen decoder (qst) is the most different family.
