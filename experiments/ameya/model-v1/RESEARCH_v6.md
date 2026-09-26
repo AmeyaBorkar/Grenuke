@@ -250,7 +250,16 @@ Small, safe, already in the candidate:
   - so a France retrain on rule or self labels is worth about +0.0001–0.0002 on the leaderboard. Not worth a 2–3 h retrain before the deadline.
   - What labels in the target country give (the in-country ceiling) is out of reach without French labels.
 
-**Stronger cross-encoder (Track B).** multilingual-e5-large (MIT, 560M) on the same uncertain band and OOF groups as e5-small, trained on a rented H100 (Vast.ai; only records and the band pairs uploaded, about 1.2 GB). Its logits come back as feature group `cel` (`ce_import.py`) for a stage-2 retrain, gated on the holdout. Results pending.
+**Self-training, repeated with seeds 1 and 2** (different US/India subsamples and XGBoost seeds):
+
+| India holdout F0.5 (stage 1) | seed 0 | seed 1 | seed 2 | mean vs US only |
+|---|---|---|---|---|
+| US only | 0.96555 | 0.96665 | 0.96779 | |
+| + rule positives only | 0.96217 | 0.96278 | 0.96323 | −0.0040 |
+| + rule positives and op-B negatives | 0.96705 | 0.96681 | 0.96750 | +0.0005 (noise) |
+| + self-training | 0.96671 | 0.96789 | 0.96802 | **+0.0009** |
+
+Self-training is a small, consistent gain (about 4% of the gap).
 
 **Candidate v6all-s3-ops3 against the uploaded v5all-ops2** (`r6/frdiff.py`; for reading tonight's score):
 - France gains 49.7 and loses 25.7 predictions per 1000 S1. US/India gain about 13 and lose 3.
@@ -283,3 +292,42 @@ These records match their S1 through the address only. French house numbers are 
 
 - 67% of the loss is misses only (8.1% of S1); 20% is non-singleton S1 left empty (1,001).
 - Nothing new is recoverable at scale: US/India stay close to their Bayes limit.
+
+## 5. Evening additions (26 Sep, 18:00–19:00 IST)
+
+### 5.1 Larger cross-encoders on a rented H100 (`ce_box.py`, `ce_import.py`)
+
+**Setup.**
+- Same band (stage-1 p1 in [0.02, 0.99]: 1.57M train, 1.49M test pairs), same three OOF groups, and same loop as ce.py; the holdout gets the mean of the three models.
+- Only the records and the band pairs were uploaded (about 1.2 GB).
+- The whole box session used about 7.8 GB of internet traffic.
+
+| cross-encoder | band AUC, OOF | band AUC, holdout | runtime |
+|---|---|---|---|
+| multilingual-e5-small (v6all) | 0.9191 | 0.9240 | 35 min (local GPU) |
+| multilingual-e5-base (MIT, 278M) | 0.9244 | 0.9287 | 37 min (shared H100) |
+| **multilingual-e5-large** (MIT, 560M) | **0.9350** | **0.9391** | 61 min (shared H100) |
+| stage-1 p1 itself, same holdout pairs | | 0.9297 | |
+
+e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new information. All three logits go into a stage-2 retrain (`ameya-s2-v7ce3`), gated against v6all on the holdout. Running.
+
+### 5.2 Acronym copies at the S1's address, found by a join (`acr_join.py`)
+
+- **Why blocking misses them.** A record whose name is the S1's initials ("AD" for "Amicale du Directeurs") has nothing but the address to match on. French records also often carry a street-name typo ("Rue Vaubna", "RUE DU PLAAIS GALLIEN").
+- **The join.** It pairs such records with S1 on (country, house number, initials), then confirms with the robust same-address test and `post_ops.name_edit`.
+- **Holdout truth of the population:**
+  - US 99.72% (723 pairs);
+  - India 66.1% (758): India's compound addresses make "same address" unreliable;
+  - French addresses parse like US ones.
+- **France:**
+  - 20,471 acronym pairs at their S1's address;
+  - **3,872 have a record no S1 holds and exactly one S1 with those initials at that address.** Only 75 were candidates.
+  - They are added to the matches and the candidate file (countries without labels only).
+  - A 24-pair sample is all genuine copies.
+  - About +0.0009 France F0.5 (+0.00014 LB).
+- **Package** `2026-09-26-v6all-s3-ops3a-c2` (validator PASS): today's candidate plus these adds.
+  - Matching `8d4e3bbc…`, candidates `5e991eca…`.
+- The v7 chain runs the join after the rules.
+
+### 5.3 Checked, no gain
+- Per-record renormalisation on top of stage 3: holdout unchanged (0.990842). Stage 3's mass calibration already covers it.
