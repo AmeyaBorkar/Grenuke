@@ -414,3 +414,21 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
 - **A second epoch is worth 0.005 AUC.** The two e5-large runs correlate at 0.986 on the holdout band, so averaging the weaker one in only dilutes the stronger.
 - **v7b** (the mean as one feature) was therefore stopped before its stage-2 retrain.
 - **v7c** gives stage 2 every logit as its own feature and lets the trees weigh them.
+
+### 6.6 France is a domain shift for the cross-encoders: they disagree 4× as often
+
+Test band pairs by country (label-free):
+
+| | band pairs | corr e5l2–bge | corr e5l2–e5l | corr e5l2–e5b | share with logit > 0 (e5l / e5l2 / bge / e5b) | e5l2 and bge disagree on the sign |
+|---|---|---|---|---|---|---|
+| US | 452,178 | 0.978 | 0.985 | 0.942 | 0.196 / 0.203 / 0.190 / 0.173 | 3.1% |
+| India | 653,478 | 0.984 | 0.985 | 0.941 | 0.270 / 0.271 / 0.265 / 0.263 | 2.7% |
+| **France** | 385,274 | **0.906** | **0.951** | **0.818** | 0.369 / 0.349 / **0.302** / 0.326 | **12.0%** |
+
+- On the training countries the models are nearly interchangeable. A z-mean of e5l2 and bge reaches a holdout band AUC of 0.9443, against 0.9441 for e5l2 alone.
+- On France they part ways, and bge accepts the fewest pairs.
+- **Two consequences:**
+  - an ensemble matters much more for France than the holdout can show;
+  - a stage 2 that gets each logit separately (v7c) has learned its splits where the models agree. On France it extrapolates on their disagreements.
+- **The robust variant, v7m**, gives stage 2 one logit for the large models: the mean of the z-scored e5l, e5l2 and bge logits (z from the train band). It also keeps v6all's e5-small logit, and drops e5-base, the model that diverges most on France.
+- **Both are gated against v7ce3 on the holdout.** If they tie there, v7m is preferred: it has fewer features, and its inputs are the models' consensus.
