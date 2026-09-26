@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 19:45
+- **Last updated (IST):** 2026-09-26 19:55
 - **Current focus:** where the rest of the leaderboard is (`RESEARCH_v6.md`).
   - 26 Sep #01 (v5all + rules v2) scored **0.98781 (rank 15)**. Top 3: 0.990556 / 0.989141 / 0.988842.
   - The other session's gap budget, checked on v6all:
@@ -34,7 +34,9 @@
   - If US/India score like the re-weighted holdout, LB_fr0 ≈ 0.8513.
   - France = (LB_candidate − LB_fr0) / 0.14975 + 0.0559.
 - **Ready to upload** (validator PASS), in this order:
-  00. `2026-09-27-v7ce3-s3-ops3a-c2`: **the new best candidate**. v6all + stage 2 with e5-small/base/large cross-encoder logits + stage 3 + rules v3 + acronym join. Holdout 0.991138 (+0.000296 over v6all-s3). Matching `671dca1e…`, candidates `85a1ca7d…`. Probes: `2026-09-27-probe-v7-fr0` (`ad92c0b6…`), `2026-09-27-probe-v7-fr090`.
+  00. `2026-09-27-v7ce3-s3-ops3a-c2`: **the new best candidate**. v6all + stage 2 with e5-small/base/large cross-encoder logits + stage 3 + rules v3 + acronym join. Holdout 0.991138 (+0.000296 over v6all-s3). Matching `671dca1e…`, candidates `85a1ca7d…`. Probes (same candidate file): `2026-09-27-probe-v7-fr0` (`ad92c0b6…`), `2026-09-27-probe-v7-fr090` (`b7b11a5a…`).
+     - vs `v6all-s3-ops3a`, France +11.7 / −21.5 predictions per 1000 S1: v7 drops uncertain French pairs, mostly same-name / same-number / other-street and empty-address ties.
+     - Read its score as France change = (LB − LB_previous − 0.00025) / 0.14975.
   0. `2026-09-26-v6all-s3-ops3a-c2`: the previous best (below plus 3,872 French acronym copies at the S1's address; `acr_join.py`); matching `8d4e3bbc…`, candidates `5e991eca…`.
   1. `2026-09-26-v6all-s3-ops3-c2`: v6all + stage 3 + rules v3; matching `544ffdf8…` (candidate file `cc3750d0…`).
   2. `2026-09-26-probe-v6s3-fr0`: #1 with France emptied (`48ddacd4…`). It gives US/India on test exactly (expected about 0.8513 if they score like the re-weighted holdout), and #1 − #2 gives France.
@@ -49,9 +51,6 @@
 - **For Sachi (final package):** `experiments/ameya/model-v1/RECIPE.md` answers the five reproduction questions and gives the exact v6all and v5all recipes. `decide.py --base` is now optional, and `feats.py --dict-only` builds blocking's Indic dictionary.
 - **Latest handover:** `docs/handover/2026-09-26_1817_ameya_ce-large-box.md`.
 - **Next up:**
-  - **Vast.ai box** (H100 80 GB, 23 cores, 342 GB RAM):
-    - running multilingual-e5-large and e5-base cross-encoders on the uncertain band, same OOF groups as e5-small;
-    - their logits come back through `ce_import.py` for a stage-2 retrain, gated against v6all on the holdout;
-    - internet traffic about 8 GB of the 30 GB budget.
-  - **New-data tests on India** (`RESEARCH_v6.md` §4): rule labels and self-training close only 5–7% of the unseen-country gap. No France retrain on them before the deadline.
-  - Read tonight's score and the probes against `RESEARCH_v6.md` §3 (France diff for the candidate in §4).
+  - **v7b:** a second e5-large (seed 7, 2 epochs; group-0 AUC 0.9405 vs 0.9348) averaged with the first, then stage 2, gate vs v7ce3, stage 3, rules, acronyms, package. Automatic when the box run ends (about 20:45 IST).
+  - More cross-encoder diversity on the box's spare VRAM, and stage-2 seed bagging locally. Each goes in only if it passes the holdout gate.
+  - Uploads tomorrow: the best candidate, `probe-v7-fr0`, `probe-v7-fr090`, then the best re-uploaded last before 21:00 IST.
