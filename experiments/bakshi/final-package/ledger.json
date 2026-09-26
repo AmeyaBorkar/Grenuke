@@ -120,6 +120,37 @@
       "selected_best": true
     },
     {
+      "variant": "v7ens2",
+      "package": "submissions/files/2026-09-27-v7ens2-s3-ops3a-c2",
+      "parent": "v7nst",
+      "changed_component": "stage-2 scores averaged over v7nst (round-1 self-training) and v7nst2 (round 2), via bag_scores.py; cross-encoder feature is still cem2, bge is NOT in it",
+      "matching": {"sha256": "9989dbf11e9e51feeab6c5bcf390d3bc0fe695589118264ae8d4be9121ff2b9d", "bytes": 97898350, "sha256_verified_locally": true},
+      "candidate": {"sha256": "9555e047708897473632ef5e51f3ddac7668a89d1ad6a5e2982db8509eede6fc", "bytes": 105027959, "pairs": 6410246, "sha256_verified_locally": true},
+      "validation": {"own_audit": "AUDIT PASS — 1,732,544 rows, 5,855,189 pairs, 100,189 empty, 3.3795 per S1, 0 owner conflicts, 0 cross-country pairs, 0 targets absent, 0 matched pairs outside its candidate set", "report": "experiments/bakshi/final-package/audit_v7ens2.json", "verified_locally": true},
+      "affected_by_country": {"France": {"s1": 259452, "s1_nonempty": 244397, "pairs": 870630, "pairs_per_s1": 3.3556}, "India": {"pairs": 2735763}, "US": {"pairs": 2248796}, "verified_locally": true},
+      "holdout": {"macro_f05_c2": 0.991172, "macro_f05_s3": 0.991193, "gate_vs_base": "+0.000054 [+0.000019, +0.000089]", "verified_locally": false, "source": "the delivery's README.txt"},
+      "offline_signals": {"fhs_net_true_copies_per_1000_french_s1": -0.65, "rulepop_decision_disagreement_vs_v7nst": "29 pairs of 128,856, ALL true-copy, 15 vs 14 — indistinguishable"},
+      "public_score": null,
+      "selected_best": false,
+      "note": "Validated and shippable, but UNMEASURED on the leaderboard and offline indistinguishable from v7nst. fhs.py rates it slightly worse (-0.65 net true copies). Not a known upgrade."
+    },
+    {
+      "variant": "v7mst",
+      "package": "submissions/files/2026-09-27-v7mst-s3-ops3a-c2",
+      "parent": "v7nst",
+      "changed_component": "cross-encoder group cem (e5l + e5l2 + bge) instead of cem2; round-1 pseudo-labels",
+      "matching": {"sha256": null, "note": "hashes not supplied to this session; package not audited here"},
+      "holdout": {"macro_f05_c2": 0.991186, "gate_c2": "+0.000087 [+0.000047, +0.000121]", "macro_f05_s3": 0.991206, "gate_s3": "+0.000068 [+0.000032, +0.000102]", "us_india_part": 0.843223, "us_india_delta_vs_v7nst": 0.000013, "verified_locally": false, "source": "RESEARCH_v6.md 6.14"},
+      "offline_signals": {
+        "france_final_prediction_change_vs_v7nst_per_1000_s1": "+2.7 / -5.3 (v7nst against v7n was +14.0 / -17.4)",
+        "fhs_net_true_copies_per_1000_french_s1": -0.85,
+        "labelled_us_india_holdout_band_auc": 0.9433,
+        "my_note": "Its mix `cem` is the only bge blend I measured that improves BOTH France and the labelled US/India band AUC, which round 3 predicted and the measured +0.000013 US/India part confirms. But its France movement is small and fhs.py is negative, so it reads as roughly a wash."
+      },
+      "public_score": null,
+      "selected_best": false
+    },
+    {
       "variant": "v7n",
       "package": "submissions/files/2026-09-27-v7n-s3-ops3a-c2",
       "parent": "v7ce3",
