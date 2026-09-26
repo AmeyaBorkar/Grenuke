@@ -650,3 +650,45 @@ The second epoch sharpens US/India but slightly hurts France: it specializes on 
 - e5l2 is the best single cross-encoder on the labelled US/India holdout band (0.9441, against e5l 0.9391 and bge 0.9417).
 - So §6.13's French-optimal e5l + bge costs 0.00114 US/India band AUC. The equal three-way mean (`cem`, v7mst) is the only bge mix that improves both sides.
 - v7s drops e5l2 and must pass its labelled holdout gate on its own. The chain gates every variant on the holdout macro F0.5 and the memo compares US/India parts.
+
+### 6.15 What the grader does, and what that leaves to optimise (27 Sep, 03:00)
+
+**The grader** (student_resource/README.md, `validate_submission.py`, the organisers' video):
+- Only `matching_results.tsv` is scored. `candidate_pairs.tsv` is used to audit blocking (recall ceiling, reduction ratio) and, for the top teams' packages, to check that the code reproduces the output.
+- The score is **macro F0.5 per S1**, averaged over every S1 in the evaluated subset:
+  - a true singleton scores 1.0 for an empty list and 0 for anything else;
+  - an empty list for an S1 with matches scores 0.
+- **Public = a subset of test S1; private = the remaining, disjoint part.** Final ranks use the private one.
+- The validator reads a tab-separated file with a case-insensitive header. An unknown ID only lowers the score.
+
+**Our scorer is theirs.**
+- `ber.eval.metric` computes 1.25·hits / (0.25·|true| + |pred|), algebraically the official formula, with the same three edge cases.
+- The LB has matched our "US/India holdout part + 0.14975 × France" arithmetic within noise at every upload.
+- The public subset is representative however it is drawn: test S1 IDs are scattered, and every tenth of the ID range is 15% France, 47% India, 38% US.
+
+**What the metric leaves:**
+- **The per-S1 decision rule is already optimised.** Stage 3 compares the flat threshold with the expected-F0.5 rule on every run. On v7mst: +0.00003, CI [−0.00002, +0.00007], so the threshold stays.
+- **Choosing the final between near-identical candidates.** Candidates such as v7mst and v7nst differ on about 5,200 test S1. At any public fraction, a public-LB gap under about 0.00005 is noise; above it, the gap should carry to the private LB.
+
+**Match counts per S1:**
+
+| | mean | empty | 5+ |
+|---|---|---|---|
+| train truth, US / India | 3.457 / 3.461 | 5.6% | 26% |
+| v7nst on the holdout, US / India | 3.374 / 3.377 | 5.7% | 24% |
+| v7nst on test, US / India / France | 3.392 / 3.378 / **3.358** | 5.8% | 24% |
+
+- US and India have identical true distributions, so the generator is country-independent, and France very likely follows it.
+- France predicts only 0.02–0.03 fewer matches per S1 than US/India, with the same empty share. **France's recall is in line.** With §6.14's population checks also in line, France's remaining loss is substitutions: the right number of matches with some the wrong record, mostly among same-name S1 and empty-address records. Only better French scores can fix those.
+
+**The labelled gate on v7s's mix** (Bakshi's `ce_weight_fit.py`), US/India holdout band AUC:
+
+| mix | AUC |
+|---|---|
+| e5l + e5l2 (production) | 0.9428 |
+| + bge (`cem`, v7mst) | 0.9433 |
+| e5l + e5ls + bge (`cms`, v7s) | **0.9433** |
+| e5ls alone | 0.9439 |
+| e5l2 alone | 0.9441 |
+
+Self-training on French pseudo-labels cost e5ls nothing on US/India (e5ls holdout 0.9439, OOF 0.9403).
