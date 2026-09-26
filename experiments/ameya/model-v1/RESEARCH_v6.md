@@ -316,7 +316,7 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
 - **Why blocking misses them.** A record whose name is the S1's initials ("AD" for "Amicale du Directeurs") has nothing but the address to match on. French records also often carry a street-name typo ("Rue Vaubna", "RUE DU PLAAIS GALLIEN").
 - **The join.** It pairs such records with S1 on (country, house number, initials), then confirms with the robust same-address test and `post_ops.name_edit`.
 - **Holdout truth of the population:**
-  - US 99.72% (723 pairs);
+  - US 99.72% (723 pairs). The records no S1 holds, which are the ones France gets, are 19 of 19 true; the model predicts the other 704;
   - India 66.1% (758): India's compound addresses make "same address" unreliable;
   - French addresses parse like US ones.
 - **France:**
@@ -330,4 +330,8 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
 - The v7 chain runs the join after the rules.
 
 ### 5.3 Checked, no gain
-- Per-record renormalisation on top of stage 3: holdout unchanged (0.990842). Stage 3's mass calibration already covers it.
+- **Per-record renormalisation** on top of stage 3: holdout unchanged (0.990842). Stage 3's mass calibration already covers it.
+- **Brand-name copies at a single-S1 address** (`brand_join.py`: one invented token of 5–15 letters that no S1 name of the country uses, the only S1 at that address):
+  - the model already predicts the good ones (US 7,559 pairs, 98.8% true);
+  - the records no S1 holds are only 37% true (US, 197) and 40% (India, 20).
+  - **Not applied.** Unlike acronyms, an invented name does not tie the record to its S1.

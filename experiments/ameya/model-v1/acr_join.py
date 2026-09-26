@@ -79,10 +79,11 @@ def main() -> int:
     ap.add_argument("--cands", default="", help="test: the candidate set to extend")
     ap.add_argument("--tag", default="", help="test: new matches tag")
     ap.add_argument("--cands-tag", default="", help="test: new candidates tag")
+    ap.add_argument("--countries", default="", help="train: comma-separated countries to measure (default all)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     if args.split == "train":
-        d = pairs("train", s1_filter=is_holdout)
+        d = pairs("train", s1_filter=is_holdout, countries=set(args.countries.split(",")) if args.countries else None)
         truth = pq.read_table(records_path("train").parent / "truth.parquet").to_pandas()
         tk = np.sort(truth.s1.to_numpy() * K + truth.r.to_numpy())
         d["y"] = np.isin(d.s1.to_numpy() * K + d.r.to_numpy(), tk)
@@ -90,6 +91,12 @@ def main() -> int:
         log.info("holdout acronym pairs at the S1's address: %d, truth %.4f; records with one such S1: truth %.4f (%d)",
                  len(d), d.y.mean(), d.y[n_rec == 1].mean(), int((n_rec == 1).sum()))
         print(d.groupby("cty").y.agg(["size", "mean"]).round(4).to_string())
+        if args.matches:
+            m = read_table("matches", args.matches, "train")
+            d["free"] = ~d.r.isin(m.r).to_numpy()
+            d["single"] = n_rec.to_numpy() == 1
+            print("by record status (free = no S1 holds the record in --matches; single = one acronym S1 at the address):")
+            print(d.groupby(["cty", "free", "single"]).y.agg(["size", "mean"]).round(4).to_string())
         return 0
     tr = pq.read_table(records_path("train"), columns=["country"])
     labelled = set(pc.unique(tr["country"]).to_pylist())
