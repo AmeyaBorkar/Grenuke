@@ -347,3 +347,37 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
   - the model already predicts the good ones (US 7,559 pairs, 98.8% true);
   - the records no S1 holds are only 37% true (US, 197) and 40% (India, 20).
   - **Not applied.** Unlike acronyms, an invented name does not tie the record to its S1.
+
+## 6. Late evening (26 Sep, 20:00–22:00 IST): squeezing the model, and France checks
+
+### 6.1 Stage-2 settings (holdout, against `ameya-model-v7ce3-c2` 0.991099)
+
+| variant | result |
+|---|---|
+| seed bagging: v7ce3 + a seed-1 retrain, pc averaged (`bag_scores.py`) | 0.991061 (−0.00004). No gain; the seed-2 run was stopped |
+| `max_depth` 8 (`s2.py --param max_depth=8`, box) | early-stopping logloss per group 0.03686 / 0.03651 / 0.03625 / 0.03684 against 0.03684 / 0.03665 / 0.03622 / 0.03681. No gain; not scored |
+
+### 6.2 France, label-free: nothing large is left that labels-free counts can see
+
+- **Stage-1 bands.** France has 2.5–3× the pairs in the uncertain band (p1 0.05–0.99: about 1,040 per 1000 S1, against 360–420) and 150 fewer above 0.99 (3,076 against 3,190–3,260). So the cross-encoders decide a much larger share of French pairs than of US/India ones, and a stronger cross-encoder should help France more than the holdout shows.
+- **Per-source counts.** The distributions of predicted S2 and S3 copies per S1 in France match US/India's to within 0.3 points in every bin (S2 = 0…5, S3 = 0…4). Held records per S1: France 3.366, US 3.392, India 3.378 (holdout predictions 3.374 / 3.377; truth 3.46).
+- **Domain-name records.** A join on the generator's domain key (lowercase, every character outside [a-z0-9] dropped, so accented letters vanish: "tablissementsvoilesas.com") finds that the model already predicts 99.3–100% of the joinable domain records. Only about 110 free French records join to a single S1 at its address or with no address. **Not applied** (negligible).
+- **Vendor tokens** (record-side name tokens against S1-side, test):
+  - France's record-only words are the look-alike insert words: "participations", "holding", "distribution" and "international" (about 34k records each, like the US's "Southside", "Greater" and "Midtown", about 19k each), plus the dual-use "groupe" and "développement";
+  - **"SNC" (14,763 records, one S1) is a look-alike legal form.** Every sampled SNC record sits on its S1's street with a nudged house number (+1…+21), and the model rejects them (0.06% held). The US's record-only "Incorporated" (47,959 records, 8 S1) is different: 86% are true copies, a vendor spelling of "Inc", and they are predicted normally;
+  - dotted legal forms ("S.A.R.L."): held 0.585, against 0.609 for all French records; "et" for "&" and "Frs" for "Frères" are held at or above the average.
+- **Record ids are shuffled.** They carry no ownership signal: the correlation between S1 and record numbers is 0.0001.
+
+### 6.3 A second France probe: a lower threshold (`fr_add.py`)
+
+- `fr_threshold.py` asks whether France's band just above the threshold is overconfident. `fr_add.py` asks whether the band just below it is underconfident.
+- For target-country S1 it adds the owned pairs with pc above `--lo` that the decision left out, then runs the rules and the acronym join.
+- **On v7ce3** (threshold 0.675, `--lo 0.5`):
+  - 13,040 French pairs added before the rules (median pc 0.568);
+  - the rules drop 1,739 of them as op-B look-alikes, and about 3,200 are A/APP/ACR copies the rules would have added anyway;
+  - net +7,993 final pairs (30.8 per 1000 French S1).
+  - Package `2026-09-27-probe-v7-frlo` (validator PASS).
+- **Expected:**
+  - about −0.00017 LB if the band is calibrated (precision about 0.57);
+  - about +0.0001 LB if it is 80% true;
+  - break-even precision about 0.72.
