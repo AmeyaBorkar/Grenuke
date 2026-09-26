@@ -3,7 +3,82 @@
 **Date (IST):** 2026-09-27, round 1 at ~02:00, **round 2 at ~02:30 after `out_bge` was recovered.**
 **Author:** bakshi. **Branch:** `bakshi/opus-exec`.
 
-## Conclusion (round 2 — supersedes round 1)
+## Conclusion (round 3 — supersedes rounds 1 and 2)
+
+Round 2 found a weight that beats §6.13's best mix on France. Round 3 adds the two things it was missing —
+an **unbiased estimate** and a **real labelled gate** — and the recommendation flips.
+
+**1. The France gain is real and survives out-of-sample selection.** Splitting the French rule populations by
+S1 into a fit half and a disjoint validate half, choosing the weight on fit only and reporting on validate:
+e5l 0.60 / bge 0.40 gives **0.8340 on the validate half**, against production `cem2`'s 0.8083. So
+**+0.0258 France CE AUC** is not a selection artefact.
+
+**2. But it fails the labelled gate, and §6.13's "best mix" does too.** `band_train.parquet` carries `fold`
+and `y`, so folds 0–4 are the shared holdout **with ground truth**. Scoring every candidate there:
+
+| cross-encoder mix | France CE AUC (validate half) | labelled US/India holdout band AUC | Δ vs production | **est. ΔLB** |
+|---|---|---|---|---|
+| `cem2` = e5l + e5l2 — **production, v7nst** | 0.8083 | **0.9428** | — | — |
+| `cem` = e5l + e5l2 + bge equal — **v7mst** | 0.8289 | **0.9433** | **+0.00053** | **+0.000256** |
+| e5l + bge equal — **§6.13's "best mix"** | 0.8324 | 0.9417 | −0.00114 | +0.000271 |
+| e5l 0.60 / bge 0.40 — round 2's pick | 0.8340 | 0.9414 | −0.00144 | +0.000284 |
+| e5l 0.50 / e5l2 0.10 / bge 0.40 — best est. ΔLB | 0.8333 | 0.9421 | −0.00067 | +0.000289 |
+
+**Dropping `e5l2` costs labelled holdout band AUC**, because e5l2 is the *best single model on US/India*
+(0.9441, against e5l 0.9391 and bge 0.9417). §6.13 reported the French column for e5l+bge and not the
+US/India one; that omission is what made the mix look strictly better than it is.
+
+**3. Put both sides on one scale and the weighting stops mattering.** France is 14.975% of test S1 and
+US/India 85.025%, and the two AUC→F0.5 coefficients are *comparable* (France LB ≈ CE gain × 0.01198;
+US/India LB ≈ band gain × 0.01667 — derivations in `ce_weight_fit.py`). So a labelled loss is not
+automatically outweighed by a bigger French gain. Result: **the spread of estimated ΔLB across the best 40
+weightings is 0.000048.**
+
+### Recommendation
+
+**Use `out_cem` — the equal three-way mix v7mst already has. Do not tune the weights, and do not adopt
+§6.13's e5l+bge.**
+
+- Adding bge at all is worth about **+0.00026 LB**. That is the entire prize and it is already captured.
+- Every France-tuned tilt buys ≤ +0.00003 more LB while giving up labelled holdout AUC.
+- `cem` is the **only** bge mix that improves *both* sides (France +0.021, labelled +0.00053), and it lands
+  within 0.00003 LB of the theoretical optimum. It is both the safest and, to within noise, the best.
+
+### One live warning: `v7s`
+
+`v7s` is built as (e5l, e5ls, bge) — i.e. **it drops e5l2**, following §6.13's recommendation. That is exactly
+the substitution measured above as costing **−0.00144** labelled holdout band AUC. Whether the self-trained
+e5ls recovers it is unknown and untested; it cannot be assumed, because e5ls is a *further-specialised*
+e5-large and specialisation on France is what cost e5l2's US/India edge in the first place.
+
+**Before preferring v7s, run the labelled gate on its actual mix:**
+
+```bash
+python experiments/bakshi/final-package/ce_weight_fit.py \
+  --band-train band_train.parquet --band-test band_test.parquet --rule-pop rulepop_fr.parquet \
+  --run e5l=out_e5l --run e5ls=out_e5ls --run bge=out_bge --step 0.05 --z-rows train_folds
+```
+
+The `labelled US/India holdout band AUC` column is the check. US/India is 85% of the scored set; a France
+gain that costs it is not obviously a gain.
+
+### Two hypotheses tested and rejected on the way
+
+- **Saturation / rank combining.** The screen showed 77–97% tied logit values, which suggested a z-mean might
+  be mishandling saturated inputs. It is not: the most frequent value holds only 1.3–1.8% of mass, nothing is
+  clipped (`|x| > 10` is 0.00%), and **Spearman ≈ Pearson** in every country (France e5l–bge: 0.862 vs 0.870).
+  A rank or normal-score combiner has nothing extra to extract. `ce_diag.py`.
+- **Fitting the weights on labels.** Tempting, since `band_train` has `y` — but useless here: the labelled
+  optimum is the *opposite* of the French one (e5l2 is best on US/India and worst of the three on France).
+  Labels cannot choose a French weight, which is exactly why the honest fit/validate split was needed instead.
+
+`ce_diag.py` also reproduces §6.6 independently: France share of logit > 0 is 36.9 / 34.9 / 29.9% for
+e5l / e5l2 / bge (§6.6: 0.369 / 0.349 / 0.302), and France correlations e5l–e5l2 +0.951, e5l2–bge +0.902.
+On France, **e5l–bge is the least correlated pair at +0.870**, which is why that pair maximises France alone.
+
+---
+
+## Conclusion (round 2 — superseded by round 3)
 
 **The family-diversity hypothesis is correct and it is the largest French lever found.** Round 1 below
 concluded Track B was closed; that was right about the artifacts then in hand and **wrong as a conclusion
