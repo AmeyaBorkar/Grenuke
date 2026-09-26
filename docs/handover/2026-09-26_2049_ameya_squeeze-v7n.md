@@ -1,7 +1,7 @@
 # Handover: squeeze-v7n (the late-evening squeeze)
 
 - **Author:** ameya (agent: Claude Code)
-- **When (IST):** 2026-09-26 20:49 (updated 22:30)
+- **When (IST):** 2026-09-26 20:49 (updated 23:15)
 - **Branch / PR / last commit:** `ameya/squeeze` / PR opened with this handover / see `git log`
 - **Area and paths touched:**
   - `experiments/ameya/model-v1/`:
@@ -14,9 +14,9 @@
 
 ## TL;DR (3 lines max)
 
-- **The next candidate is `2026-09-27-v7n-s3-ops3a-c2`** (holdout 0.991211, +0.00007 over v7ce3; validator PASS). Stage 2 gets e5-small plus the mean of two e5-large cross-encoders.
+- **v7n (`2026-09-27-v7n-s3-ops3a-c2`) scored 0.989721, rank 8** (+0.00111 over v6all), so France is about 0.978. Stage 2 gets e5-small plus the mean of two e5-large cross-encoders.
 - **France is the whole gap.** v6all's 0.988609 means France is at about 0.973. The cross-encoders are what lift it: the French rule-population AUC went 0.855 → 0.872. On French pairs the models disagree 4× as often, hence the mean.
-- **Tomorrow's uploads:** v7n, then the France threshold probe `fr090r`, then the self-training bet `v7nst` if it's built.
+- **Next:** `v7nst` (+ France stage-2 self-training; packaged), then v7m/v7s from the new H100. 0.99 needs France at 0.9801.
 
 ## What was done
 
@@ -51,7 +51,7 @@
 ## Current state
 
 - **Works:** v7n and its probes are packaged (validator PASS).
-- **Half-done:** v7nst (v7n + stage-2 self-training) is running locally, with its package expected about 23:15.
+- **Half-done:** on the new on-demand H100, bge (for v7m) and the France self-trained e5-large (for v7s) are training, ETA 23:55 and 00:50; the local chains follow.
 - **Known bugs and caveats:**
   - the self-training variants can't be gated on the holdout (no France there); only the leaderboard can judge them;
   - bge's logits and the self-trained e5-large were lost with the spot box.

@@ -503,3 +503,27 @@ The holdout cannot score the France effect, because it has no French pairs. The 
   - the v7c/v7m/v7mst stage-2 scores (only v7m's train scores were copied back);
   - the running self-trained e5-large.
 - **v7m is rebuilt locally as `v7n`:** the same design, with the z-mean of the two e5-large runs (`zmean_ce.py`, group `cem2`), without bge.
+
+### 6.10 v7n on the leaderboard: 0.989721 (rank 8), and v7nst
+
+**v7n scored 0.989721** (rank 8 at 23:05; v6all 0.988609):
+- the US/India part rose by +0.00033;
+- **France went from about 0.973 to about 0.978**;
+- the prediction made before the upload (0.9894 at France 0.976, 0.9900 at 0.980) was right.
+
+**The label-free rule-population AUC tracked France's gain** (0.855 → 0.872). It is the tool for ranking the next France variants before spending an upload.
+
+**v7nst** (v7n + stage-2 self-training, `s2.py --pseudo`, 1.34M labelled French stage-2 rows, cross-fitted):
+- **Holdout:** c2 0.991158 (+0.000059 [+0.000021, +0.000094] vs v7ce3-c2) and s3 0.991194 (+0.000055 [+0.000022, +0.000089]), so v7n's US/India level to within noise. Its early-stopping loss is 0.3% higher.
+- **French stage-2 pc:**
+  - rule-population AUC 0.984 (biased: it trained on these labels, cross-fitted by S1 group);
+  - op-B above 0.7: 0.4% (v7n 28%);
+  - uncertain band (pc 0.3–0.99): 358 → 186 per 1000 S1;
+  - Σ pc per S1: 3.52 → 3.41.
+- **Final predictions against v7n:** France +14.0 / −17.4 per 1000 S1, US/India about +1.5 / −0.6. The rules no longer need to drop op-B (305 drops, against 17,914 for v7n).
+- **Why v7nst is a good bet under F0.5:** it leans toward dropping, and a dropped false positive gains 0.18 while a dropped true pair costs 0.07. So it is about neutral even if only half its changes are right, and about +0.0003 LB if 75% are.
+- Package `2026-09-27-v7nst-s3-ops3a-c2`, validator PASS: matching `659f5169…`, candidates `510a33ea…`.
+
+**Next:**
+- bge and the France self-trained e5-large (e5ls) are running on a new on-demand H100;
+- they feed v7m (v7n + bge) and v7s (self-trained cross-encoder + stage-2 self-training) tonight.
