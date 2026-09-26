@@ -220,3 +220,66 @@ So either:
 Small, safe, already in the candidate:
 - stage 3 (+0.00005);
 - rules v3 (about +0.00015).
+
+## 4. New training data for France, tested on India first (26 Sep evening)
+
+**Question.** Can French training pairs close France's gap if they are made without labels, either from the generator's operations (rule labels) or from the model's own confident predictions (self-training)?
+
+**The stand-in.** India plays France (`r6/loco_rules.py`, `r6/loco_rules2.py`):
+- India's training pairs lose their labels;
+- India's word odds become the label-free proxy (`fx5-lop`);
+- the stage-1 model and its features are those of v6all, trained on 35% of US training S1 and 50% of India's;
+- the score is stage-1 F0.5 on the whole India holdout (argmax + best threshold).
+
+| variant | India holdout F0.5 | vs US only |
+|---|---|---|
+| US + India true labels (the ceiling) | 0.98660 | +0.02105 |
+| **US only** (the unseen country) | **0.96555** | |
+| + rule labels: positives (exact copy / A / APP / ACR at the address, 98.0% true), op-B negatives and "house number moved +3…+21" negatives | 0.96463 | −0.0009 |
+| + rule positives only | 0.96217 | −0.0034 |
+| + rule positives and the 449 op-B negatives | 0.96705 | +0.0015 |
+| + self-training (b's p ≥ 0.95 → 1, ≤ 0.02 → 0: 77% of India's pairs, positives 99.3% true) | 0.96671 | +0.0012 |
+| + rules (incl. moved numbers) + self-training | 0.96450 | −0.0011 |
+
+- **The moved-number rule fails on India:** 45% of those "look-alikes" are true, because India's compound house numbers ("Sno 32/2/1 Hno 1048") make first-number offsets meaningless.
+- **Rule positives alone hurt** (−0.0034): easy certain copies teach the model to accept too much. 449 op-B negatives turn that into +0.0015, so the result is fragile.
+- **Self-training helps a little** in the current setting (+0.0012). The earlier rejection was measured with India's words unseen.
+- **Verdict:**
+  - the best variants close 5–7% of the 0.021 gap;
+  - for France, the rules already apply what the rule labels would teach;
+  - so a France retrain on rule or self labels is worth about +0.0001–0.0002 on the leaderboard. Not worth a 2–3 h retrain before the deadline.
+  - What labels in the target country give (the in-country ceiling) is out of reach without French labels.
+
+**Stronger cross-encoder (Track B).** multilingual-e5-large (MIT, 560M) on the same uncertain band and OOF groups as e5-small, trained on a rented H100 (Vast.ai; only records and the band pairs uploaded, about 1.2 GB). Its logits come back as feature group `cel` (`ce_import.py`) for a stage-2 retrain, gated on the holdout. Results pending.
+
+**Candidate v6all-s3-ops3 against the uploaded v5all-ops2** (`r6/frdiff.py`; for reading tonight's score):
+- France gains 49.7 and loses 25.7 predictions per 1000 S1. US/India gain about 13 and lose 3.
+- French gains:
+  - new blocking finds (domains, OCR): +9.8;
+  - brand names and domains at the address: +5.8;
+  - empty-address copies: +4.3;
+  - list-word copies (A/APP): several.
+- Mostly at pc 0.7–0.99.
+- Read the score as France change = (LB − 0.98781 − 0.00058) / 0.14975, where 0.00058 is the US/India holdout gain times 0.85.
+
+**A small blocking regression in France.** 2,186 French predictions of v5all (8.4 per 1000 S1) are not candidates in blocking v3, though they were in v2:
+- 953 acronyms at the S1's address ("PU" for "Passion Union", "CF" for "Cynegetique & Fils SASU");
+- 520 brand-name or domain records at the address;
+- about 100 list-word copies.
+
+These records match their S1 through the address only. French house numbers are small and street names common, so v3's small shifts in scoring pushed the true S1 out of the record's top 4. About −0.0006 France F0.5.
+- An exact-address view would recover them.
+- On the holdout it finds only 516 missed true pairs (0.94 per 1000 S1, +0.00007), so it is not worth a rebuild before the deadline.
+
+**Holdout loss breakdown, v6all + stage 3** (`analysis.py --scores ameya-s3-v6all`): F0.5 0.99084, loss 0.00916; precision 0.9986, recall 0.9742.
+
+| bucket | pairs | gain if fixed | v5all |
+|---|---|---|---|
+| lost to another S1 (mostly identical-name empty-address ties) | 20,134 | +0.00342 | 19,050 |
+| not a candidate (blocking) | 16,455 | +0.00269 | 19,163 |
+| owned, rejected by the decision | 11,438 | +0.00187 | 15,130 |
+| stage-0 filtered | 1,063 | +0.00019 | 1,206 |
+| false positive: record owned by no S1 / by another S1 | 1,392 / 1,145 | +0.00063 / +0.00053 | 1,309 / 858 |
+
+- 67% of the loss is misses only (8.1% of S1); 20% is non-singleton S1 left empty (1,001).
+- Nothing new is recoverable at scale: US/India stay close to their Bayes limit.
