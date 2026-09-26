@@ -444,6 +444,17 @@ listed as such in §5.4 rather than presented as proven.
 ### D. Items not independently confirmed
 
 1. **[confirm]** The registered team name as it appears in the portal — recorded here as "Grenuke".
-2. **[confirm]** `torch` / `transformers` / `tokenizers` / `safetensors` versions on the machine that
-   produced the submitted cross-encoder logits. `requirements.txt` pins the entire CPU stack and leaves
-   these four with an explicit note rather than a guessed version.
+2. **`torch` / `transformers` versions are only partly recoverable**, and `requirements.txt` records this
+   rather than guessing. The two cross-encoder scripts ran on different machines:
+   - `ce.py` (multilingual-e5-small, feature `ce`) ran on the integration machine, which still exists, so
+     its versions can be read off and pinned.
+   - `ce_box.py` (the two e5-large fine-tunes behind feature `cem2`, and e5-base for the `v7ce3` teacher)
+     ran on a rented H100 with non-persistent disk that was destroyed on 26 Sep (§6.9 of the research log).
+     **Those exact versions are unrecoverable.** This does not affect reproducibility of the *method*: any
+     recent CUDA-enabled torch/transformers runs the same recipe, and the cross-encoders are not
+     bit-reproducible across GPUs regardless, so the reference check is the holdout macro F0.5 rather than
+     the logits or the output hash.
+3. **The three France threshold probes were not audited here.** Their sha256 are recorded (matching
+   `f16af635…` / `a0da9110…` / `8d1290fa…` for fr080r / fr090r / fr095r), but the files live on the
+   integration machine, so their reported change counts remain second-hand. Only the submitted package was
+   independently verified.
