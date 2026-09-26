@@ -444,16 +444,22 @@ listed as such in §5.4 rather than presented as proven.
 ### D. Items not independently confirmed
 
 1. **[confirm]** The registered team name as it appears in the portal — recorded here as "Grenuke".
-2. **`torch` / `transformers` versions are only partly recoverable**, and `requirements.txt` records this
-   rather than guessing. The two cross-encoder scripts ran on different machines:
-   - `ce.py` (multilingual-e5-small, feature `ce`) ran on the integration machine, which still exists, so
-     its versions can be read off and pinned.
-   - `ce_box.py` (the two e5-large fine-tunes behind feature `cem2`, and e5-base for the `v7ce3` teacher)
-     ran on a rented H100 with non-persistent disk that was destroyed on 26 Sep (§6.9 of the research log).
-     **Those exact versions are unrecoverable.** This does not affect reproducibility of the *method*: any
-     recent CUDA-enabled torch/transformers runs the same recipe, and the cross-encoders are not
-     bit-reproducible across GPUs regardless, so the reference check is the holdout macro F0.5 rather than
-     the logits or the output hash.
+2. **Three machines trained the cross-encoders, and they do not share one `torch`/`transformers` version.**
+   All three are on record; `requirements.txt` pins the integration machine's, because that is where
+   everything except the large cross-encoders ran.
+   - **Integration machine** — `ce.py` (e5-small, feature `ce`), and all of stages 1–3, the rules, the
+     acronym join and the write stage. Windows 11, Python 3.13.12, torch 2.11.0+cu128, transformers 5.2.0,
+     tokenizers 0.22.2, safetensors 0.7.0, huggingface_hub 1.7.2. These are the versions present on that
+     machine now; it is the machine that produced the run, but we cannot prove nothing was upgraded since.
+   - **First rented H100** — `ce_box.py` for the two e5-large fine-tunes behind feature `cem2` (what the
+     submitted model uses) and e5-base for the `v7ce3` teacher. torch 2.14.0+cu126, transformers 5.17.0.
+     The instance was destroyed on 26 Sep with non-persistent disk; the versions come from its setup log.
+   - **Replacement H100** — bge and Qwen, neither of which is in the submitted model. torch 2.11.0+cu128,
+     transformers 5.17.0, peft 0.21.0. **On torch 2.11 the non-finite-step guard in `ce.train_one` is
+     mandatory**: without it a single bad gradient step turns every weight to NaN. torch 2.14 never hit it.
+
+   None of this limits reproducibility of the *method*. The cross-encoders are not bit-reproducible across
+   GPUs in any case, so the reference check is the holdout macro F0.5, never a file hash.
 3. **The three France threshold probes were not audited here.** Their sha256 are recorded (matching
    `f16af635…` / `a0da9110…` / `8d1290fa…` for fr080r / fr090r / fr095r), but the files live on the
    integration machine, so their reported change counts remain second-hand. Only the submitted package was
