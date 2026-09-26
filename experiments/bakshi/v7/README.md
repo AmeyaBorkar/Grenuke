@@ -40,6 +40,26 @@ python experiments/bakshi/v7/probe_exact.py --split test --base-pairs "$env:BER_
 
 Full suite including the new TSV/probe regressions passes. V5 is a usable baseline for prediction audits and targeted experiments. It does not contain rejected candidate scores, so probability changes and model retraining still require the full-run artifacts; the user reports v6 is still running.
 
+## Experimental v5-based France probe
+
+After that audit, a fresh fetch found `ameya/research-v6` with the robust-address op-B repair (`717f00b`, documented in `docs/decisions/2026-09-26_1557_rules-v3-and-stage3.md`). It covers suffixes and typo'd street markers missed by the old key. The published additional B population is 0.0% true in India and 1.2% in US, but this is not precision conditional on being accepted by the model.
+
+The initial dev-v3 accepted residuals contained 18 true US pairs, including three holdout pairs, that the new B rule would wrongly reject. All repeat an existing source word: `Pinnacle Asset Group` becomes `Pinnacle Asset Asset`. The wrapper protects such repetitions with whole-token membership. Its dev counterfactual is then unchanged (0.988563, delta 0, CI [0,0]), **not a measured gain**. It only writes a test artifact when explicitly asked with `--write-experimental`.
+
+On the supplied v5 France predictions, this repair identifies **1,148 additional B drops across 1,137 S1**; none are repetitions. The resulting experimental matching file has 5,834,445 pairs, exact test coverage, valid IDs, no ownership conflicts and unchanged US/India pairs. Independent comparison verifies that the only change is removal of those France pairs. The official matching validator passes. No original TSV was modified and no upload was made.
+
+Probe SHA256: `714112f929188d813e0e22a3e96ee77699a32fc47be1080c429ac926ab4894e9`. France score and rank effects are unmeasured. This is a leaderboard experiment, **not an accepted final v7**; the full v6 + stage-3 + rules-v3 candidate still needs its score-bearing cache. Candidate-file inclusion could not be directly tested without that file, but the probe adds no pairs.
+
+Reproduce with a frozen read-only source snapshot (do not edit Ameya's files):
+
+```powershell
+python -c "import subprocess,pathlib; pathlib.Path('work/research_v6_post_ops.py').write_bytes(subprocess.check_output(['git','show','717f00b:experiments/ameya/model-v1/post_ops.py']))"
+python experiments/bakshi/v7/robust_drop_probe.py --split train --profiles "$env:BER_WORK_DIR/v7/bakshi-rules-v7-dev/profiles.parquet" --rules-module work/research_v6_post_ops.py --scores "$env:BER_WORK_DIR/scores/ameya-s2-v3-dev/train.parquet"
+python experiments/bakshi/v7/robust_drop_probe.py --split test --profiles "$env:BER_WORK_DIR/v7/bakshi-tsv-v5-audit/unseen_profiles.parquet" --rules-module work/research_v6_post_ops.py --base-pairs "$env:BER_WORK_DIR/v7/bakshi-tsv-v5-audit/base_pairs.parquet" --source-tsv PATH_TO_V5_TSV --write-experimental output/v7-v5base-probe/matching_results.tsv
+```
+
+The script refuses an existing output file, changes in countries with training labels, drops absent from the baseline, invalid S1 coverage or conflicting ownership. The source module's SHA256 is recorded in the report; the snapshot used was `414231a265927f05bb059db3792f2a400a5736df072407dd73fe657f49afb6fa`.
+
 ## GitHub artifact audit
 
 Checked origin/main at `faa0244908`, all five surviving branches, all four releases and their assets, repository submission records and issue/PR comments. The v6 source, recipe, metrics and output hashes exist. The full v6 scores/models/submission do not appear in those locations. The [devkit-v3 release](https://github.com/AmeyaBorkar/Grenuke/releases/tag/devkit-v3) explicitly says full-scale files live only on the integration machine.
