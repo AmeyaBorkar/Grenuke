@@ -54,3 +54,10 @@ The official evaluator reproduces the threshold result exactly:
 `--stage train/predict/decide` on `--in features=ameya-baseline-v0-dev`, tag `sachi-model-v0-dev`, team default seed:
 threshold 0.71, holdout macro F0.5 0.96517 (evaluate stage agrees), DP 0.96473.
 G6: delta −0.00044, CI [−0.00107, +0.00022], p_better 0.101, n 27,651, so the threshold is kept. Same decision.
+
+## Update 20:55: on model v2 probabilities (dev kit v2, `pc`)
+
+Decide stage on `ameya-s2-v2-dev` calibrated `pc` (tag `sachi-decide-v2`), dev fold 0, 27,651 S1:
+threshold 0.67 -> 0.98438 (evaluate stage agrees; matches Ameya's reported 0.9845); DP 0.98447.
+G6: delta +0.00010, CI [−0.00023, +0.00045], p_better 0.714. Below the +0.002 bar, so the threshold is kept.
+With stronger probabilities the DP moved from slightly worse to slightly better. Re-check after G5 and on the full holdout.
