@@ -82,10 +82,11 @@
       },
       "final_package": {
         "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
-        "zip_bytes": 87512856,
-        "zip_sha256": "d2e62fb9d03d28b7a84b366078d4b893f89a80c56084c981d5c1844d068fba91",
+        "zip_bytes": 87513493,
+        "zip_sha256": "bad61fee81af7deb519da735a7619d9145091df9b2a5dd7d9484aa3167717fab",
         "n_files": 103,
-        "built_ist": "2026-09-27T01:45+05:30",
+        "built_ist": "2026-09-27T01:40+05:30",
+        "note": "An earlier build at 01:30 was d2e62fb9d03d28b7a84b366078d4b893f89a80c56084c981d5c1844d068fba91; it was superseded when requirements.txt and Documentation_template.md were corrected (the torch pins the destroyed rented box makes unrecoverable, and the probe-audit caveat). The output/ TSVs are byte-identical in both. bad61fee... is the current package.",
         "verified_after_extraction": [
           "all 103 manifest hashes match",
           "all 15 required paths present",
