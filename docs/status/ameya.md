@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 16:05
+- **Last updated (IST):** 2026-09-26 18:20
 - **Current focus:** where the rest of the leaderboard is (`RESEARCH_v6.md`).
   - 26 Sep #01 (v5all + rules v2) scored **0.98781 (rank 15)**. Top 3: 0.990556 / 0.989141 / 0.988842.
   - The other session's gap budget, checked on v6all:
@@ -46,8 +46,9 @@
 - **For Sachi (final package):** `experiments/ameya/model-v1/RECIPE.md` answers the five reproduction questions and gives the exact v6all and v5all recipes. `decide.py --base` is now optional, and `feats.py --dict-only` builds blocking's Indic dictionary.
 - **Latest handover:** `docs/handover/2026-09-26_1557_ameya_research-v6-gap-budget.md`.
 - **Next up:**
-  - read the three uploads and follow `RESEARCH_v6.md` §3:
-    - France threshold if the band is overconfident;
-    - France model-level features if its loss is confident;
-    - US/India test families if US/India sit below the holdout;
-  - fold in the SHAP attribution (why France is less confident).
+  - **Vast.ai box** (H100 80 GB, 23 cores, 342 GB RAM):
+    - running multilingual-e5-large and e5-base cross-encoders on the uncertain band, same OOF groups as e5-small;
+    - their logits come back through `ce_import.py` for a stage-2 retrain, gated against v6all on the holdout;
+    - internet traffic about 8 GB of the 30 GB budget.
+  - **New-data tests on India** (`RESEARCH_v6.md` §4): rule labels and self-training close only 5–7% of the unseen-country gap. No France retrain on them before the deadline.
+  - Read tonight's score and the probes against `RESEARCH_v6.md` §3 (France diff for the candidate in §4).
