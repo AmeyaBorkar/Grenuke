@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 11:30
+- **Last updated (IST):** 2026-09-26 11:45
 - **Current focus:** the v6all rebuild (running since 11:22, about 3.5 h), which bundles:
   - blocking v3 repairs (dev-pool forward recall 0.972 → 0.979);
   - signed number features (holdout +0.00021);
@@ -37,6 +37,7 @@
 - **Deadline:** the submission-round page says the window closes 27 Sep 15:30 UTC = **21:00 IST**, and the private leaderboard uses the **final** submission. To be confirmed in the logged-in portal.
 - **ETA for the current task:** v6all about 15:00 (gate vs v5all-c2, then package `2026-09-26-v6all-ops-c2`).
 - **Blocked on / need from others:** the captain's uploads and their scores.
+- **For Sachi (final package):** `experiments/ameya/model-v1/RECIPE.md` answers the five reproduction questions and gives the exact v6all and v5all recipes. `decide.py --base` is now optional, and `feats.py --dict-only` builds blocking's Indic dictionary.
 - **Latest handover:** `docs/handover/2026-09-26_1123_ameya_solutions-round1.md`.
 - **Next up:**
   - the v6all gate and package;
