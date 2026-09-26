@@ -334,7 +334,7 @@ Total: about +0.0003–0.0005 on the holdout, +0.0003–0.0004 on the leaderboar
 | 4 | weak-address and unrelated-name acceptance in France (123 per 1000 S1) | verified with generator invariants | none: profiling artifacts (section 8); France's identical-name ties are worth at most +0.0005 France F0.5 | done | no fix |
 | 5 | unsigned house-number features | `feats_nx.py` (signed difference, nudge set, digit substitution/swap, leading digits dropped), stages 1–2 refit | **+0.00021 [0.00016, 0.00025] holdout** | done | §8.3; in the rebuild |
 | 6 | the rival S1 is invisible to stage 2 | stage-3 joint re-scoring (A + B) | +0.00005 [0.00002, 0.00008] holdout | done | §8.4; optional, not in the recipe |
-| 7 | blocking misses: domains, OCR, ordinals | segmentation, OCR repair, ordinal → digit; full rebuild | dev-pool forward recall 0.972 → 0.979; about +0.0003 LB | 3.5 h | §8.5; v6all rebuild running |
+| 7 | blocking misses: domains, OCR, ordinals | segmentation, OCR repair, ordinal → digit; full rebuild | holdout blocking recall 0.98992 → 0.99135; with `nx`, holdout +0.00063 | done | §8.5; final `2026-09-26-v6all-ops-c2` |
 
 Items that are **not** worth doing, from this research:
 - self-training;
@@ -344,7 +344,7 @@ Items that are **not** worth doing, from this research:
 - vendor-format normalisation beyond today's;
 - source caps (they bind 4 times).
 
-## 8. Solutions, round 1 (26 Sep, 06:00–11:30 IST)
+## 8. Solutions, round 1 (26 Sep, 06:00–14:30 IST)
 
 ### 8.1 France rules, version 2 (`post_ops.py`)
 
@@ -456,9 +456,24 @@ Honorifics as stop words were tried and reverted. Dev pool (110k S1, 2.6M record
 
 Candidates per S1 are unchanged.
 
-**The v6all rebuild runs now** (`run_v6all.sh` in the session scratchpad; resumable per step, and each heavy step waits for free memory):
+**The v6all rebuild** (`run_v6all.sh` in the session scratchpad; resumable per step, and each heavy step waits for free memory):
 
     blocking v3 → features fx5 (+ nx) → lo, lg, lop, lo0 → s1 --all → cross-encoder → s2 --all →
     decision with the candidate cut (gate vs v5all-c2) → candidate set → France rules v2 → 2026-09-26-v6all-ops-c2
 
-About 3.5 h.
+About 3.5 h (11:30–14:27).
+
+**Result** (decision record `docs/decisions/2026-09-26_1425_model-v6all-final.md`):
+
+| | v5all-c2 | v6all-c2 |
+|---|---|---|
+| holdout blocking pair recall | 0.98992 | 0.99135 (missed 19,163 → 16,455, 0.6% fewer pairs) |
+| stage 1 | 0.9870 | 0.9878 |
+| holdout macro F0.5 | 0.990156 | **0.990788** |
+| gate | | Δ +0.00063 [+0.00057, +0.00070] (US +0.00068, India +0.00056) |
+| recall | 0.9713 | 0.9738 |
+| decision rule | | threshold 0.70 (DP +0.00004, not significant) |
+| candidates per test S1 | 3.70 | 3.70 |
+| final predictions per S1 (US / India / France) | 3.382 / 3.367 / 3.336 | 3.390 / 3.376 / 3.360 |
+
+**Final candidate: `submissions/files/2026-09-26-v6all-ops-c2/`** (validator PASS, matching sha256 `0f6d8985…`).
