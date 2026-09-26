@@ -1,9 +1,53 @@
 # Track B: family-balanced cross-encoder consensus — measured result
 
-**Date (IST):** 2026-09-27 ~02:00. **Author:** bakshi. **Branch:** `bakshi/opus-exec`.
+**Date (IST):** 2026-09-27, round 1 at ~02:00, **round 2 at ~02:30 after `out_bge` was recovered.**
+**Author:** bakshi. **Branch:** `bakshi/opus-exec`.
 
-**Conclusion first: Track B as designed cannot be run, and the fallback question it degenerates to has no
-meaningful headroom. Recommend spending no stage-2 fit and no upload slot on it.**
+## Conclusion (round 2 — supersedes round 1)
+
+**The family-diversity hypothesis is correct and it is the largest French lever found.** Round 1 below
+concluded Track B was closed; that was right about the artifacts then in hand and **wrong as a conclusion
+about the hypothesis**. `out_bge` was recovered in the `grenuke-for-bakshi-v7ens2` delivery, and with it:
+
+| cross-encoder input | French rule AUC | source |
+|---|---|---|
+| `out_cem2` = e5l + e5l2 (v7nst production) | 0.8062 | reproduced, §6.13 says 0.806 |
+| `out_cem` = e5l + e5l2 + bge (v7mst input) | 0.8260 | reproduced, §6.13 says 0.826 |
+| e5l + bge, equal (§6.13's best) | 0.8291 | reproduced, §6.13 says 0.829 |
+| **e5l 0.6 / bge 0.4** | **0.8311** | **new — best found here** |
+
+**The new point beats §6.13's best equal mean by +0.00201, 95% CI [+0.00147, +0.00252]** (cluster bootstrap
+over 47,985 S1, 1,000 resamples, 100% favouring it), and beats `out_cem` — the mix v7mst actually uses — by
+**+0.00509, CI [+0.00438, +0.00577]**.
+
+**Recommendation: adopt 0.6/0.4 only if it is free.** If a v7s/v7sq stage-2 fit has not yet started, using
+`--weight e5l=0.6 --weight bge=0.4` instead of an equal mean costs nothing and gains a little. **Do not rerun
+a completed fit for it, and do not spend an upload slot on it.** Calibrating through the known hops
+(CE +0.020 → stage-2 pc +0.0056 → France +0.0016 → LB +0.00024, i.e. LB ≈ CE gain × 0.012), +0.005 CE is
+worth of order **+0.00006 LB** and +0.002 CE about +0.00002. Real, and far below what a leaderboard slot can
+resolve. **The prize was adding bge at all (+0.020 CE ≈ +0.00025 LB); the weighting is a rounding error on
+top of it.**
+
+Caveat on selection: 0.6 is the argmax of a 6-point grid scored on the same proxy it is credited on, so the
+CI does not correct for that. The curve is smooth and unimodal with an interior peak
+(0.3→0.8138, 0.4→0.8232, 0.5→0.8291, **0.6→0.8311**, 0.7→0.8291, 0.8→0.8234), which is reassuring, but a
+smooth peak is not a gate.
+
+**Adding `e5l2` back at any weight never helps France.** Best three-way found was
+e5l 0.50 / e5l2 0.15 / bge 0.35 at 0.8297, still below the two-way 0.8311 — so §6.13's conclusion that the
+US/India-specialised second epoch should be left out of the French mean holds under weighting too, not just
+under equal averaging.
+
+Round 1's within-family finding was a correct signal of this: it measured that tilting away from `e5l2`
+toward `e5l` helps France (+0.00086), which is exactly what the fuller experiment confirms. It simply could
+not see the magnitude without an independent family to combine with.
+
+---
+
+## Round 1 (before `out_bge` was recovered) — kept for the record
+
+**Conclusion at the time: Track B as designed cannot be run, and the fallback question it degenerates to has
+no meaningful headroom.** Correct given the artifacts available at 02:00; superseded by round 2 above.
 
 ---
 
