@@ -82,11 +82,11 @@
       },
       "final_package": {
         "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
-        "zip_bytes": 87513493,
-        "zip_sha256": "bad61fee81af7deb519da735a7619d9145091df9b2a5dd7d9484aa3167717fab",
+        "zip_bytes": 87520561,
+        "zip_sha256": "c241b788dbee69188e803f5523d850c593f4e363b47094c86518d953376ff581",
         "n_files": 103,
-        "built_ist": "2026-09-27T01:40+05:30",
-        "note": "An earlier build at 01:30 was d2e62fb9d03d28b7a84b366078d4b893f89a80c56084c981d5c1844d068fba91; it was superseded when requirements.txt and Documentation_template.md were corrected (the torch pins the destroyed rented box makes unrecoverable, and the probe-audit caveat). The output/ TSVs are byte-identical in both. bad61fee... is the current package.",
+        "built_ist": "2026-09-27T02:50+05:30",
+        "note": "Third build. Earlier: d2e62fb9... (01:30) and bad61fee... (01:40). Each was superseded by a documentation correction, not by any change to the outputs — the output/ TSVs are byte-identical in all three. c241b788... is current and supersedes the others. It is the v7nst FALLBACK, held per ameya's instruction in issue #45 to wait for the chosen model; rebuilding for a different winner takes about 4 minutes.",
         "verified_after_extraction": [
           "all 103 manifest hashes match",
           "all 15 required paths present",
@@ -185,6 +185,20 @@
     "hash_verification": "13 of 13 files OK against the folder's own SHA256SUMS.txt, 0 failures",
     "contents": ["band_train.parquet (1,568,554 rows; folds 0-4 holdout 389,668, >=5 train 1,178,886)", "band_test.parquet (1,490,930)", "out_e5l/", "out_e5l2/", "out_cem2/", "rulepop_fr.parquet (128,856: A 38,304 + ACR 14,884 + APP 11,652 = 64,840 true-copy, B 64,016)", "candidate_pairs.tsv", "SHA256SUMS.txt", "SHA256SUMS_submission_tsvs.txt"],
     "absent": ["out_bge (kills Track B)", "out_q15 (Qwen)", "out_e5b (e5-base)"]
+  },
+  "rulepop_decision_check": {
+    "tool": "experiments/bakshi/final-package/rulepop_decisions.py",
+    "what": "Scores a package's FINAL matched pairs against France's rule populations (A/APP/ACR treated as true, op-B as false), rather than scoring a model's logits or pc. Built to test whether the label-free French check can rank candidate PACKAGES before an upload slot is spent.",
+    "headline": "IT CANNOT, within the v7 family. The check is saturated at the decision level.",
+    "results": {
+      "look_alike_op_B_predicted": "0 of 64,016 in every one of v6all, v7n, v7nst, v7ens2 — post_ops fully suppresses op-B, so precision on the populations is 1.0000 for all of them and carries no information",
+      "true_copy_recall": {"v6all": 0.9682, "v7n": 0.9711, "v7nst": 0.9710, "v7ens2": 0.9710},
+      "v7nst_vs_v7ens2": "29 disagreements out of 128,856 population pairs, ALL of them true-copy: 15 kept only by v7nst, 14 only by v7ens2. Noise.",
+      "v7nst_vs_v7n": "79 disagreements, all true-copy, 36 vs 43",
+      "v7nst_vs_v6all": "235 disagreements, 210 kept only by v7nst vs 25 only by v6all — so the check DOES resolve a large step"
+    },
+    "conclusion": "The diagnostic has resolution for big changes (v6all -> v7n) and none within the v7 family. The label-free French check ranks CROSS-ENCODERS, where the spread is real (0.774 to 0.831), not final PACKAGES, where the rules force the populations flat. Choosing between v7nst / v7ens2 / v7s / v7sq finals cannot be done this way; only the leaderboard discriminates them.",
+    "caveat": "post_ops deliberately forces decisions on these populations, so absolute numbers measure the rules as much as the model. Only between-package differences are model-driven. And none of it is French ground truth."
   },
   "toolchain_verified_this_session": {
     "control_audit_v6all_pair": {
