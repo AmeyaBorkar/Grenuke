@@ -2,6 +2,7 @@
 
     python experiments/ameya/model-v1/feats.py --cands ameya-block-v0 --split train
     python experiments/ameya/model-v1/feats.py --cands ameya-block-v0 --split test
+    python experiments/ameya/model-v1/feats.py --split train --tag ameya-fx1 --dict-only   # blocking's indic_dict only
 
 Writes, row-aligned with the candidates (same order), in row groups of CHUNK rows:
 - work/features/<tag>-str/<split>.parquet: s1, r, fold, y (train) + groups name/word/num/addr (float32);
@@ -455,12 +456,16 @@ def _writer(path, schema, meta):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cands", required=True)
+    ap.add_argument("--cands", help="candidates tag (not needed with --dict-only)")
     ap.add_argument("--split", required=True, choices=["train", "test"])
     ap.add_argument("--tag", default="ameya-fx1")
     ap.add_argument("--limit", type=int, default=0, help="only the first N candidate rows (smoke test)")
     ap.add_argument("--out-suffix", default="")
+    ap.add_argument("--dict-only", action="store_true",
+                    help="train: only learn the Indic dictionary into work/models/<tag>/ (blocking's indic_dict needs it)")
     args = ap.parse_args()
+    if not args.cands and not args.dict_only:
+        ap.error("--cands is required unless --dict-only")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     command = "python experiments/ameya/model-v1/feats.py " + " ".join(f"--{k.replace('_', '-')} {v}" for k, v in vars(args).items())
     t0 = time.perf_counter()
@@ -468,9 +473,12 @@ def main() -> int:
     model_dir = artifact_dir("models", args.tag)
     dict_path = model_dir / "indic_dict.parquet"
     if args.split == "train":
-        rec, dictionary = load_records("train", None, load_truth())
+        rec, dictionary = load_records("train", None, load_truth(), strings=not args.dict_only)
         model_dir.mkdir(parents=True, exist_ok=True)
         dictionary.to_parquet(dict_path)
+        if args.dict_only:
+            log.info("indic dictionary: %d entries -> %s", len(dictionary), dict_path)
+            return 0
     else:
         rec, _ = load_records("test", pd.read_parquet(dict_path))
     for f in ("fname", "cname", "ccat", "faddr"):

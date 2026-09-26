@@ -158,7 +158,7 @@ def main() -> int:
     ap.add_argument("--scores", default="ameya-s2-v1")
     ap.add_argument("--col", default="pc")
     ap.add_argument("--tag", default="ameya-model-v1")
-    ap.add_argument("--base", default="ameya-baseline-v0")
+    ap.add_argument("--base", default="", help="matches tag to compare with on the holdout (optional)")
     ap.add_argument("--no-test", action="store_true")
     ap.add_argument("--p-cand", type=float, default=0.0,
                     help="decide only among the final candidate set: p1 >= this (cands_final.py --p-cand)")
@@ -212,8 +212,9 @@ def main() -> int:
             "p_cand": args.p_cand, "top_r": args.top_r}
     log.info("G6 expected-F0.5 vs threshold: %+.5f CI [%.5f, %.5f] -> %s", gate["delta"], gate["ci_low"],
              gate["ci_high"], rule["method"])
-    base = read_table("matches", args.base, "train")
-    gate_base = compare(base, pred, th, universe, groups=country)
+    gate_base = None
+    if args.base:  # optional: a clean re-run has nothing to compare with
+        gate_base = compare(read_table("matches", args.base, "train"), pred, th, universe, groups=country)
     rep = holdout_report(pred, truth, universe, country)
     write_table(pred.reset_index(drop=True), "matches", args.tag, "train", command=command,
                 inputs={"scores": args.scores}, rule=rule)
