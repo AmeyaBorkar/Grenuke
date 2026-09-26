@@ -14,7 +14,7 @@ import pyarrow.dataset as ds
 
 from ber.ids import to_eids
 from ber.io import MATCHING_HEADER, read_tsv
-from ber.paths import records_path, work_dir
+from ber.paths import check_name, records_path, work_dir
 from ber.artifacts import write_report
 from rules import pair_keys, profiles, s1_vocab
 
@@ -120,6 +120,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--base", required=True)
     ap.add_argument("--compare", action="append", default=[])
-    ap.add_argument("--tag", default="bakshi-tsv-v5-audit")
+    ap.add_argument("--tag", type=check_name, default="bakshi-tsv-v5-audit")
     ap.add_argument("--profiles", action="store_true")
     audit(ap.parse_args())
