@@ -555,3 +555,19 @@ The holdout cannot score the France effect, because it has no French pairs. The 
 | **mean of the two** | **0.806** | 0.943 |
 
 The second epoch sharpens US/India but slightly hurts France: it specializes on the training countries. The mean is the most robust for France, which supports feeding stage 2 the average rather than the single best logit.
+
+### 6.12 Night checks after self-training: where France can still move (27 Sep, 00:30–01:45)
+
+| check | finding |
+|---|---|
+| **Candidate cut** (p1 ≥ 0.02 or the record's top 2) against v7nst's stage-2 pc | only 2 French pairs (US 3, India 42) are owned with pc > 0.7 outside the cut. Nothing to recover |
+| **Stage 3 on France** (rule-population AUC, stage 2 → stage 3) | v7nst 0.9844 → 0.9791; v7nst2 0.9857 → 0.9792 (and v7c 0.874 → 0.869 before self-training). Stage 3 was gated on US/India, where it helps; on France it blurs contested records. **`frs2` variants** take the stage-2 decision for the countries without labels: v7nst-frs2 (France +3.0 / −11.7 per 1000 S1; 35% of the dropped have an empty record address) and v7nst2-frs2 are packaged |
+| **Per-S1 match counts** (v7n, v7nst, v7nst2 against the train truth) | empty S1 5.7–5.8% (truth 5.6%); S1 with 5+ matches 23.7–23.9% (truth 26.0%; US 24.6%). The remaining French loss is recall on heavily edited copies of large clusters |
+| **What self-training changed** (v7n → v7nst) | removed 5,484 French predictions (v7n's median pc 0.93), **68% one-word swaps at the S1's address** (look-alikes just outside op-B's definition); added 5,955 (31% empty-address records, 30% unrelated names at the address) |
+| **Typo-at-address copies** (Indel ≥ 0.5 between the swapped words) | US/India: 96.7% true and 96.7% predicted. France: 75% predicted. But French descriptor words share suffixes (Ecole/Collège, Primaire/Sportive, Maternelle/Culturelle), so many are look-alike swaps. **No rule: it does not transfer** |
+| **French abbreviations** (Cie/Compagnie, St/Saint…) at the address | 1,658 pairs, 91% predicted. The 144 misses are true ("Coeur & Cie SAS" → "Coeur & Compagnie SAS") but worth about +0.000005 LB |
+
+**Where the remaining French gain lies:**
+- in the models (self-trained cross-encoders, the Qwen cross-encoder, averaging the self-trained variants);
+- in stage 3's French effect (`frs2`);
+- not in new rules.
