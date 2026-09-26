@@ -13,6 +13,33 @@ The audit selected 698,372 candidate pairs from 3,345,119 rows. This is the rele
 
 The parser can now expose combined edits for further investigation, but these findings do not justify generating a new submission or claiming a rank improvement.
 
+## Full v5 TSV audit (26 September, 16:13 IST)
+
+The user supplied `matching_resultsV5all.tsv`. SHA256 `76fe7eff4bb37e9eab392b25d4cb0e563a91f0953131bc9b908909ca44fa3d4b` matches the recorded `2026-09-26-v5all-ops2-c2` package. It contains 1,732,544 rows and 5,835,593 pairs, with exact S1 coverage, valid target IDs, unique pairs, no cross-country matches and no conflicting record owners. The official validator passes; the candidate file is absent, so candidate inclusion cannot be checked. Source files were not modified.
+
+France has 865,630 predicted pairs across 259,452 entities. The composed-edit categories affect only 18 predictions (13 swaps with list appends and 5 drops with multiple list appends), so this broad idea cannot deliver a material rank improvement on v5. Address diagnostics flag 11,774 predictions; these are **not labeled errors** and are not removed.
+
+Two additional score-free probes were run against the raw records and existing normalized caches:
+
+| proposal | v3 labeled dev residuals / holdout delta | full test residuals | counterexamples |
+|---|---|---|---|
+| exact complete name/address | 0 / 0 | 2 transfers, both France | both existing owners have compatible names and address token sets; no evidence for choosing a different owner |
+| exact parsed street/city/house/unit and complete name | 0 / 0 | 8 adds, 4 transfers | 7 differ in later numeric address components; all 4 old owners have compatible name/address evidence |
+
+The parsed-address probe keeps every parsed street token, city, first house number, suffix and unit. Nevertheless, complex house numbers can be misparsed: `27W 10` and `27W 13` can collapse, and locality heuristics can split equivalent addresses differently. Residual inspection compares the full raw numeric sequence and the existing owner's raw evidence to expose those failure modes. Neither probe is enabled. The dev score is 0.988563 for the sample-graph threshold baseline before and after both proposals; this is **not a v5/v6 metric**.
+
+Run these score-free diagnostics independently of the full feature cache:
+
+```powershell
+python experiments/bakshi/v7/audit_tsv.py --base PATH_TO_V5_TSV --compare PATH_TO_V3_TSV --profiles
+python experiments/bakshi/v7/probe_exact.py --split train --scores "$env:BER_WORK_DIR/scores/ameya-s2-v3-dev/train.parquet"
+python experiments/bakshi/v7/probe_exact.py --split test --base-pairs "$env:BER_WORK_DIR/v7/bakshi-tsv-v5-audit/base_pairs.parquet"
+python experiments/bakshi/v7/probe_exact.py --split train --scores "$env:BER_WORK_DIR/scores/ameya-s2-v3-dev/train.parquet" --norm-file "$env:BER_WORK_DIR/norm/bakshi-norm-v0a/train.parquet" --tag bakshi-street-rescue-v7
+python experiments/bakshi/v7/probe_exact.py --split test --base-pairs "$env:BER_WORK_DIR/v7/bakshi-tsv-v5-audit/base_pairs.parquet" --norm-file "$env:BER_WORK_DIR/norm/bakshi-norm-v0a/test.parquet" --tag bakshi-street-rescue-v7
+```
+
+Full suite including the new TSV/probe regressions passes. V5 is a usable baseline for prediction audits and targeted experiments. It does not contain rejected candidate scores, so probability changes and model retraining still require the full-run artifacts; the user reports v6 is still running.
+
 ## GitHub artifact audit
 
 Checked origin/main at `faa0244908`, all five surviving branches, all four releases and their assets, repository submission records and issue/PR comments. The v6 source, recipe, metrics and output hashes exist. The full v6 scores/models/submission do not appear in those locations. The [devkit-v3 release](https://github.com/AmeyaBorkar/Grenuke/releases/tag/devkit-v3) explicitly says full-scale files live only on the integration machine.
