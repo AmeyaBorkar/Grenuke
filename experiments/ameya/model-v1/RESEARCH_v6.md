@@ -592,3 +592,61 @@ The second epoch sharpens US/India but slightly hurts France: it specializes on 
 - **The French-optimal mean combines diverse families and leaves out the US/India-specialized run.**
   - v7s (e5l, e5ls, bge) and v7sq (e5l, qst, e5ls, bge) are built that way.
   - The Qwen decoder (qst) is the most different family.
+
+### 6.14 Early 27 Sep: v7mst, the round-2 drift, and `frs2` withdrawn (02:00–02:40)
+
+**v7mst** (bge joins the cross-encoder mean: e5l, e5l2, bge; round-1 labels):
+- **Holdout:** c2 0.991186 (+0.000087 [+0.000047, +0.000121]), s3 0.991206 (+0.000068 [+0.000032, +0.000102]). US/India part 0.843223, +0.000013 over v7nst.
+- **Final predictions against v7nst:** France +2.7 / −5.3 per 1000 S1 (v7nst against v7n: +14.0 / −17.4). bge's better French consensus at the cross-encoder level (§6.13) barely reaches the final predictions once stage 2 is self-trained.
+- Package `2026-09-27-v7mst-s3-ops3a-c2`, validator PASS.
+
+**The French rule-population AUC is saturated for self-trained models:** v7nst 0.9844, v7nst2 0.9857, v7mst 0.9846. It cannot rank them.
+
+**A label-free check on true copies (`fhs.py`).**
+- COPY = the same content words up to typos (Cie = Compagnie), with the same address or an empty record address. These are true copies: in US/India the model accepts them at their truth rate, and stage 3's B relies on the empty-address ones (97.7% true).
+- Net COPY pairs gained against v7nst, per 1000 French S1:
+
+  | candidate | COPY gained / lost | net |
+  |---|---|---|
+  | v7ens2 | +0.49 / −1.14 | −0.65 |
+  | v7mst | +0.65 / −1.50 | −0.85 |
+  | v7nst2 | +0.65 / −2.19 | −1.54 |
+  | v7nst-frs2 | +0.76 / −4.62 | −3.86 |
+
+- Every variant loses a few true copies against v7nst. v7nst accepts 98.7% of the French COPY pairs (pc ≥ 0.3); the misses are mostly empty-address records whose name several S1 share.
+
+**Round 2 drifts** (v7nst2, qualitative, 40 French changes read by hand):
+- It drops clear copies: "Projet & Cie EURL" → "Projet & Compagnie EURL", "KZ Comite SARL" → "KZ Comite-SARL" (empty address).
+- It adds word swaps at the S1's address: "GY Amicale SARL" → "GY Agricole SARL", "Calais Anciens SA" → "Calais Soins SA"; and one cross-city pair (Bordeaux → Roubaix).
+- Iterating the pseudo-labels on the model's own decisions amplifies its near-threshold mistakes. **No further rounds; v7nst2 is out of the ensemble** (v7ensall bags v7nst, v7mst, v7s, v7sq).
+
+**`frs2` is withdrawn** (§6.12 proposed it):
+- The stage-2 → stage-3 drop in French rule AUC is not evidence against stage 3. Stage 2 trained on pseudo-labels that include the rule populations and stage 3 did not, and the rules override the model on those pairs anyway.
+- What `frs2` changes: 35% of the 3,029 French pairs it drops have an empty record address (base rate 2.7%). Stage 3's B lifts exactly these pairs over the threshold, and France has the same empty-address share as the countries with labels (3.0%; US 2.9%, India 2.4%), the generator's signature.
+- COPY net −3.86 per 1000 S1. The four `frs2` builds queued for the morning are skipped (`make_frs2.sh` is a no-op; the original is kept).
+
+**Small leak, not fixed: the acronym join crosses cities.**
+- 48 of its 3,832 French additions (1.25%) name another city, e.g. "Souris Club SAS, 49 Rue Jules Watteeuw, Tourcoing" → "SC, 49 Rue Jules Lanery, Dunkerque".
+- Cause: the same-address test accepts the same house number plus one shared street word, and French streets share first names (Jules, Jean, Joseph). Two-letter initials collide easily.
+- Worth about +0.00001 LB, so it is not worth a late pipeline change. All French city mismatches in v7nst's final: 140 (0.5 per 1000 S1).
+
+**Where France's remaining loss is *not*: every generator population at the S1's address checked against the US/India labels** (`r8` scripts, 02:30–02:45). For each population the question is whether v7nst's French acceptance is in line with the US/India truth:
+
+| population (same house number) | US / India true | France: pairs per 1000 S1 | France: in v7nst's final | reading |
+|---|---|---|---|---|
+| swap to another real word (op-B) | 2.9% / 0.3% | 247 | 0% | rules drop them |
+| list-word swap (op-A) | 99.7% / 97.5% | 148 | 96% | fine |
+| swap to a typo of the word | 98.9% / 97.1% | 89 | 96% | fine |
+| swap to a rare, dissimilar word | 69% / 33% | 111 | 4.7% | looks low, but in France this bucket is the look-alikes ("Fete Club" → "Ruban Club"): the French look-alike words are rare in French S1 names, so they land here instead of op-B. The accepted ones are heavy garbles ("Maison Ionis" → "Maison Isno") |
+| unrelated name: another business's real name | 0.5% / 0.4% | 885 | 0.36% | fine |
+| unrelated name: a generated brand ("Vioyuma") | 26% / 32% | 303 | 21% | per S1: 64 accepted vs US 61 true |
+| unrelated name: a domain or handle, containing an S1 word | 77% / 64% | 338 | 48% | France has twice as many per S1 (name collisions), so a lower rate per pair is expected |
+| unrelated name: a domain with no S1 word | 0.9% / 2.0% | 170 | 1.8% | fine |
+
+- **One trap on the way:** restricting to pairs with pc ≥ 0.3 makes same-address swaps look 99.9% true in US/India. The labelled model had already rejected the look-alikes. Measure a population over all its candidates.
+- **No new French rule.** v7nst handles every population in line with the US/India labels. France's remaining loss is spread over ambiguous cases, most likely S1 name collisions (46–54% of French S1 share a name). Only better French models (the cross-encoders, the ensemble) can reach it.
+
+**Bakshi's labelled gate on the cross-encoder mixes** (#54):
+- e5l2 is the best single cross-encoder on the labelled US/India holdout band (0.9441, against e5l 0.9391 and bge 0.9417).
+- So §6.13's French-optimal e5l + bge costs 0.00114 US/India band AUC. The equal three-way mean (`cem`, v7mst) is the only bge mix that improves both sides.
+- v7s drops e5l2 and must pass its labelled holdout gate on its own. The chain gates every variant on the holdout macro F0.5 and the memo compares US/India parts.
