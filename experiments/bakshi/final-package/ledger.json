@@ -1,0 +1,154 @@
+{
+  "_about": "Final-day experiment ledger, Bakshi. One record per submission-candidate package. 'verified_locally' means THIS session hash-checked or audited the artifact on Bakshi's laptop; 'reported' means it comes from a teammate's record, handover or issue comment and has NOT been independently checked here. selected_best must never advance on a predicted score.",
+  "_session": {
+    "agent": "Claude Code (Opus) for bakshi / trustdemons05",
+    "opened_ist": "2026-09-27T00:20:50+05:30",
+    "clock_source": "Get-Date on Bakshi laptop; timezone India Standard Time (UTC+05:30)",
+    "branch": "bakshi/opus-exec",
+    "worktree": "C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeOpusExec",
+    "base_commit": "2023ffbae034e274aab5cb262c982d6fef762e5c",
+    "base_commit_subject": "docs(changelog): 26 Sep upload 04 (v7nst, 0.990179, rank 7)"
+  },
+  "_deadline_state": {
+    "portal_close_reported_by_user": "2026-09-27T21:00+05:30",
+    "deadline_in_AGENTS_md": "2026-09-27T23:59+05:30",
+    "conflict": "RESOLVED in favour of 21:00. The submissions captain (@AmeyaBorkar) wrote 'the window closes at 21:00 IST' in issue #45, comment of 2026-09-26T18:13:58Z (23:43 IST), which is later than AGENTS.md's 23:59 text and agrees with the takeover brief. AGENTS.md line 15 is stale and still says 23:59 IST; it is a shared file, so this session did not edit it. Planning uses 21:00 close with a 19:00 upload target.",
+    "deadline_source": "issue #45 comment by AmeyaBorkar, 2026-09-26T18:13:58Z",
+    "code_freeze_target": "2026-09-27T15:00+05:30",
+    "model_variant_cutoff": "2026-09-27T13:00+05:30",
+    "sunday_quota_reported": 5,
+    "quota_verified": false,
+    "quota_note": "Not verifiable from this session (no portal access). Must be read from the portal by the captain before any upload is planned against it."
+  },
+  "test_universe": {
+    "n_test_s1": 1732544,
+    "n_test_s2_plus_s3": 9969589,
+    "s1_by_country": {"France": 259452, "India": 809986, "US": 663106},
+    "france_share_of_test_s1": 0.1497523,
+    "verified_locally": true,
+    "source": "C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset/test",
+    "note": "France's whole-test S1 share (0.1497523) equals the 0.14975 coefficient in the team's F_France = (LB - 0.843226) / 0.14975 formula. That formula therefore assumes the PUBLIC-leaderboard subset has the same country composition as the whole test set. That assumption is unverified, so every France level derived from it is an estimate, not a measurement."
+  },
+  "entries": [
+    {
+      "variant": "v7nst",
+      "package": "submissions/files/2026-09-27-v7nst-s3-ops3a-c2",
+      "parent": "v7n",
+      "changed_component": "stage-2 self-training on France (s2.py --pseudo), 1.34M French stage-2 rows pseudo-labelled from v7ce3's final decisions, cross-fitted by S1 group",
+      "model_tag": "ameya-model-v7nst-s3-ops3a",
+      "score_tags": ["ameya-s2-v7nst", "ameya-s3-v7nst"],
+      "input_tags": {
+        "s1": "ameya-s1-v6all",
+        "feats": "ameya-fx5",
+        "cands": "ameya-cands-v6all-c2",
+        "groups": "str,cx,lo0,lg,ce,cem2,nx",
+        "pseudo": "scratchpad/box/pseudo_s2_fr_v7ce3.parquet (reported; not on this laptop)"
+      },
+      "matching": {
+        "local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7nst.tsv",
+        "bytes": 97909982,
+        "sha256": "659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533",
+        "sha256_verified_locally": true
+      },
+      "candidate": {
+        "expected_sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa",
+        "local_path": null,
+        "status": "MISSING ON THIS LAPTOP — blocks a complete final package",
+        "searched": "all of C:/Users/baksh/{Documents/Codex,Desktop,Downloads} recursively; the only candidate_pairs TSV present is candidate_pairsv6all.tsv (cc3750d0...)"
+      },
+      "validation": {
+        "own_audit": "experiments/bakshi/final-package/audit_matching.py",
+        "matching_hard_checks": "PASS",
+        "row_count": 1732544,
+        "rows_equal_test_s1_set": true,
+        "duplicate_rows": 0,
+        "duplicate_pairs_within_lists": 0,
+        "bad_prefixes": 0,
+        "targets_absent_from_test_sources": 0,
+        "owner_conflicts": 0,
+        "cross_country_pairs": 0,
+        "final_pairs": 5856096,
+        "empty_rows": 100137,
+        "mean_matches_per_s1": 3.3801,
+        "s2_targets": 2838803,
+        "s3_targets": 3017293,
+        "package_pairing": "FAIL — cannot be validated: the paired candidate file is absent. Against candidate_pairsv6all.tsv, 3790 matched pairs over 3725 S1 fall outside the candidate set.",
+        "verified_locally": true
+      },
+      "affected_by_country": {
+        "France": {"s1": 259452, "s1_nonempty": 244429, "pairs": 871242, "pairs_per_s1": 3.358},
+        "India": {"s1": 809986, "s1_nonempty": 763186, "pairs": 2735918, "pairs_per_s1": 3.3777},
+        "US": {"s1": 663106, "s1_nonempty": 624792, "pairs": 2248936, "pairs_per_s1": 3.3915},
+        "verified_locally": true
+      },
+      "holdout": {
+        "macro_f05_all": 0.991194,
+        "us": 0.991005,
+        "india": 0.991472,
+        "gate_vs_v7ce3_s3": "+0.000055 [+0.000022, +0.000089]",
+        "verified_locally": false,
+        "source": "submissions/records/2026-09-26_sub04.md (reported)"
+      },
+      "offline_gate_limitation": "The shared holdout contains NO French S1, so it cannot score the change this variant was built to make. Its gate is a US/India no-regression check only. The rule-population AUC (0.984) is NOT an independent gate for this variant: it was self-trained on those very rule populations.",
+      "public_score": 0.990179,
+      "public_rank_when_reported": 7,
+      "upload": {"slot": "2026-09-26 sub04", "time_ist_reported": "~23:35", "by": "ameya (captain)"},
+      "selected_best": true
+    },
+    {
+      "variant": "v7n",
+      "package": "submissions/files/2026-09-27-v7n-s3-ops3a-c2",
+      "parent": "v7ce3",
+      "changed_component": "e5-small logit plus the z-mean of two e5-large cross-encoders (group cem2) in stage 2; no bge",
+      "matching": {
+        "local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7n.tsv",
+        "bytes": 97903805,
+        "sha256": "9b902971c72ada328bb9a23e1cdae3ec171c08239034114d5f9c60d9eaa92ae5",
+        "sha256_verified_locally": false,
+        "note": "present on the laptop, byte size matches; hash not recomputed this session (not needed — it is not the selected best)"
+      },
+      "candidate": {"expected_sha256": "7246d9ec1ca32ea89bce1ec30f84a997af98bce7b33b7cfae3c21679ddcc31c3", "local_path": null, "status": "absent on this laptop"},
+      "holdout": {"macro_f05_c2": 0.991171, "macro_f05_s3": 0.991211},
+      "public_score": 0.989721,
+      "public_rank_when_reported": 8,
+      "selected_best": false
+    },
+    {
+      "variant": "v6all",
+      "package": "submissions/files/2026-09-26-v6all-ops-c2",
+      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv6all.tsv", "bytes": 97914336, "sha256": "0f6d8985be05877276e16a4d95562d8d72f36c38f962441f1a6f9928d22890be", "sha256_verified_locally": false},
+      "candidate": {
+        "local_path": "C:/Users/baksh/Downloads/New folder/candidate_pairsv6all.tsv",
+        "bytes": 104979142,
+        "sha256": "cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae",
+        "sha256_verified_locally": true,
+        "pairs": 6406457,
+        "empty_rows": 75397,
+        "pairs_per_s1": 3.6976,
+        "note": "This is the ONLY candidate TSV on the laptop. It is the c2 candidate base that v7ce3/v7n/v7nst all pass to post_ops and acr_join as --cands, but it is NOT the v7nst candidate file: acr_join appends its new acronym pairs to the candidate set. It must NOT be shipped with the v7nst matching file."
+      },
+      "public_score": 0.988609,
+      "selected_best": false
+    }
+  ],
+  "open_experiments_reported_not_verified_here": [
+    {"variant": "v7nst2", "what": "round-2 self-training, teacher = v7nst's own decisions", "reported_eta_ist": "~00:40", "status_verified_here": false},
+    {"variant": "v7mst", "what": "v7n + bge in the z-mean, plus stage-2 self-training", "reported_eta_ist": "~01:30", "status_verified_here": false},
+    {"variant": "v7s", "what": "France self-trained e5-large (e5ls) in the z-mean, plus stage-2 self-training", "reported_eta_ist": "~02:40", "status_verified_here": false},
+    {"variant": "qwen2.5-1.5b LoRA", "what": "independent LLM cross-encoder, PR46, separate GPU", "status_verified_here": false, "note": "do not restart; PR discussion flags missing pair separators in tokenisation"}
+  ],
+  "packaged_probes_reported_not_verified_here": [
+    {"tag": "probe-v7nst-fr080r", "reported_final_french_pairs_removed": 3629, "reported_s1_changed": 3601, "verified_here": false},
+    {"tag": "probe-v7nst-fr090r", "reported_final_french_pairs_removed": 7353, "reported_s1_changed": 7190, "verified_here": false},
+    {"tag": "probe-v7nst-fr095r", "reported_final_french_pairs_removed": 11101, "reported_s1_changed": 10663, "verified_here": false},
+    {"_note": "These three packages are on the integration machine, not on this laptop (submissions/files/ does not exist in any local checkout). Their counts are reports. For scale: fr090r's 7,190 changed S1 is 2.77% of the 259,452 French test S1 verified here."}
+  ],
+  "targets": {
+    "best_measured": 0.990179,
+    "stretch": 0.991,
+    "gap_overall": 0.000821,
+    "gap_if_france_only": 0.005482,
+    "gap_if_france_only_derivation": "0.000821 / 0.1497523, holding the US/India contribution and the public country weights fixed",
+    "note": "These are arithmetic targets, not predicted gains, and they rely on the unverified assumption that the public subset's country mix equals the whole test set's."
+  }
+}
