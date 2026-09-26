@@ -471,3 +471,35 @@ They tie (a 0.00002 gap), and **v7m is the candidate**: it has fewer features an
 | `v7s` | v7m with e5ls in place of e5l2 in the mean, + stage-2 self-training |
 
 The holdout cannot score the France effect, because it has no French pairs. The gates only check that US/India do not move, so the leaderboard decides.
+
+### 6.8 A label-free France check: the rule populations
+
+- post_ops classifies French candidate pairs into operations whose truth is known from US/India:
+  - A/APP/ACR (list-word swaps and appends, acronyms): 97–99.8% true;
+  - op-B look-alikes: 0–1.2% true.
+- The rules override the model on exactly these pairs, so their final decisions do not depend on the model.
+- **But how well a model's pc separates them measures its competence on French pairs of known type** (`r7/rulepop.py`, `box/rule_auc.py`; 64,840 true-copy and 64,016 look-alike pairs):
+
+| model (stage-2 pc) | AUC | op-B above 0.7 | A/APP/ACR above 0.7 | holdout F0.5 (c2) |
+|---|---|---|---|---|
+| v6all | 0.8546 | 33.4% | 84.5% | 0.990788 |
+| v7ce3 | 0.8651 | 29.5% | 80.7% | 0.991099 |
+| **v7m** | **0.8776** | 25.5% | 81.6% | 0.991149 |
+| v7c | 0.8741 | 23.6% | 78.9% | 0.991170 |
+
+**What the table shows:**
+- **Every cross-encoder upgrade made the model better at French**, with rising French discrimination at each step (0.855 → 0.865 → 0.878). This agrees with v7ce3 pulling France's pc mass toward the US/India level (§6.2).
+- **The consensus input (v7m) beats separate logits (v7c) on France**, though v7c leads on the US/India holdout by a noise-level 0.00002.
+  - Label-free, v7m and v7c differ on France by 8.2 up and 21.7 down per 1000 S1 at the 0.7 threshold, against 0.8 each way on US/India.
+- **Stage 3 lowers this AUC by about 0.005 for every model** (v7c 0.8741 → 0.8693).
+  - Stage 3 moves 2.5 up and 6.5 down per 1000 French S1 across the threshold (US/India about 1 each way), and changes pc by more than 0.05 on 330 per 1000 French S1 (US/India about 100).
+  - It may cost France a little. Worth one leaderboard comparison if a slot is free.
+- **Self-trained models cannot be judged this way:** their pseudo-labels contain these populations.
+
+### 6.9 The rented box went down at 21:40
+
+- The Vast.ai instance stopped accepting connections at about 21:40 IST, and its disk is not persistent. Lost:
+  - the bge logits;
+  - the v7c/v7m/v7mst stage-2 scores (only v7m's train scores were copied back);
+  - the running self-trained e5-large.
+- **v7m is rebuilt locally as `v7n`:** the same design, with the z-mean of the two e5-large runs (`zmean_ce.py`, group `cem2`), without bge.
