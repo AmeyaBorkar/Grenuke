@@ -1,10 +1,11 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 14:35
-- **Current focus:** v6all is the final candidate.
-  - Holdout 0.990788 vs 0.990156, +0.00063 [0.00057, 0.00070].
-  - It combines blocking v3 repairs, signed number features, the 3.70-per-S1 candidate set and France rules v2.
-  - Waiting on the uploads, and on `probe-v4-fr0` for France's level.
+- **Last updated (IST):** 2026-09-26 14:45
+- **Current focus:** the upload of v5all + rules v2 scored **0.98781 (rank 15)**, with France implied 0.971–0.976.
+  - Top 3: 0.990556 / 0.989141 / 0.988842.
+  - France's remaining 0.014–0.019 F0.5 is about 0.0021–0.0028 on the leaderboard, roughly the gap to first place.
+  - Next upload: v6all-ops-c2 (holdout +0.00063).
+  - Next work: France, with Sachi's kit.
 - **Branch(es):** `ameya/model-v6all` (v6all records, PR open). #24–#29 and #31 merged.
 - **Leaderboard vs holdout:**
 
@@ -15,6 +16,7 @@
   | v4 | 0.99015 | | | |
   | v5all + rules (final candidate) | 0.99016 | | | |
   | v6nx (+ signed number features, 3 groups) | 0.99034 | | | |
+  | **v5all + rules v2 + cut** (26 Sep #01) | 0.99016 | **0.98781 (rank 15)** | −0.0024 | **0.971–0.976** |
   | **v6all + rules v2 + cut (final candidate)** | **0.99079** | | | |
 
   For v4 and later: LB ≈ 0.8423 + 0.14975 × F_France, so F_France = (LB − 0.8423) / 0.14975.
@@ -22,10 +24,10 @@
   **France's level is unknown** (`RESEARCH_v5.md` §8.2). The structural estimator's 0.959 rested on artifacts. `probe-v4-fr0` measures it: LB_fr0 = US/India part + 0.0084.
   - If US/India score like the holdout, LB_fr0 ≈ 0.8507.
   - France = (LB_v4 − LB_fr0) / 0.14975 + 0.0559.
-- **Ready to upload** (validator PASS), in this order:
-  1. `submissions/files/2026-09-26-v6all-ops-c2/`: **the final candidate**; matching sha256 `0f6d8985…`, candidates `cc3750d0…`; 3.70 per S1.
-  2. `submissions/files/2026-09-26-v4/` (`cd09df65…`) and `2026-09-26-probe-v4-fr0/` (`36247a77…`): France's level. LB_fr0 ≈ 0.8507 if US/India match the holdout; France = (LB_v4 − LB_fr0) / 0.14975 + 0.0559.
-  3. Fallback: `2026-09-26-v5all-ops2-c2/` (`76fe7eff…`).
+- **Ready to upload** (validator PASS):
+  1. `submissions/files/2026-09-26-v6all-ops-c2/`: **the final candidate**; matching sha256 `0f6d8985…`, candidates `cc3750d0…`.
+  2. Optional: `2026-09-26-probe-v4-fr0/` (`36247a77…`) with `2026-09-26-v4/` (`cd09df65…`). They would pin the US/India assumption behind the France estimate; France itself is known to about ±0.003 from submission #01.
+- **Uploaded:** 26 Sep #01 = `2026-09-26-v5all-ops2-c2` → 0.98781 (`submissions/records/2026-09-26_sub01.md`).
 - **Candidate set:** the organisers rank a smaller `candidate_pairs.tsv` per S1 higher. Done: p1 ≥ 0.02 and each record's top 2 S1 (4.68 → 3.70 per S1, holdout tie). Decision record `2026-09-26_0532`.
 - **Deadline:** the submission-round page says the window closes 27 Sep 15:30 UTC = **21:00 IST**, and the private leaderboard uses the **final** submission. To be confirmed in the logged-in portal.
 - **ETA for the current task:** done; the next steps depend on the France probe.

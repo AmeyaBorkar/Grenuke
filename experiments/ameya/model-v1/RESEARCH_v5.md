@@ -477,3 +477,23 @@ About 3.5 h (11:30–14:27).
 | final predictions per S1 (US / India / France) | 3.382 / 3.367 / 3.336 | 3.390 / 3.376 / 3.360 |
 
 **Final candidate: `submissions/files/2026-09-26-v6all-ops-c2/`** (validator PASS, matching sha256 `0f6d8985…`).
+
+## 9. Leaderboard reading, 26 Sep afternoon
+
+v5all + France rules v2 + the candidate cut (`2026-09-26-v5all-ops2-c2`, holdout 0.990156) scored **0.98781, rank 15**. The top 3 were 0.990556, 0.989141 and 0.988842.
+
+- **France implied:**
+
+  | US/India assumption | France F0.5 |
+  |---|---|
+  | re-weighted holdout | 0.971 |
+  | plain holdout | 0.974 |
+  | the extra US test predictions all false positives | 0.976 |
+
+  v2/v3 were about 0.93, so the France work since v3 is worth about +0.04 France F0.5 (+0.006 LB).
+- **The holdout-to-leaderboard gap** is now −0.0024 (v3: −0.0092).
+- **France's remaining headroom** (0.014–0.019 France F0.5 ≈ 0.0021–0.0028 LB) is about the whole gap to first place (0.00275). US/India give v6all about +0.0005.
+- **So France is where the rest of the leaderboard is.**
+  - Sachi's France kit (`france_kit.py`) is the tool: the rule populations over all candidates, plus the French stage-2 pairs with their edit profiles.
+  - The open leads are France's number edits (NUM: 25% accepted in France vs 84–93% in US/India, measured on all candidates) and whatever the kit shows next.
+
