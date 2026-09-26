@@ -1,9 +1,9 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 23:15
+- **Last updated (IST):** 2026-09-26 23:45
 - **Current focus:** France, the only gap left (`RESEARCH_v6.md` §6).
   - v6all scored **0.988609**. The US/India part is 0.8429 (re-weighted holdout), so France is about **0.973**, 0.018 below US/India. US/India have about +0.0003 left.
-  - **v7n scored 0.989721 (rank 8)**, so France is about 0.978. **0.99 needs France at 0.9801** (+0.0018).
+  - **v7nst scored 0.990179 (rank 7)**: self-training on France works (France about 0.981). v7n scored 0.989721 (rank 8).
   - At 21:00, 0.99+ was the top 7; the top 3 were 0.99074 / 0.99052 / 0.99033 at 20:00.
 - **Branch(es):** `ameya/squeeze` (this round, PR open). #35–#41 merged.
 - **Leaderboard vs holdout:**
@@ -15,7 +15,7 @@
   | **v6all + stage 3 + rules v3 + acronym join** | 0.99084 | **0.988609** | **0.973** |
   | v7ce3 (e5-small/base/large) | 0.99114 | | |
   | **v7n** (e5-small + mean of two e5-large) | **0.99121** | **0.989721 (rank 8)** | **0.978** |
-  | v7nst (v7n + France stage-2 self-training) | 0.99119 | | |
+  | **v7nst** (v7n + France stage-2 self-training) | 0.99119 | **0.990179 (rank 7)** | **0.981** |
 
   LB = 0.843226 + 0.14975 × F_France for v7n; the same formula gives v6all's actual score exactly.
 
@@ -31,10 +31,10 @@
      - `2026-09-27-v7ce3-s3-ops3a-c2` (`671dca1e…`);
      - `2026-09-26-v6all-s3-ops3a-c2` (0.988609).
 - **Upload plan for 27 Sep** (5 slots; the final submission counts, so the best must also be the last upload):
-  1. **v7nst** (the self-training bet), against v7n's 0.989721.
-  2. **v7m or v7s** if built tonight (bge / the self-trained cross-encoder on the new H100). Otherwise `probe-<best>-fr090r`.
-  3. `fr090r` on the best so far (built on demand in about 5 minutes).
-  4. A follow-up: `fr095r` or `fr080r`, or the other variant.
+  1. **v7s**: the France self-trained e5-large + bge in the mean + stage-2 self-training (built tonight, about 02:30).
+  2. **v7nst2**: round-2 self-training (labels from v7nst), or **v7mst** (bge + self-training). Whichever the French rule check ranks higher.
+  3. `fr090r` on the best so far (built for v7n and v7nst; about 5 minutes for any other).
+  4. A follow-up: `fr095r` or `fr080r`, or the remaining variant.
   5. The best, re-uploaded last.
 - **Deadline:** the window closes 27 Sep **21:00 IST**, and the private leaderboard uses the final submission.
 - **Vast.ai:** the first box (a spot instance) was outbid at 21:40 and destroyed. A new on-demand H100 (`grenuke-vast`, key `grenuke_vast2`) runs bge and the self-trained e5-large. Lost with the first box:
