@@ -201,7 +201,7 @@ def build(args: argparse.Namespace) -> int:
     shutil.copy2(here / "audit_matching.py", pkg / "src/model_v1/audit_matching.py")
 
     # the package's own docs: mine, not the v6 drafts
-    shutil.copy2(here / "reproduce_v7nst.sh", pkg / "reproduce.sh")
+    shutil.copy2(here / "reproduce.sh", pkg / "reproduce.sh")
     shutil.copy2(here / "requirements.txt", pkg / "requirements.txt")
     shutil.copy2(here / "PACKAGE_README.md", pkg / "README.md")
     shutil.copy2(here / "Documentation_template.md", stage / "Documentation_template.md")
