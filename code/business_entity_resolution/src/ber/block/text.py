@@ -5,12 +5,16 @@ Blocking does not wait for the normalize stage, so it has its own small normaliz
 - name tokens without legal forms, honorifics and stop words (length >= 2);
 - address words (letters only, length >= 2, markers, articles and number suffixes removed, street types
   canonicalized, the one-letter "R" read as "rue") and numbers (every digit run, leading zeros stripped);
+- ordinal street words written out become numbers ("Twentieth Ave" -> "20 ave", "twenty first" -> "21"), as
+  "20th" already does: one vendor spells them out ("200 15th Street" -> "FIFTEENTH STREET");
 - French departments written as a whole address component become their region ("…, Lille, Nord" and "…, Lille,
   Hauts-de-France" give the same words): S1 addresses name the region, a third of S2/S3 name the department.
-Everything runs on whole pyarrow columns; nothing loops over records in Python.
+Everything runs on whole pyarrow columns; nothing loops over records in Python (ordinal words: only the few
+rows that hold one).
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -21,8 +25,11 @@ LEGAL = frozenset("""
     inc incorporated llc ltd limited pvt private corp corporation co company cos lp llp pllc pc plc gmbh
     sarl sas sasu eurl sa sci snc ei
 """.split())
+# Honorific prefixes: shri/sri/smt never occur in train S1 names but the generator adds them to about 1.6k copies each;
+# sree/shree/om/maa occur in S1 names and are dropped from 32-45% of their true copies (train, 26 Sep).
 NAME_STOP = frozenset("""
     the and of a an de du des la le les et www com net org dba aka shri sri smt dr mr mrs ms
+    sree shree shre om maa
 """.split())
 ADDR_STOP = frozenset("""
     null none na no nos h hno house plot door flat unit apt apartment suite ste floor fl bldg building
@@ -90,10 +97,41 @@ def name_tokens(names: pa.Array) -> Tokens:
     return _drop(_split(fold(names), r"[^a-z0-9]+"), LEGAL | NAME_STOP, 2)
 
 
+_ORDINAL_UNITS = ("first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth")
+_ORDINAL_TEENS = ("tenth", "eleventh", "twelfth", "thirteenth", "fourteenth", "fifteenth", "sixteenth",
+                  "seventeenth", "eighteenth", "nineteenth")
+# Hand-written: the ordinals 1-39 written out ("first" .. "thirty ninth"), the forms street names use.
+ORDINALS = {w: str(i + 1) for i, w in enumerate(_ORDINAL_UNITS)}
+ORDINALS.update({w: str(i + 10) for i, w in enumerate(_ORDINAL_TEENS)})
+ORDINALS.update({"twentieth": "20", "thirtieth": "30"})
+_ORDINAL_RE = re.compile(r"\b(?:(twenty|thirty)[ -]?)?(" + "|".join(ORDINALS) + r")\b")
+_ORDINAL_ANY = r"\b(?:" + "|".join(ORDINALS) + r")\b"
+
+
+def _ordinal(m: re.Match) -> str:
+    tens, word = m.group(1), m.group(2)
+    if tens and word in _ORDINAL_UNITS:
+        return str((2 if tens == "twenty" else 3) * 10 + int(ORDINALS[word]))
+    return (tens + " " if tens else "") + ORDINALS[word]
+
+
+def ordinals_to_digits(folded: pa.Array) -> pa.Array:
+    """Ordinal words -> digits in folded (lowercase ASCII) text: "twentieth ave" -> "20 ave", "twenty-first st" ->
+    "21 st". Only the rows that contain one are rewritten (a few percent), so it stays cheap on whole columns."""
+    mask = pc.fill_null(pc.match_substring_regex(folded, _ORDINAL_ANY), False)
+    idx = np.flatnonzero(mask.to_numpy(zero_copy_only=False))
+    if idx.size == 0:
+        return folded
+    sub = pc.take(folded, pa.array(idx)).to_pylist()
+    fixed = pa.array([_ORDINAL_RE.sub(_ordinal, v) for v in sub], type=folded.type)
+    return pc.replace_with_mask(folded, mask, fixed)
+
+
 def _address_text(addresses: pa.Array) -> pa.Array:
     """Folded address without ordinal endings ('1st floor' -> '1 floor', '3rd' -> '3'): they are not street types.
-    French departments written as a whole comma-separated component become their region."""
-    a = pc.replace_substring_regex(fold(addresses), r"([0-9])(st|nd|rd|th)\b", r"\1")
+    Ordinal words become digits too ("Twentieth Ave" -> "20 ave"). French departments written as a whole
+    comma-separated component become their region."""
+    a = pc.replace_substring_regex(ordinals_to_digits(fold(addresses)), r"([0-9])(st|nd|rd|th)\b", r"\1")
     for region, departments in DEPARTMENT_REGION.items():
         alt = "|".join(d.replace(" ", "[ -]+") for d in departments)
         a = pc.replace_substring_regex(a, r"(^|,)\s*(?:" + alt + r")\s*(,|$)", r"\1 " + region + r" \2")
