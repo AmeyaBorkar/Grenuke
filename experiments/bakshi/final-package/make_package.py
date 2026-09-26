@@ -38,7 +38,6 @@ from __future__ import annotations
 import argparse
 import compileall
 import hashlib
-import io
 import json
 import re
 import shutil
@@ -47,6 +46,18 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+
+
+def run(cmd: list[str]) -> int:
+    """Run a child process with our own stdout flushed first.
+
+    Without the flush our buffered prints land *after* the child's unbuffered output, so the log
+    reads out of order and a child's failure can appear under the wrong heading.
+    """
+    sys.stdout.flush()
+    rc = subprocess.call(cmd)
+    sys.stdout.flush()
+    return rc
 
 # Everything the archive must contain, checked after extraction.
 REQUIRED = [
@@ -164,9 +175,9 @@ def build(args: argparse.Namespace) -> int:
             print("FAIL: --audit needs --test-dir")
             return 1
         print("== pairing audit ==")
-        rc = subprocess.call([sys.executable, str(Path(__file__).with_name("audit_matching.py")),
-                              "--matching", str(args.matching), "--candidate", str(args.candidate),
-                              "--test-dir", str(args.test_dir)])
+        rc = run([sys.executable, str(Path(__file__).with_name("audit_matching.py")),
+                  "--matching", str(args.matching), "--candidate", str(args.candidate),
+                  "--test-dir", str(args.test_dir)])
         if rc != 0:
             print("FAIL: audit_matching.py reported hard issues. Not packaging.")
             return 1
@@ -271,22 +282,36 @@ def build(args: argparse.Namespace) -> int:
             print("FAIL: the archived candidate file is not the expected bytes")
             return 1
 
-        buf = io.StringIO()
         ok = compileall.compile_dir(str(ex / "code"), quiet=2, force=True)
-        print(f"  byte-compile of code/: {'ok' if ok else 'FAILED'}{buf.getvalue()}")
+        print(f"  byte-compile of code/: {'ok' if ok else 'FAILED'}")
         if not ok:
             return 1
-        shutil.rmtree(ex / "code/business_entity_resolution/src/ber/__pycache__", ignore_errors=True)
 
         if args.test_dir:
-            print("  organiser validator on the extracted outputs:")
-            rc = subprocess.call([sys.executable, str(ex / "student_resource/utils/validate_submission.py"),
-                                  "--matching", str(ex / "output/matching_results.tsv"),
-                                  "--candidate", str(ex / "output/candidate_pairs.tsv"),
-                                  "--test-dir", str(args.test_dir)])
+            # Both checks run on the EXTRACTED bytes, not on the staged inputs, so what is verified is
+            # exactly what a grader would unzip.
+            print("  [1/2] organiser validator on the extracted outputs:")
+            rc = run([sys.executable, str(ex / "student_resource/utils/validate_submission.py"),
+                      "--matching", str(ex / "output/matching_results.tsv"),
+                      "--candidate", str(ex / "output/candidate_pairs.tsv"),
+                      "--test-dir", str(args.test_dir)])
             if rc != 0:
                 print("FAIL: the organiser validator rejected the extracted outputs")
                 return 1
+            # It is left without --check-ids on purpose: that check costs several GB, and the strict
+            # audit below verifies ID existence far more cheaply. So the validator's "ID-existence
+            # check is OFF" warning is covered, not ignored.
+            print("  [2/2] strict audit on the extracted outputs:")
+            rc = run([sys.executable, str(ex / "code/business_entity_resolution/src/model_v1/audit_matching.py"),
+                      "--matching", str(ex / "output/matching_results.tsv"),
+                      "--candidate", str(ex / "output/candidate_pairs.tsv"),
+                      "--test-dir", str(args.test_dir)])
+            if rc != 0:
+                print("FAIL: the strict audit rejected the extracted outputs")
+                return 1
+        else:
+            print("  WARNING: no --test-dir, so the archived outputs were NOT validated. "
+                  "Do not ship a package built this way without running both checks separately.")
 
     summary = {
         "zip": {"path": str(zip_path), "bytes": zip_path.stat().st_size, "sha256": zip_sha},
