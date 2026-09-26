@@ -1,7 +1,15 @@
 # Handover: final-package (v7nst output audit, reproduction and packaging)
 
+> **UPDATE, 01:50 IST — the blocker is resolved and the package is built.** ameya delivered the paired
+> candidate file (`510a33ea…`, verified against the folder's own `SHA256SUMS.txt`, 13/13 files OK). It has
+> **6,410,247** pairs, exactly the count predicted below before the file was seen. The real pair audits
+> **AUDIT PASS with 0 matched pairs outside the candidate set**, and `Grenuke_submission.zip` is built and
+> self-verified. See §"Resolution" at the end. **Track B is closed with evidence** — `out_bge` does not
+> exist, so there is no independent family; details in `experiments/bakshi/final-package/TRACK_B_FINDINGS.md`.
+> Everything before that section is the state as of 01:11 and is kept for the record.
+
 - **Author:** bakshi (agent: Claude Code)
-- **When (IST):** 2026-09-27 01:11
+- **When (IST):** 2026-09-27 01:11, updated 01:50
 - **Branch / PR / last commit:** `bakshi/opus-exec` / PR #50 / based on main `2023ffbae034e274aab5cb262c982d6fef762e5c`
 - **Area and paths touched:** `experiments/bakshi/final-package/**` only, plus this handover and
   `docs/status/bakshi.md`. **No shared file, no pipeline code and no other owner's path was modified.**
