@@ -14,7 +14,7 @@ from rapidfuzz import fuzz, process
 from ber.block.text import fold
 from ber.eval.gates import compare
 from ber.eval.splits import fold_of, in_dev_sample
-from ber.paths import records_path, truth_path, work_dir
+from ber.paths import check_name, records_path, truth_path, work_dir
 from ber.artifacts import write_report
 from rules import argmax_owner, pair_keys, wilson
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     ap.add_argument("--scores", help="v3 dev score parquet for train")
     ap.add_argument("--base-pairs", help="imported v5 test pairs parquet")
     ap.add_argument("--norm-file", help="optional existing normalized cache for complete street/city keys")
-    ap.add_argument("--tag", default="bakshi-exact-rescue-v7")
+    ap.add_argument("--tag", type=check_name, default="bakshi-exact-rescue-v7")
     args = ap.parse_args()
     if args.split == "train" and not args.scores or args.split == "test" and not args.base_pairs:
         ap.error("train needs --scores; test needs --base-pairs")
