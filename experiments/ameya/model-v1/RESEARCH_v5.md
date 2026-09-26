@@ -40,12 +40,13 @@ This note answers three questions:
   - Every transformation left after our normalisation is recovered at or above the average rate.
   - In France, variant-only pairs are predicted 99.84%.
   - What is left is blocking work: domain names, OCR digits, ordinal street words. It is worth +0.0003–0.0005 on the holdout for one 3–4 h rebuild (section 5).
-- **France is about 0.959 with v5all + rules.**
-  - The estimate comes from a structural estimator checked against the v2/v3 leaderboard (0.936/0.930 vs implied 0.929/0.927).
-  - So the leaderboard should be about **0.985**; the earlier forecast was 0.987–0.989.
-  - The France rules are confirmed at +0.013–0.014 France F0.5 (+0.002 LB).
-  - Five more systematic France patterns are worth +0.003 France F0.5 (section 6).
-  - **Most of the rest of France's gap sits in two families that no version changed: weak-address pairs (74 per 1000 S1) and unrelated-name pairs (49 per 1000 S1), both accepted beyond the US/India rate.** Whether they are real false positives is the next research question.
+- **France's level is unknown; only an upload can measure it** (correction in section 8).
+  - A structural estimator first put v5all + rules at 0.959 (leaderboard about 0.985).
+  - Its two largest "false-positive" families turned out to be profiling artifacts: weak-address pairs and concatenated or domain names it failed to recognise.
+  - Without them the estimate would be about 0.98, but then v2/v3 come out about 0.03 above their leaderboard-implied level. So about 0.027 of France loss (or 0.005 of US/India test loss) is invisible to every label-free check.
+  - **The France-emptied probe (`2026-09-26-probe-v4-fr0`) is the only way to know.**
+  - Version differences still hold: the France rules are worth +0.013 France F0.5 (+0.002 LB).
+  - Section 8 adds three more rule populations checked on the holdout.
 - **The candidate set is cut** to 3.70 per S1 at no cost (`2026-09-26-v5all-ops-c2`, decision record `2026-09-26_0532`).
 
 ## 1. Why the leaderboard is below the holdout
@@ -297,10 +298,10 @@ Total: about +0.0003–0.0005 on the holdout, +0.0003–0.0004 on the leaderboar
 | other | 11.1 | 10.1 | 9.8 | 9.8 | 9.9 | 9.9 |
 | misses in profiles ≥ 90% true | 30.5 | 30.0 | 52.3 | 34.2 | 57.9 | 34.7 |
 
-- **The two families no version touched carry most of the remaining gap.** Weak-address and unrelated-name pairs are accepted in France beyond the US/India rate.
-  - Without them, the v5all + rules estimate would be 0.969 (without unrelated names) or 0.984 (without both).
-  - The v2/v3 validation needs them to be real losses. They could also be a French population difference: generic names, 11% of S1 sharing an address.
-  - **Settling this is the most valuable open France question** (section 7).
+- **The two families no version touched** (weak address, unrelated name) **are artifacts, not false positives** (section 8):
+  - France's "unrelated" names are mostly its own words concatenated into domains, with accents dropped, stop words and legal forms kept, or words reordered ("Fédération des Commerciale" → "fdrationdescommerciale.com"; "Fitness Club SASU" → "clubfitness.com"). Domain plus unrelated copies per 1000 S1: France predicted 220, US true 214, India true 202.
+  - France predicts 54% of its empty-address records, against 62–64% in US/India.
+  - So the estimator's level (0.959) is not reliable. It matched v2/v3 by coincidence.
 - **Five systematic errors remain after the rules** (per 1000 French S1; US/India truth in brackets):
   - **a. Op-B swaps where the record's street has a typo** [0.0–0.8% true]. The number/street key differs, so the rules miss them: 6–7 false positives.
     - Examples: "Delices Groupement SAS | 64 Rue Bonnefin" → "Delices Comite S.A.S | 64 Rue Bonneuin" (pc 0.978); "Pogo Club SASU | 14 Rue d'Antin" → "POGO CULTURELLE SASU | 14 Rue D'attin".
@@ -330,7 +331,7 @@ Total: about +0.0003–0.0005 on the holdout, +0.0003–0.0004 on the leaderboar
 | 1 | France can only be measured on the leaderboard | upload `2026-09-26-v4`, `-probe-v4-frab` and the final candidate `-v5all-ops-c2`; `probe-v4-fr0` gives France exactly | the France level and the rules' true value | uploads | captain |
 | 2 | organisers rank smaller candidate sets | p1 ≥ 0.02 and the record's top 2 S1 | 4.68 → 3.70 per S1, holdout tie | done | `2026-09-26-v5all-ops-c2` |
 | 3 | France patterns a–e | extend `post_ops.py`: typo-tolerant street key for op B; list-word appends without a drop; same-address acronyms; −1/−2 and digit edits | +0.003 France F0.5 ≈ +0.0005 LB | 1 h | next |
-| 4 | weak-address and unrelated-name acceptance in France (123 per 1000 S1) | verify with generator invariants (a weak-address record is a true copy 97.7% of the time; T and the singleton share are the same everywhere); if real, a France-only correction | up to +0.02 France F0.5 ≈ +0.003 LB (if real) | research + 1–2 h | research agent |
+| 4 | weak-address and unrelated-name acceptance in France (123 per 1000 S1) | verified with generator invariants | none: profiling artifacts (section 8); France's identical-name ties are worth at most +0.0005 France F0.5 | done | no fix |
 | 5 | unsigned house-number features | `feats_nx.py` (signed difference, nudge set, digit substitution/swap, leading digits dropped), stages 1–2 refit | +0.0001–0.0002 holdout, plus France d | 1.5 h compute | running (`ameya-model-v6nx`) |
 | 6 | the rival S1 is invisible to stage 2 | stage-3 joint re-scoring (A + B) | +0.0001 LB | 1–2 h | queued |
 | 7 | blocking misses: domains, OCR, ordinals | segmentation, OCR repair, ordinal → digit; full rebuild | +0.0003 LB | 3–4 h | if time |
@@ -342,3 +343,61 @@ Items that are **not** worth doing, from this research:
 - a stricter France threshold;
 - vendor-format normalisation beyond today's;
 - source caps (they bind 4 times).
+
+## 8. Solutions, round 1 (26 Sep, 06:00–08:00 IST)
+
+### 8.1 France rules, version 2 (`post_ops.py`)
+
+`post_ops.py --measure` classifies every candidate pair of the US/India holdout into the generator's edit populations and prints their truth rates. It uses the same code that runs on France:
+- at the S1's own address, meaning the same first house number and the street word equal or within a typo;
+- `name_edit` for the name; `number_edit` for the house number.
+
+| population (at the S1's address) | US truth / predicted | India truth / predicted | France action |
+|---|---|---|---|
+| B: a real word swapped into the slot of an S1 word | 3.1% / 3.1% | 0.6% / 0.5% | **drop** (19,503 pairs) |
+| B with a street typo (new) | 5.1% | 0.0% | drop (included above) |
+| A: a word dropped plus a list word appended | 99.7% / 99.7% | 98.3% / 98.3% | **add** 7,227 (was 6,086) |
+| A with a street typo (new) | 99.8% | 97.1% | add (included above) |
+| APP: list word appended, nothing dropped (new) | 98.9% / 99.0% | 99.6% / 99.6% | **add** 3,877 |
+| ACR: the name as its initials (new) | 99.9% / 98.0% | 99.8% / 98.4% | **add** 853 |
+| CODE: typo in a 2–3 letter code | 42.6% | 44.0% | not used |
+| NUM: same name, house number −1/−2 | 97.6% / 88.5% | 78.2% / 76.9% | not used |
+| NUM: one digit substituted | 91.0% / 89.1% | 70.9% / 70.0% | not used |
+| NUM: one digit inserted/deleted | 95.0% / 94.3% | 90.4% / 90.3% | not used |
+
+- Adds require four things:
+  - the pair is in the candidate set;
+  - its S1 is the record's best-scoring S1;
+  - the record is not predicted elsewhere;
+  - the S1's country has no training labels.
+- 1,562 adds fall outside the smaller candidate set, so they are not made. That is worth about +0.00005 on the leaderboard.
+- **NUM is not used.** The model already predicts US/India's number edits at about their truth rate, so the unpredicted ones are mostly false in India. France's truth rate is unknown and adding only pays above about 75% precision. The signed number features (8.3) let the model learn it instead.
+- **CODE is not used** (43–44% true).
+- Against the first rules, on the same v5all predictions with the cut: about +1,100 more look-alike drops, +1,141 A, +3,877 APP and +853 ACR. That is about **+0.002 France F0.5 (+0.0003 LB)**.
+- Package: `2026-09-26-v5all-ops2-c2`.
+
+### 8.2 France's weak-address and unrelated-name families: artifacts, not errors
+
+Checked against the generator's invariants (`deep2/sol_france/`):
+
+- **Unrelated names.** France predicts 149 unrelated-name pairs per 1000 S1, against 76–79 in US/India. But its "unrelated" names are mostly its own words concatenated into domains, which the profiler missed:
+  - accents deleted: "Fédération des Commerciale" → "fdrationdescommerciale.com";
+  - stop words or legal forms kept: "Lille Sportive EURL" → "lillesportiveeurl.com";
+  - words reordered: "Fitness Club SASU" → "clubfitness.com".
+
+  Domain plus unrelated copies per 1000 S1:
+
+  | | France (predicted) | US (true) | India (true) |
+  |---|---|---|---|
+  | domain + unrelated copies per 1000 S1 | 220 | 214 | 202 |
+
+  Made-up brand names: France 38 predicted, against 44–47 true in US/India.
+- **Weak addresses.** France has 166 empty-address records per 1000 S1, against about 158 expected from the generator. It predicts 54% of them, against 62–64% in US/India. It has fewer weak-address candidates per S1 (2.97, against 6.1 US and 3.5 India), so the same prediction count looked like a larger share.
+
+  Precision estimated from the holdout's precision by stratum: France 0.972 against US/India 0.983, an excess of about 2.2 false positives per 1000 S1 (≈ 0.0004 France F0.5).
+- **Identical-name ties.** France's pc is overconfident on identical-name ties: 14.6% of its empty-address records have pc summed over candidate S1 above 1.1, against 0.2% on the holdout. Ownership and the DP keep them out: about 650 pairs are predicted. Renormalising nets about zero, so there is no fix.
+- **Consequence: the structural estimator's France level (0.959) is not reliable.** Without the artifacts, v5all + rules would be about 0.98, but v2/v3 would then be about 0.955, far above the leaderboard's 0.927–0.929.
+  - So either about 0.027 of France's loss is invisible to every label-free check, or US/India on test sit about 0.005 below the holdout.
+  - **`probe-v4-fr0` settles it:** LB_fr0 = 0.38274 F_US + 0.46751 F_India + 0.14975 × 0.0559. So it gives the US/India test level directly (expected 0.8507 if they score like the re-weighted holdout), and LB_v4 − LB_fr0 gives France.
+
+8.3–8.5 (signed number features, stage-3 joint re-scoring, blocking repairs) follow with their results.

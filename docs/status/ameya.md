@@ -1,20 +1,19 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 06:00
-- **Current focus:** solutions phase (`experiments/ameya/model-v1/RESEARCH_v5.md`: part 2 and the ranked plan in §7).
-  - Research done:
-    - US/India are at the Bayes limit;
-    - formats are not a loss source;
-    - France is about 0.959 with v5all + rules (leaderboard about 0.985).
-  - The candidate set is cut to 3.70 per S1.
-  - Running: signed number features (v6nx). Next:
-    - France patterns a–e in `post_ops.py`;
-    - research on France weak-address and unrelated-name acceptance.
-- **Branch(es):** `ameya/cands-cut`:
-  - candidate cut (`common.candidate_mask`, `decide.py`/`cands_final.py --p-cand/--top-r`);
-  - research part 2.
-
-  `ameya/research-v5` is merged (#24).
+- **Last updated (IST):** 2026-09-26 06:30
+- **Current focus:** solutions (`RESEARCH_v5.md` §7–8).
+  - Done:
+    - candidate cut (3.70 per S1);
+    - France rules v2 (B/A/APP/ACR, checked on the holdout);
+    - the France weak-address/unrelated families are profiling artifacts, not errors.
+  - Running:
+    - v6nx (signed number features; stage 1 +0.0004);
+    - stage-3 joint re-scoring (agent);
+    - next, the full rebuild with the blocking repairs (`ameya/block-v3`: dev-pool forward recall 0.972 → 0.979).
+- **Branch(es):**
+  - `ameya/france-rules-v2`: `post_ops.py` v2, research §8.1–8.2, decision record;
+  - `ameya/block-v3`: blocking repairs (domains, OCR, ordinals), to be rebased and rebuilt;
+  - `ameya/cands-cut`: merged (#25).
 - **Leaderboard vs holdout:**
 
   | model | holdout | leaderboard | gap | France implied |
@@ -26,17 +25,17 @@
 
   For v4 and later: LB ≈ 0.8423 + 0.14975 × F_France, so F_France = (LB − 0.8423) / 0.14975.
 
-  France estimated from structural profiles (checked against v2/v3):
-  - v4 0.946 (LB about 0.984);
-  - v5all + rules 0.959 (LB about 0.985).
+  **France's level is unknown** (`RESEARCH_v5.md` §8.2). The structural estimator's 0.959 rested on artifacts. `probe-v4-fr0` measures it: LB_fr0 = US/India part + 0.0084.
+  - If US/India score like the holdout, LB_fr0 ≈ 0.8507.
+  - France = (LB_v4 − LB_fr0) / 0.14975 + 0.0559.
 - **Ready to upload** (validator PASS), in this order:
   1. `submissions/files/2026-09-26-v4/`: the anchor.
-  2. `submissions/files/2026-09-26-probe-v4-frab/`: v4 + the France rules; minus (1) = the rules alone, expected +0.002.
-  3. `submissions/files/2026-09-26-v5all-ops-c2/`: **the final candidate**: v5all + rules with the smaller candidate set, 3.70 per S1; matching sha256 `482caa7b…`.
-     - It supersedes `2026-09-26-v5all-ops`, which has the same predictions except 742 pairs and 4.68 candidates per S1.
+  2. `submissions/files/2026-09-26-probe-v4-fr0/` (France emptied): **the most informative upload**. It gives the US/India test level directly and, with (1), France exactly.
+  3. `submissions/files/2026-09-26-v5all-ops2-c2/`: **the final candidate**: v5all + France rules v2 (B, A, APP, ACR) + the smaller candidate set, 3.70 per S1; matching sha256 `76fe7eff…`.
+     - `2026-09-26-v5all-ops-c2` (`482caa7b…`) is the same with the first rules; the difference is the v2 rules in France.
   4. Optional:
-     - `2026-09-26-probe-v4-fr0/` (France emptied): F_France = (LB_v4 − LB_fr0) / 0.14975 + 0.0559;
-     - `2026-09-26-probe-v5-frab/`;
+     - `2026-09-26-probe-v4-frab/` (v4 + first rules);
+     - `2026-09-26-v5all-ops-c2/` (first rules; minus (3) = the v2 rules);
      - `2026-09-26-probe-v4-in0/`.
 - **Candidate set:** the organisers rank a smaller `candidate_pairs.tsv` per S1 higher. Done: p1 ≥ 0.02 and each record's top 2 S1 (4.68 → 3.70 per S1, holdout tie). Decision record `2026-09-26_0532`.
 - **Deadline:** the submission-round page says the window closes 27 Sep 15:30 UTC = **21:00 IST**, and the private leaderboard uses the **final** submission. To be confirmed in the logged-in portal.
