@@ -16,9 +16,9 @@
     "deadline_source": "issue #45 comment by AmeyaBorkar, 2026-09-26T18:13:58Z",
     "code_freeze_target": "2026-09-27T15:00+05:30",
     "model_variant_cutoff": "2026-09-27T13:00+05:30",
-    "sunday_quota_reported": 5,
-    "quota_verified": false,
-    "quota_note": "Not verifiable from this session (no portal access). Must be read from the portal by the captain before any upload is planned against it."
+    "sunday_quota": 5,
+    "quota_verified": true,
+    "quota_note": "CONFIRMED by the captain from the submission page (issue #45, 27 Sep ~02:38 IST): 5 uploads left for 27 Sep, window closes 21:00 IST, the final upload is what counts. AGENTS.md's 23:59 is stale."
   },
   "test_universe": {
     "n_test_s1": 1732544,
@@ -185,6 +185,32 @@
     "hash_verification": "13 of 13 files OK against the folder's own SHA256SUMS.txt, 0 failures",
     "contents": ["band_train.parquet (1,568,554 rows; folds 0-4 holdout 389,668, >=5 train 1,178,886)", "band_test.parquet (1,490,930)", "out_e5l/", "out_e5l2/", "out_cem2/", "rulepop_fr.parquet (128,856: A 38,304 + ACR 14,884 + APP 11,652 = 64,840 true-copy, B 64,016)", "candidate_pairs.tsv", "SHA256SUMS.txt", "SHA256SUMS_submission_tsvs.txt"],
     "absent": ["out_bge (kills Track B)", "out_q15 (Qwen)", "out_e5b (e5-base)"]
+  },
+  "captain_corrections_to_my_claims": {
+    "_source": "ameya, issue #45 comment ~02:38 IST and PR #54 review ~02:42 IST, 27 Sep 2026",
+    "frs2_withdrawn": {
+      "my_claim": "I recommended frs2 (stage-2 decision for France, skipping stage 3) as the best-motivated cheap lever, ahead of a threshold probe, estimating +0.0001 to +0.0002 LB.",
+      "correction": "WRONG, and frs2 is withdrawn. 35% of its French drops are empty-address records that stage 3's part B lifts, and France has the same empty-address share as US/India, so there is no French-specific defect there. The stage-2-to-stage-3 rule-AUC drop I cited from 6.12 was CIRCULARITY, not evidence that stage 3 harms France.",
+      "independent_confirmation": "fhs.py's true-copy population puts v7nst-frs2 at -3.86 net true copies per 1000 French S1 against v7nst — the worst of every candidate measured.",
+      "action": "Do not build an frs2 package. My ordering advice that put frs2 first is retracted."
+    },
+    "bge_lb_estimate_too_high": {
+      "my_claim": "Adding bge to the cross-encoder mean is worth about +0.00026 LB, from CE AUC +0.020 via stage-2 pc and implied France.",
+      "correction": "Probably HIGH. Every hop in that calibration was measured BEFORE stage-2 self-training, and self-training absorbs most of the cross-encoder difference. Evidence: v7mst's +0.020 CE gain moves only 8 French final predictions per 1000 S1 against v7nst (+2.7 / -5.3), where v7n -> v7nst moved 31. Its US/India part is +0.000013.",
+      "implication": "The cross-encoder mix matters less than either my CE-level number or 6.13's suggests once stage 2 is self-trained. Track B's practical ceiling is lower than +0.00026."
+    },
+    "v7s_warning_already_covered": {
+      "my_claim": "v7s drops e5l2, which I measured as costing -0.00144 labelled holdout band AUC; it should be gated before being preferred.",
+      "response": "The concern is accepted and the correction to 6.13 is acknowledged, but it was already covered: every variant is gated on the labelled holdout macro F0.5 by paired bootstrap (c2 and s3) before packaging, and its US/India part is compared against v7nst's 0.843210. Ameya will additionally run ce_weight_fit.py on (e5l, e5ls, bge) when e5ls lands.",
+      "status": "My gate is a useful extra check at the cross-encoder level, not a gap in the process."
+    },
+    "v7nst2_dropped": "Reading 40 of v7nst2's French changes by hand: it drops 'Projet & Cie' -> 'Projet & Compagnie' true copies and adds word swaps ('GY Amicale' -> 'GY Agricole'). Round-2 self-training drifts. v7nst2 is out of the v7ensall bag, which now averages v7nst, v7mst, v7s and v7sq.",
+    "new_decision_level_diagnostic": {
+      "tool": "fhs.py (ameya), the true-copy population: same content words up to typos, Cie = Compagnie, at the same or an empty record address",
+      "why_it_matters": "It still moves where my rulepop_decisions.py saturated, so it is the decision-level discriminator I could not build.",
+      "net_true_copies_gained_vs_v7nst_per_1000_french_s1": {"v7ens2": -0.65, "v7mst": -0.85, "v7nst2": -1.54, "v7nst-frs2": -3.86},
+      "headline": "NONE of the overnight variants beats v7nst on this measure. It is a real warning that v7nst may be hard to improve on."
+    }
   },
   "rulepop_decision_check": {
     "tool": "experiments/bakshi/final-package/rulepop_decisions.py",
