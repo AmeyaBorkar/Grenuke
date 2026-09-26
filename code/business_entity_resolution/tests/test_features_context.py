@@ -37,3 +37,10 @@ def test_numstreet_keys_skip_street_types_and_survive_reordering():
     assert keys.tolist() == ["32|andre", "972|old", "4809|harrison", "20718|adams", "1048|gulabnagar", ""]
     large = numstreet_keys(pa.array(["32 Rue André Maginot", "HARRISON FERRY ROAD"], type=pa.large_string()))
     assert large.tolist() == ["32|andre", ""]  # the records cache stores large_string columns
+
+
+def test_numstreet_keys_read_ordinal_words_as_numbers():
+    import pyarrow as pa
+    keys = numstreet_keys(pa.array(["12 First Avenue", "12 1st Avenue", "7 Twentieth Street Road", "7 20th Street Road",
+                                    "32 Rue André Maginot"]))
+    assert keys[0] == keys[1] and keys[2] == keys[3] and keys[4] == "32|andre"

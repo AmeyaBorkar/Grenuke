@@ -67,10 +67,12 @@ NUMSTREET = r"(?:^|[^0-9])0*(?P<num>[0-9]+)[^a-z0-9]*(?P<word>[a-z]{2,})"  # app
 
 def numstreet_keys(addresses: pa.Array) -> np.ndarray:
     """(house number, street word) key per address: the first number followed by a street name, and that name's
-    first significant word. Reordered components and French street types no longer change the key. "" if none."""
+    first significant word. Reordered components and French street types no longer change the key; ordinal words
+    read as numbers ("Fifteenth Street" = "15th Street"). "" if none."""
     from ..block import text
 
-    folded = pc.replace_substring_regex(text.fold(addresses), r"([0-9])(st|nd|rd|th)\b", r"\1")
+    folded = pc.replace_substring_regex(text.ordinals_to_digits(text.fold(addresses)), r"([0-9])(st|nd|rd|th)\b",
+                                        r"\1")
     folded = pc.replace_substring_regex(folded, r"\b(?:" + _SKIP + r")\b", " ")  # RE2 has no negative lookahead
     ex = pc.extract_regex(folded, NUMSTREET)
     num = pc.fill_null(ex.field("num"), "")
