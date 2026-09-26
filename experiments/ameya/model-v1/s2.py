@@ -212,6 +212,7 @@ def main() -> int:
     ap.add_argument("--test-groups", default="", help="feature groups for test (default: --groups), e.g. lop for lo")
     ap.add_argument("--models", default="", help="tag of the saved stage-2 models for --test-only (default: --tag)")
     ap.add_argument("--all", action="store_true", help="final fit: the holdout is a fourth OOF group")
+    ap.add_argument("--seed", type=int, default=0, help="XGBoost seed (row/column sampling), for seed bagging")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -255,7 +256,8 @@ def main() -> int:
         va = train_rows & (g2 != g) & es
         dtr = xgb.QuantileDMatrix(X[tr], yr[tr], feature_names=names)
         dva = xgb.QuantileDMatrix(X[va], yr[va], feature_names=names, ref=dtr)
-        bst = xgb.train(PARAMS2, dtr, args.rounds, evals=[(dva, "es")], early_stopping_rounds=60, verbose_eval=250)
+        bst = xgb.train({**PARAMS2, "seed": args.seed}, dtr, args.rounds, evals=[(dva, "es")], early_stopping_rounds=60,
+                        verbose_eval=250)
         del dtr, dva
         own = train_rows & (g2 == g)
         p2[idx[own]] = bst.inplace_predict(X[own], iteration_range=(0, bst.best_iteration + 1))
