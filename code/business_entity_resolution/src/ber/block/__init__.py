@@ -4,7 +4,9 @@ Views (bits in ``views``; docs/CONTRACTS.md C4):
 - ``tok`` (64): IDF-weighted token-overlap search over names + addresses, in both directions, per exact country label,
   with its own crude tokenizer (``ber.block.text``) so blocking does not wait for the normalize stage;
 - ``name_short`` (4): the same search over **names only**, between every S1 and the S2/S3 records whose address is
-  empty or has at most 3 tokens (their address cannot carry the match; FINAL_PLAN section 4.3).
+  empty or has at most 3 tokens (their address cannot carry the match; FINAL_PLAN section 4.3), and, with
+  ``ns_domain_len`` > 0, the records whose name is one token of at least that many letters (domains and handles such
+  as "renterianaborweddle.com": their name only matches the S1's joined name through character n-grams).
 Per view: S1 -> S2/S3 top ``k_s1`` and S2/S3 -> S1 top ``k_r``; a pair is kept if the record is in the S1's top
 ``trim_s1`` or the S1 is in the record's top ``trim_r``. Views are merged on (s1, r) with per-view score and ranks
 (NaN / -1 when a view did not retrieve the pair). The GPU TF-IDF views (V-both, V-addr) join the same way later.
@@ -12,7 +14,8 @@ This exact set becomes candidate_pairs.tsv.
 
 Parameters (``--set key=value``): k_s1 (40), k_r (8), trim_s1 (30), trim_r (2), seed_cap_r (3000), seed_cap_s1 (1000),
 verify_s1 (400), verify_r (200); name_short (1 = on), ns_k (10), ns_trim_s1 (5), ns_trim_r (5), ns_max_addr_tokens (3),
-ns_ngrams (0: character n-grams of names in name_short); indic_dict (a models tag holding indic_dict.parquet: the
+ns_ngrams (0: character n-grams of names in name_short), ns_domain_len (0 = off), nw_words (0 = off: name-word
+compound keys in the tok view, ``index.record_keys``); indic_dict (a models tag holding indic_dict.parquet: the
 Indic -> Latin token dictionary learned on train folds 5-19); dev_tag (train only: also write the dev-sample subset).
 Blocking always searches the full record pool of the split; partitions are exact country labels (open set).
 """
@@ -154,10 +157,12 @@ def run(cfg: RunConfig) -> dict:
                       tok.seed_cap_r, tok.seed_cap_s1, 200, 200)
     ns_max_tokens = cfg.param("ns_max_addr_tokens", 3, int)
     ns_ngrams = cfg.param("ns_ngrams", 0, int)  # character n-grams of names in the name_short view (0 = off)
+    ns_domain_len = cfg.param("ns_domain_len", 0, int)  # one-token names this long also join name_short (0 = off)
+    nw_words = cfg.param("nw_words", 0, int)  # name-word compound keys in the tok view (0 = off)
     dev_tag = cfg.param("dev_tag")
     indic_dict = cfg.param("indic_dict")  # a models tag holding indic_dict.parquet (learned on train folds 5-19)
     params = {"tok": vars(tok), "name_short": vars(ns) if use_ns else None, "ns_max_addr_tokens": ns_max_tokens,
-              "ns_ngrams": ns_ngrams, "indic_dict": indic_dict}
+              "ns_ngrams": ns_ngrams, "ns_domain_len": ns_domain_len, "nw_words": nw_words, "indic_dict": indic_dict}
 
     t0 = time.perf_counter()
     tbl = pq.read_table(records_path(cfg.split), columns=["eid", "source", "country", "name", "address"])
@@ -172,8 +177,10 @@ def run(cfg: RunConfig) -> dict:
         from .indic import load_name_map
         name_map = load_name_map(artifact_dir("models", indic_dict) / "indic_dict.parquet")
     counts: dict = {}
-    indptr, keys = index.record_keys(names, addresses, counts, name_map)
+    indptr, keys = index.record_keys(names, addresses, counts, name_map, name_words=nw_words)
     n_addr = counts["address_tokens"]
+    domain_like = ((counts["name_tokens"] == 1) & (counts["name_maxlen"] >= ns_domain_len) if ns_domain_len
+                   else np.zeros(eid.size, bool))
     del addresses
     log.info("tokens: %d records, %.1f keys per record, %.0fs", eid.size, keys.size / eid.size, time.perf_counter() - t0)
 
@@ -199,7 +206,7 @@ def run(cfg: RunConfig) -> dict:
         views["tok"] = pairs.assign(s1=eid[s1_rows[pairs["s1_local"].to_numpy()]],
                                     r=eid[r_rows[pairs["r_local"].to_numpy()]])
         if use_ns:
-            short = r_rows[n_addr[r_rows] <= ns_max_tokens]
+            short = r_rows[(n_addr[r_rows] <= ns_max_tokens) | domain_like[r_rows]]
             sub = np.concatenate([s1_rows, short])
             ns_ptr, ns_keys = index.record_keys(pc.take(names, pa.array(sub)),
                                                 pa.array([""] * sub.size, type=names.type), name_map=name_map,

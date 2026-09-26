@@ -75,9 +75,10 @@ def numstreet_keys(addresses: pa.Array) -> np.ndarray:
     ex = pc.extract_regex(folded, NUMSTREET)
     num = pc.fill_null(ex.field("num"), "")
     word = pc.fill_null(ex.field("word"), "")
-    key = pc.binary_join_element_wise(num, word, "|")
-    empty = pc.or_(pc.equal(num, ""), pc.equal(word, ""))
-    return np.asarray(pc.if_else(empty, "", key).to_numpy(zero_copy_only=False), dtype=object)
+    sep, blank = pa.scalar("|", type=num.type), pa.scalar("", type=num.type)  # string or large_string input
+    key = pc.binary_join_element_wise(num, word, sep)
+    empty = pc.or_(pc.equal(num, blank), pc.equal(word, blank))
+    return np.asarray(pc.if_else(empty, blank, key).to_numpy(zero_copy_only=False), dtype=object)
 
 
 def _group_top2(group: np.ndarray, score: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

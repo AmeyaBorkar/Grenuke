@@ -10,7 +10,8 @@
 - Stage-2 rows: stage-1 rows (p0 >= tau0) with p1 >= P_MIN (the others keep p2 = p1; they are never predicted). Features: the group
   features, p1 and its logit, and the top stage-1 features by gain.
 - Out of fold over the same three groups (C2): p1 of training folds is already out of fold, so stage 2 learns from
-  honest scores; the holdout and test get the mean of the three stage-2 models.
+  honest scores; the holdout and test get the mean of the three stage-2 models. With ``--all`` (final fit, on the
+  scores of ``s1.py --all``) the holdout is a fourth group: four models, calibration on all four groups' OOF p2.
 - Isotonic calibration fitted on the out-of-fold p2 of training folds only (never the holdout), applied everywhere.
 Writes work/scores/<tag>/{train,test}.parquet: s1, r, p1, p2, pc (calibrated p2), plus fold, y on train.
 """
@@ -172,10 +173,12 @@ def build(scores: pd.DataFrame, feats: str, split: str, s1_feats: list[str], row
 
 def score_test(args, command: str) -> None:
     """Test scores from the saved stage-2 models and calibration; no train data in memory (lean re-run)."""
+    import common
+    common.GROUPS[:] = (args.test_groups or args.groups).split(",")
     cfg1 = json.loads((artifact_dir("models", args.s1) / "config.json").read_text())
-    mdir = artifact_dir("models", args.tag)
+    mdir = artifact_dir("models", args.models or args.tag)
     cfg2 = json.loads((mdir / "config.json").read_text())
-    boosters = [xgb.Booster(model_file=str(mdir / f"stage2_g{g}.ubj")) for g in range(3)]
+    boosters = [xgb.Booster(model_file=str(mdir / f"stage2_g{g}.ubj")) for g in range(len(cfg2["best_iterations"]))]
     iso = pd.read_parquet(mdir / "isotonic.parquet")
     st = read_table("scores", args.s1, "test")
     rows_t = (st["p0"].to_numpy() >= cfg1["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
@@ -205,6 +208,10 @@ def main() -> int:
     ap.add_argument("--groups", default="str,cx", help="feature files <feats>-<group> to use")
     ap.add_argument("--cluster", action="store_true", help="add cluster-support features (G9)")
     ap.add_argument("--test-only", action="store_true", help="only score test with the saved models (lean re-run)")
+    ap.add_argument("--extra", default="", help="more features for stage 2, comma-separated (e.g. the leg__ group)")
+    ap.add_argument("--test-groups", default="", help="feature groups for test (default: --groups), e.g. lop for lo")
+    ap.add_argument("--models", default="", help="tag of the saved stage-2 models for --test-only (default: --tag)")
+    ap.add_argument("--all", action="store_true", help="final fit: the holdout is a fourth OOF group")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -221,6 +228,7 @@ def main() -> int:
     b = xgb.Booster(model_file=str(artifact_dir("models", args.s1) / "stage1_g0.ubj"))
     gain = b.get_score(importance_type="gain")
     s1_feats = [f for f, _ in sorted(gain.items(), key=lambda kv: -kv[1])][:args.top]
+    s1_feats += [f for f in args.extra.split(",") if f and f not in s1_feats]
     del b
 
     sc = read_table("scores", args.s1, "train")
@@ -231,13 +239,18 @@ def main() -> int:
     yr, fr = y[rows], fold[rows]
     train_rows = fr >= 5
     g2 = np.where(train_rows, oof_group(np.where(train_rows, sc["s1"].to_numpy()[rows], 0)), -1)
+    n_groups = 3
+    if args.all:
+        train_rows = np.ones_like(train_rows)
+        g2 = np.where(g2 < 0, 3, g2)
+        n_groups = 4
     es = s1_hash_slice(sc["s1"].to_numpy()[rows], SALT2, 50)
     log.info("stage 2: %d rows (%.3f of pairs, %.5f of positives), %d features (%.0fs)", rows.sum(), rows.mean(),
              rows[y == 1].mean(), len(names), time.perf_counter() - t0)
 
     p2 = sc["p1"].to_numpy(np.float32).copy()
     boosters, best_its = [], []
-    for g in range(3):
+    for g in range(n_groups):
         tr = train_rows & (g2 != g) & ~es
         va = train_rows & (g2 != g) & es
         dtr = xgb.QuantileDMatrix(X[tr], yr[tr], feature_names=names)
@@ -251,8 +264,9 @@ def main() -> int:
         log.info("stage 2 group %d: best iteration %d, es logloss %.5f (%.0fs)", g, bst.best_iteration,
                  bst.best_score, time.perf_counter() - t0)
     hold = ~train_rows
-    p2[idx[hold]] = np.mean([bst.inplace_predict(X[hold], iteration_range=(0, bst.best_iteration + 1))
-                             for bst in boosters], axis=0)
+    if hold.any():
+        p2[idx[hold]] = np.mean([bst.inplace_predict(X[hold], iteration_range=(0, bst.best_iteration + 1))
+                                 for bst in boosters], axis=0)
     del X
 
     # isotonic calibration on out-of-fold p2 of training folds (stage-2 rows only; the rest are ~0)
@@ -296,6 +310,7 @@ def main() -> int:
                "stage2_rows": int(rows.sum()), "best_iterations": best_its}
 
     if not args.no_test:
+        common.GROUPS[:] = (args.test_groups or args.groups).split(",")
         st = read_table("scores", args.s1, "test")
         rows_t = (st["p0"].to_numpy() >= cfg["tau0"]) & (st["p1"].to_numpy() >= P_MIN)
         Xt, _ = build(st, args.feats, "test", s1_feats, rows_t, args.cluster)
