@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-26 18:20
+- **Last updated (IST):** 2026-09-26 19:00
 - **Current focus:** where the rest of the leaderboard is (`RESEARCH_v6.md`).
   - 26 Sep #01 (v5all + rules v2) scored **0.98781 (rank 15)**. Top 3: 0.990556 / 0.989141 / 0.988842.
   - The other session's gap budget, checked on v6all:
@@ -32,8 +32,9 @@
   **France's level depends on US/India's test level** (`RESEARCH_v6.md` §3). `probe-v6s3-fr0` measures both: LB_fr0 = 0.38274 F_US + 0.46751 F_India + 0.14975 × 0.0559.
   - If US/India score like the re-weighted holdout, LB_fr0 ≈ 0.8513.
   - France = (LB_candidate − LB_fr0) / 0.14975 + 0.0559.
-- **Ready to upload** (validator PASS, all with the 3.70-per-S1 candidate file `cc3750d0…`), in this order:
-  1. `2026-09-26-v6all-s3-ops3-c2`: **the next candidate** (v6all + stage 3 + rules v3); matching `544ffdf8…`.
+- **Ready to upload** (validator PASS), in this order:
+  0. `2026-09-26-v6all-s3-ops3a-c2`: **the best packaged candidate** (below plus 3,872 French acronym copies at the S1's address; `acr_join.py`); matching `8d4e3bbc…`, candidates `5e991eca…`.
+  1. `2026-09-26-v6all-s3-ops3-c2`: v6all + stage 3 + rules v3; matching `544ffdf8…` (candidate file `cc3750d0…`).
   2. `2026-09-26-probe-v6s3-fr0`: #1 with France emptied (`48ddacd4…`). It gives US/India on test exactly (expected about 0.8513 if they score like the re-weighted holdout), and #1 − #2 gives France.
   3. `2026-09-26-probe-v6s3-fr090`: #1 without France's model predictions below pc 0.9 (`0914b6d6…`). It prices France's uncertain band.
   4. Fallbacks: `2026-09-26-v6all-ops-c2` (`0f6d8985…`), `2026-09-26-v6all-ops3-c2` (`8c3d3a63…`), `2026-09-26-v5all-ops2-c2` (`76fe7eff…`, 0.98781).
@@ -44,7 +45,7 @@
 - **Blocked on / need from others:** the captain's uploads and their scores.
 - **For Sachi (French pattern discovery):** `work/kits/france-kit-v1/` (209 MB, on the team drive), from `experiments/ameya/model-v1/france_kit.py`. Take truth rates from the `*_rule_pairs` files: the stage-2 set is selection-biased.
 - **For Sachi (final package):** `experiments/ameya/model-v1/RECIPE.md` answers the five reproduction questions and gives the exact v6all and v5all recipes. `decide.py --base` is now optional, and `feats.py --dict-only` builds blocking's Indic dictionary.
-- **Latest handover:** `docs/handover/2026-09-26_1557_ameya_research-v6-gap-budget.md`.
+- **Latest handover:** `docs/handover/2026-09-26_1817_ameya_ce-large-box.md`.
 - **Next up:**
   - **Vast.ai box** (H100 80 GB, 23 cores, 342 GB RAM):
     - running multilingual-e5-large and e5-base cross-encoders on the uncertain band, same OOF groups as e5-small;
