@@ -381,3 +381,21 @@ e5-large beats stage 1 on the pairs stage 1 is unsure about, so it carries new i
   - about −0.00017 LB if the band is calibrated (precision about 0.57);
   - about +0.0001 LB if it is 80% true;
   - break-even precision about 0.72.
+
+### 6.4 The France threshold probes, redesigned: cut before the rules
+
+**What they touch** (v7ce3; `r7/frlo_prof.py`: the pairs one package has and another does not):
+
+| probe | French pairs changed | what they are |
+|---|---|---|
+| `fr090` (cut after the rules, `fr_threshold.py`) | −18,263 (70 per 1000 S1), median pc 0.775 | 48% one-word swaps, 6% appends, 6% acronyms, 69% at the S1's address. About half are the rules' true-copy edits (A/APP/ACR, 97–99.8% true in US/India) that the model scored 0.7–0.9 because of the French biases (§2.9). Dropping them is a known loss that would hide the answer |
+| **`fr090r`** (the same cut before the rules; `make_frcut.sh`: `fr_threshold.py --final M --model M`, then `post_ops`, then `acr_join`) | **−10,738 (41 per 1000 S1)**, median pc 0.792 | the rules re-add their true-copy edits. What stays dropped is France's unexplained band: 38% same name (other or empty address), 30% non-list swaps, 28% unrelated names at the address, 0.3% acronyms; 80% have a single S1 above pc 0.1 |
+| `frlo` (`fr_add.py --lo 0.5`) | +8,076 (31 per 1000 S1), median pc 0.557 | 56% of the records have two S1 above pc 0.1 (ties) and 44% an empty address. Precision is likely near 50%, below the 0.72 break-even. **Low value as an upload** |
+
+- `fr090r` answers the useful question: is France's unexplained uncertain band worth keeping?
+  - If it scores above the candidate, the band is below about 0.72 precision. Then `fr095r` and `fr080r` bracket the best cut.
+  - If it scores below, the candidate's threshold stands.
+- **Expected:**
+  - −0.0001 LB if the band is calibrated (pc 0.79);
+  - +0.0003 LB if it is 50% true.
+- Package `2026-09-27-probe-v7-fr090r` (validator PASS). It replaces `probe-v7-fr090` in the upload plan.
