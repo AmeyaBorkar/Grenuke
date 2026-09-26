@@ -113,6 +113,57 @@ def name_edit(sname: str, rname: str) -> tuple[str, str, str, str]:
     return "swap", pos, rw, sw
 
 
+# Robust "same address" (rules v3): the (number, first street word) key misses the same address when the house
+# number carries a suffix ("8BIS", "129D", "51 TER"), the street type has a typo ("AVEUNE", "ASLEE", "Pace") or an
+# abbreviation ("Q." for quai), or a short street name has a two-letter typo ("Arts"/"Arst"). Here the first house
+# number is read without its suffix, and the street is the set of words after it (street types, typo'd street types,
+# articles and suffixes skipped); two addresses match when the numbers are equal and the street sets share a word up
+# to a typo.
+TYPES = ("rue r avenue ave av boulevard bd blvd allee all impasse imp chemin ch che route rte place pl quai q cours crs "
+         "faubourg fg passage pas psg square sq cite lotissement lot residence res voie sentier digue parvis promenade "
+         "esplanade hameau street st road rd lane ln drive dr court ct circle cir highway hwy parkway pkwy terrace "
+         "trail trl way no nr n numero").split()
+TYPES_SET = set(TYPES)
+TYPES_LONG = [t for t in TYPES if len(t) >= 5]
+ARTICLES = set("de du des la le les l d a au aux en et the of".split())
+SUFFIXES = set("bis ter quater a b c d e f o t q".split())
+_NUM = re.compile(r"(?<![0-9])0*([0-9]{1,5})(bis|ter|quater|[a-z])?\b")
+
+
+def _is_type(w: str) -> bool:
+    if w in TYPES_SET:
+        return True
+    return len(w) >= 4 and any(abs(len(w) - len(t)) <= 1 and OSA.distance(w, t) <= (1 if len(t) < 7 else 2)
+                               for t in TYPES_LONG)
+
+
+def addr_parts(address: str) -> tuple[str, frozenset]:
+    """(first house number without its suffix, street-name words after it) of a folded address; ("", ()) if none."""
+    for seg in address.split(","):
+        m = _NUM.search(seg)
+        if not m:
+            continue
+        words = re.findall(r"[a-z]+", seg[m.end():])
+        while words and words[0] in SUFFIXES:
+            words = words[1:]
+        street = frozenset(w for w in words if len(w) >= 3 and w not in ARTICLES and not _is_type(w))
+        return m.group(1), street
+    return "", frozenset()
+
+
+def _close_word(a: str, b: str) -> bool:
+    if a == b:
+        return True
+    if min(len(a), len(b)) < 4:
+        return False
+    return OSA.distance(a, b) <= (1 if min(len(a), len(b)) < 7 else 2)
+
+
+def same_address(ps: tuple[str, frozenset], pr: tuple[str, frozenset]) -> bool:
+    (ns, ss), (nr, sr) = ps, pr
+    return bool(ns) and ns == nr and bool(ss) and bool(sr) and any(_close_word(a, b) for a in ss for b in sr)
+
+
 def number_edit(ns: str, nr: str) -> str:
     """The kind of a true-copy house-number edit, "" if none: "minus" (-1/-2), "sub" (one digit substituted),
     "swap" (two adjacent digits swapped), "indel" (one digit inserted or deleted). A look-alike +d nudge is never an
@@ -129,8 +180,10 @@ def number_edit(ns: str, nr: str) -> str:
     return "indel" if Levenshtein.distance(ns, nr) == 1 else ""
 
 
-def classify(d: pd.DataFrame, names: pd.Series, keys: pd.Series, vocab: dict[str, Counter]) -> pd.DataFrame:
-    """Adds kind/pos/added/dropped, the address relation and the rule population ``op`` for each (s1, r) pair."""
+def classify(d: pd.DataFrame, names: pd.Series, keys: pd.Series, vocab: dict[str, Counter],
+             parts: pd.Series | None = None) -> pd.DataFrame:
+    """Adds kind/pos/added/dropped, the address relation and the rule population ``op`` for each (s1, r) pair.
+    ``parts`` (eid -> ``addr_parts``) adds the robust same-address match (rules v3) to the key match."""
     ks, kr = keys.reindex(d.s1).to_numpy(), keys.reindex(d.r).to_numpy()
     num_s = np.array([k.split("|")[0] if k else "" for k in ks], object)
     num_r = np.array([k.split("|")[0] if k else "" for k in kr], object)
@@ -139,6 +192,11 @@ def classify(d: pd.DataFrame, names: pd.Series, keys: pd.Series, vocab: dict[str
     ok = (num_s != "") & (num_r != "")
     street = ok & np.array([a == b or close(a, b) for a, b in zip(st_s, st_r)])
     same_num = street & (num_s == num_r)
+    if parts is not None:
+        robust = np.array([same_address(a, b) for a, b in zip(parts.reindex(d.s1).to_numpy(),
+                                                               parts.reindex(d.r).to_numpy())])
+        d = d.assign(robust_only=robust & ~same_num)
+        same_num = same_num | robust
     num_kind = np.array([number_edit(a, b) if o and a != b else "" for a, b, o in zip(num_s, num_r, street)], object)
     num_ed = np.isin(num_kind, list(NUM_KINDS))
     edits = [name_edit(a, b) for a, b in zip(names.reindex(d.s1).to_numpy(), names.reindex(d.r).to_numpy())]
@@ -183,13 +241,17 @@ def preselect(feats: str, split: str, s1_set: np.ndarray) -> pd.DataFrame:
     return pd.concat(parts, ignore_index=True)
 
 
-def record_text(split: str, ids: np.ndarray) -> tuple[pd.Series, pd.Series]:
+def record_text(split: str, ids: np.ndarray, robust: bool = False) -> tuple[pd.Series, pd.Series, pd.Series | None]:
     t = pq.read_table(records_path(split), columns=["eid", "name", "address"])
     t = t.filter(pc.is_in(t["eid"], value_set=pa.array(ids)))
     eid = t["eid"].to_numpy()
     names = pd.Series(fold(t["name"].combine_chunks()).to_numpy(zero_copy_only=False), index=eid)
     keys = pd.Series(numstreet_keys(t["address"].combine_chunks()), index=eid)
-    return names, keys
+    parts = None
+    if robust:
+        addr = fold(t["address"].combine_chunks()).to_numpy(zero_copy_only=False)
+        parts = pd.Series([addr_parts(a or "") for a in addr], index=eid)
+    return names, keys, parts
 
 
 def s1_vocab(split: str, countries: set) -> tuple[pd.Series, dict[str, Counter]]:
@@ -213,13 +275,13 @@ def measure(args) -> int:
     cty, vocab = s1_vocab("train", set(pc.unique(tr["country"]).to_pylist()))
     hold = np.sort(cty.index.to_numpy()[is_holdout(cty.index.to_numpy())])
     d = preselect(args.feats, "train", hold)
-    names, keys = record_text("train", np.unique(np.r_[d.s1.to_numpy(), d.r.to_numpy()]))
-    d = classify(d.assign(cty=cty.reindex(d.s1).to_numpy()), names, keys, vocab)
+    names, keys, parts = record_text("train", np.unique(np.r_[d.s1.to_numpy(), d.r.to_numpy()]), args.robust_addr)
+    d = classify(d.assign(cty=cty.reindex(d.s1).to_numpy()), names, keys, vocab, parts)
     m = read_table("matches", args.matches, "train")
     d["pred"] = np.isin(d.s1.to_numpy() * K + d.r.to_numpy(), m.s1.to_numpy() * K + m.r.to_numpy())
     d = d[d.op != ""]
-    t = d.groupby(["op", "num_kind", "street_typo", "cty"]).agg(pairs=("y", "size"), true=("y", "mean"),
-                                                            predicted=("pred", "mean"))
+    by = ["op", "num_kind", "street_typo"] + (["robust_only"] if args.robust_addr else []) + ["cty"]
+    t = d.groupby(by).agg(pairs=("y", "size"), true=("y", "mean"), predicted=("pred", "mean"))
     t["per_1000_s1"] = t.pairs / pd.Series(cty.reindex(hold).value_counts()).reindex(
         t.index.get_level_values("cty")).to_numpy() * 1000
     print(t.round(4).to_string())
@@ -237,6 +299,8 @@ def main() -> int:
     ap.add_argument("--no-add", action="store_true")
     ap.add_argument("--no-drop", action="store_true")
     ap.add_argument("--measure", action="store_true", help="print truth rates on the US/India holdout and exit")
+    ap.add_argument("--robust-addr", action="store_true",
+                    help="rules v3: also match the S1's address with suffixed numbers and typo'd street types")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     if args.measure:
@@ -253,10 +317,12 @@ def main() -> int:
     target = cty[cty.isin(targets)]
     log.info("countries without training labels: %s (%d S1)", sorted(targets), len(target))
     d = preselect(args.feats, "test", np.sort(target.index.to_numpy()))
-    names, keys = record_text("test", np.unique(np.r_[d.s1.to_numpy(), d.r.to_numpy()]))
-    d = classify(d.assign(cty=target.reindex(d.s1).to_numpy()), names, keys, vocab)
+    names, keys, parts = record_text("test", np.unique(np.r_[d.s1.to_numpy(), d.r.to_numpy()]), args.robust_addr)
+    d = classify(d.assign(cty=target.reindex(d.s1).to_numpy()), names, keys, vocab, parts)
     d = d[d.op.isin(list(rules))].reset_index(drop=True)
     log.info("rule populations: %s", d.groupby("op").size().to_dict())
+    if parts is not None:
+        log.info("of which matched only by the robust address: %s", d[d.robust_only].groupby("op").size().to_dict())
 
     m = read_table("matches", args.matches, "test")
     mk = m.s1.to_numpy() * K + m.r.to_numpy()
@@ -288,6 +354,7 @@ def main() -> int:
         n_add = x.groupby("op").size().to_dict()
     command = (f"python experiments/ameya/model-v1/post_ops.py --matches {args.matches} --scores {args.scores} "
                f"--cands {args.cands} --feats {args.feats} --tag {args.tag} --rules {args.rules}"
+               + (" --robust-addr" if args.robust_addr else "")
                + (" --no-add" if args.no_add else "") + (" --no-drop" if args.no_drop else ""))
     write_table(out[["s1", "r"]].reset_index(drop=True), "matches", args.tag, "test", command=command,
                 inputs={"matches": args.matches, "scores": args.scores, "candidates": args.cands},
