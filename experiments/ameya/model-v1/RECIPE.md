@@ -30,7 +30,7 @@ The exact commands behind the final candidates, from raw data to `output/*.tsv`,
 
 ## The final recipe: v6all (current main), if its gate passes
 
-Status 26 Sep 11:30: running. Gate vs `ameya-model-v5all-c2` on the holdout. Output `2026-09-26-v6all-ops-c2`.
+**Status 26 Sep 14:27: final.** Holdout 0.990788 vs v5all-c2 0.990156, Δ +0.00063 [0.00057, 0.00070]; `decide.py` picks a threshold of 0.70 (G6). Output `2026-09-26-v6all-ops-c2`: matching sha256 `0f6d8985be05877276e16a4d95562d8d72f36c38f962441f1a6f9928d22890be`, candidates `cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae`; 3.70 candidates per S1.
 
 ```
 # 0. records and the Indic dictionary

@@ -2,7 +2,7 @@
 
 - **Date (IST):** 2026-09-26 11:22
 - **Author:** ameya
-- **Status:** accepted on the dev pool. The full-scale check is the v6all rebuild (`ameya-block-v3` → `ameya-model-v6all-c2`, gate vs `ameya-model-v5all-c2`), running.
+- **Status:** accepted at full scale. Holdout blocking pair recall 0.98992 → 0.99135 (missed 19,163 → 16,455) with 0.6% fewer pairs; model v6all +0.00063 [0.00057, 0.00070] vs v5all-c2 (`2026-09-26_1425_model-v6all-final.md`).
 - **Affects:**
   - blocking: `ber/block/repair.py` (new), `ber/block/index.py`, `ber/block/text.py`, `ber/block/__init__.py`;
   - `ber/features/context.py`;
