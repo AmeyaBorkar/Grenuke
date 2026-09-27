@@ -805,3 +805,36 @@ Validation on the US/India holdout (predictions; truth known):
 - It is not valid for a population that takes most of an S1's copies (whole pc bands, exact names): subtracting them empties m.
 
 **Verdict: keep the French acronyms.** The 11× rate is a property of how French records were generated, not planted look-alikes; the `noacr` packages (all 18,707, or the 8,245 from S2) are not proposed. The same test flags one small French population: 592 predicted real-word swaps where the new word resembles the old one at the S1's address ("maternelle → culturelle", `swap_real_sim`), f = 0.83 [0.56, 1.10], with the error agent's count test agreeing (holders 4.39 against 4.01). Dropping them is worth about +0.00005 if f ≈ 0.8, and the break-even is f ≈ 0.28.
+
+### 6.18 Looking for 0.992; the French decision rule; v7sq6wg (27 Sep, 13:30–15:05)
+
+**Where a hidden +0.0015 could be, and why it is not there** (grenuke-vast3 scripts in the session scratchpad `leak/`):
+- **No local ID or file-order leak.** Copies of one S1 are as far apart in record number and file row as random records of the same source (0.1% quantile of the gap 3.4e5 against 2.7e5 at random; no gap ≤ 5).
+- **US/India test scores like the holdout.** Per stage-3 pc band, India's test pairs per 1000 S1 equal the holdout's within 1–3%, and the truth rate implied by holdout true pairs per S1 matches the holdout rate in every band. The test's extra records (+23% per S1) all sit below pc 0.02. US differs only by the known half-size pool.
+- **France predicts like US/India.** Empty share 5.81% (India 5.76%, truth 5.54–5.60%); 3.36 matches per S1 (3.38); the S2/S3 split of each S1's copies (one of each at k = 2: 70.5% against 71.0% India and 71.6% truth). Only 16 French S1 break the generator's cap of 5 S2 copies (3 break the S3 cap of 6). So France loses on *which* records it picks, not how many or from which source.
+- Blocking misses (16,455 holdout pairs) are empty-address records with changed names (54%) and invented-name records whose address lost its house number; unowned records of that kind are 37–40% true (6.4 `brand_join.py`), so adding them loses. French street types are already normalized (`R.` → rue, `Bd` → blvd, `Av` → ave).
+
+**The France expected-F0.5 decision** (`stack/dp_france.py`, the error agent's design): apply_combo's DP (shift 0.2, crowd −0.3, phantom 0.01) on a model's French stage-3 pc instead of its threshold; the rule layer is kept, look-alike swaps are removed, and look-alike or op-B swaps are never added. It reproduces mixh, mixi and mixj pair for pair.
+
+| French base | adds / drops | s1 / cal / s2 (F-units) | LB, conservative (cal) |
+|---|---|---|---|
+| v7sq | 276 / 1,199 | +61 / +23 / +35 | +0.000013 |
+| v7sq4 | 205 / 1,552 | +58 / +28 / +40 | +0.000016 |
+| v7sq6 | 436 / 272 | +53 / +26 / +16 | +0.000015 |
+| v7sqwg | 193 / 1,019 | +45 / +17 / +25 | +0.000010 |
+| v7xbag | 313 / 630 | +53 / +33 / +25 | +0.000019 |
+| v7sq6wg | — | stage 3 already chose expected-F0.5 (decide.py G6 passed); the DP on top is −3 | not applied |
+
+**Round-2 cross-encoder labels drift; guarded stage-2 labels do not.** v7sq5g (e5lsr2g trained on the guarded v7sq labels) is negative for France under every valuation (s1 −6, own −13, s2 −53) and reverts the most LB-confirmed v7nst → v7sq moves. v7sq6wg (v7sq6's four round-1 self-trained cross-encoders, stage 2 on the guarded v7sq labels ×3) is the strongest French variant so far: s1 +174 / own +165 / s2 −139 F-units against v7sq-dpc (+0.000100 / +0.000095 / −0.000080 LB).
+
+**US/India is converged** (holdout, combo rule): v7sq3 0.991307, v7sq6wg 0.991306, v7xbag 0.991297, v7sq 0.991280. A 4-model stage-3 bag gives +5e-6 [−11, +21]; the squeeze agent's India-only count prior gives +16e-6 [+2, +30] but lowers the US on every model and was picked from about 160 variants, so it is not used.
+
+**Candidate file: keep 3.70 per S1.** Every tighter cut loses holdout F0.5 (top 1 per record −106e-6; p1 ≥ 0.05 −41e-6); a stage-2 pc gate at 2e-4 would give −2.8% with no loss but needs a pipeline rebuild. Stage 3 is not bit-reproducible across machines (232k test pc differ, about 500 decisions).
+
+**Tools.** `ce_box.py` gains `--only-group`/`--merge` (the three OOF groups as separate processes) and `--us-in-frac`, `--target-only-test`, `--hold-groups` (French-heavy members that score only the rows France needs).
+
+**Leaderboard, 27 Sep ~16:40: `mixmdp` = v7sq7wg-dp scored 0.990699 (rank 12)**, +0.000154 over v7sq-dpc. It is v7sq3 for US/India and v7sq7wg for France (v7sq6's four round-1 self-trained cross-encoders plus the France-heavy e5 `e5fr`, stage 2 on the guarded v7sq labels ×3) minus 454 look-alike swaps, plus the France expected-F0.5 decision (357 adds, 224 drops). We predicted +0.000234 (US/India +0.00002, France model cal +0.000159, DP +0.000015, look-alike drop +0.00004 by size-bias); the shortfall of about 0.00008 is being decomposed. Leaderboard top at the time: 0.991829 and 0.991811, which is about what France at US/India parity would give.
+
+**The French estimators, backtested on every LB pair** (France-diff agent, `agents/fdiff/backtest_table.txt`): `cal` (the new model's pc calibrated on the US/India holdout, applied to the French changes) tracks best (scale 0.96, mean abs error 42e-6, corr 0.98); `s1` has the right shape but under-predicts by about 20%; `s2` (the old model's pc as truth) had the wrong sign on every pair. Rule-only changes are undervalued by the pc-based estimators.
+
+**Calibrated France value vs v7sq-dpc (LB units):** v7sq7wg + DP +0.000174, v7sq6w5 +0.000167 (guarded labels ×5: the weight has saturated), v7sq6wg +0.000166, v7sq6 + DP +0.000121, v7sqwg + DP +0.000104, v7sq4 + DP +0.000088, v7xbag + DP +0.000039. The France-heavy members (e5fr, bgefr, holdout band AUC 0.918–0.926) add nothing measurable.
