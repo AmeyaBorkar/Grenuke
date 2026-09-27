@@ -119,3 +119,8 @@ the same score, the signature of decoys. Two more checks tonight, both on the la
   `meta_edit.py`): the pipeline's decisions are at the ceiling of these signals;
 - the in-band two-model drop (B6's step) is +8e-6 overall, halves −7e-6 / +24e-6.
 Staged but not uploaded: B++ (`5ed33137…`), B3 (`1cc0727d…`), B4 (`d8c7d522…`), B5 (`69da05f1…`), B6 (`37608e5b…`), B8.
+
+**Result:** B7 scored **0.990875**, −0.000004 vs Composite B: a tie within noise. The 1,699 extra French drops and 251
+restores were collectively neutral, so the labelled −6 cut-off was already about right, and the "France has 25× the
+decoys" extrapolation into the −6…−2 bands overstated the French false rate. **Final best: Composite B, 0.990879**
+(g1w US/India with the 7B ×2, mixmdp France, 7B drops at q7 < −6), +0.000180 over the team's previous best 0.990699.
