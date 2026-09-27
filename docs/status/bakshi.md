@@ -1,5 +1,19 @@
 # Status: bakshi
 
+## Measured score update, 27 September 10:10 IST
+
+- **New best:** user-reported v7sq-dpc **0.990545**, +0.000366 vs v7nst; +0.000455 needed for 0.991.
+- **File verified:** `matching_resultsv7sq.tsv` hashes to `cdda9a2d...ea0e85c`, the registered dpc output.
+  A matching preserved copy is under the workspace `outputs/best_measured_0990545/`.
+- **Next decisions:** `plans/bakshi/AFTER_0990545.md`; quota-dependent v7nst-dpc control, then one gated
+  recovery correction against the measured winner. User's remaining quota/control score are pending.
+- **Packaging:** matching-only audit is clean; paired candidate `55b766ef...af5331` still needed in the
+  active package session. Local distribution currently contains v7nst's old candidate file.
+- **Branch / handover:** `bakshi/score-0990545`; `docs/handover/2026-09-27_1010_bakshi_score-0990545.md`.
+- **Scope:** documentation and file-identity verification; no new predictions or paid compute.
+
+## Historical integration status
+
 - **Last updated (IST):** 2026-09-27 01:30
 - **Current focus:** Final packaging of the submitted model **v7nst** (public 0.990179), and preparing
   Tracks A/B so they can run the moment their inputs arrive.
