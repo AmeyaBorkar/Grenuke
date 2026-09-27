@@ -11,7 +11,9 @@
 #   4. apply_combo.py  countries with labels: expected-F0.5 per S1 (logit shift 0.2, phantom 0.01, crowd shift -0.3)
 #                      + acr + cap
 #   5. merge_dpc.py    labelled countries from 4, other countries from 3 -> tag ...-dpc
-# Then write the submission from the -dpc tag with its candidates:
+# To take the countries without labels from another stacked model, compose.py <labelled matches> <labelled cands>
+# <other matches> <other cands> <name> writes ameya-model-<name> / ameya-cands-<name> (RESEARCH_v6.md 6.17).
+# Then write the submission from the -dpc (or composed) tag with its candidates:
 #   python -m ber.pipeline --stage write --split test --tag <tag> --in candidates=<cands> --in matches=<tag>
 set -euo pipefail
 cd "$(dirname "$0")"
