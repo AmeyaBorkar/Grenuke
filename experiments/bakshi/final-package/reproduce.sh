@@ -22,6 +22,11 @@
 #   v7sq      cmq  = e5l + qst + e5ls + bge          v7ce3
 #   v7ens2    average of v7nst and v7nst2 stage-2 scores (bag_scores.py)
 #   v7ensall  average of v7nst, v7mst, v7s and v7sq stage-2 scores
+#   v7sb      recognised but NOT implemented: its feature-group tag was never stated (see the case below)
+#   v7ensall2 recognised but NOT implemented: its seven bagged stage-2 tags were never listed
+#
+# STACK=1 (the default) also runs the stacked-rules pass after the acronym join, producing the "-dpc" tag
+# that every 27 Sep final candidate uses. STACK=0 stops at the pre-stack model.
 #
 # WHY THE TEACHER MATTERS. Every self-trained variant needs a FINISHED earlier chain to label France with,
 # and that chain must be built first. Round 1 is taught by v7ce3, which needs e5-base -- a model that appears
@@ -70,7 +75,11 @@ case "$VARIANT" in
   v7sq)     CE_RUNS="e5l qst e5ls bge";   GROUP=cmq;  TEACHER=v7ce3;    BAG="" ;;
   v7ens2)   CE_RUNS="";                   GROUP="";   TEACHER="";       BAG="ameya-s2-v7nst,ameya-s2-v7nst2" ;;
   v7ensall) CE_RUNS="";                   GROUP="";   TEACHER="";       BAG="ameya-s2-v7nst,ameya-s2-v7mst,ameya-s2-v7s,ameya-s2-v7sq" ;;
-  *) echo "unknown VARIANT '$VARIANT'"; exit 2 ;;
+  # Deliberately NOT guessed. These two exist as packages but their tags were never written down, and a
+  # wrong feature-group or bag name here would silently reproduce a different model than the one shipped.
+  v7sb)  echo "VARIANT=v7sb needs its stage-2 feature-group tag confirmed (the mix is e5l + e5ls + bges, but the group name is not recorded). Confirm it, add a line here, and rerun." >&2; exit 4 ;;
+  v7ensall2) echo "VARIANT=v7ensall2 needs its seven bagged stage-2 tags listed (it includes bges and the second e5ls seed). Confirm them, add the BAG line here, and rerun." >&2; exit 4 ;;
+  *) echo "unknown VARIANT '$VARIANT'" >&2; exit 2 ;;
 esac
 COL="${GROUP:+${GROUP}__logit}"
 echo "== reproducing VARIANT=$VARIANT  group=${GROUP:-(bagged)}  teacher=${TEACHER:-none}  bag=${BAG:-none} =="
@@ -195,11 +204,37 @@ python post_ops.py --matches "$MT-s3" --scores "ameya-s3-$VARIANT" --cands ameya
 python acr_join.py --split test --matches "$MT-s3-ops3" --cands ameya-cands-v6all-c2 \
   --tag "$MT-s3-ops3a" --cands-tag "ameya-cands-$VARIANT-c2a"
 
+# ---- 9b. the stacked rules (the "-dpc" pass) ----------------------------------------------------------
+# STACK=1 (default) adds one pass after acr_join: stack/stack.sh. Every final candidate from 27 Sep is a
+# -dpc package, so this is ON by default; STACK=0 reproduces the pre-stack model instead.
+#
+# It decides PER COUNTRY GROUP, which is the whole point of the name:
+#   - countries WITH training labels: an expected-F0.5 decision per S1 (logit shift 0.2, phantom 0.01,
+#     crowd shift -0.3) plus the acronym and generator-cap rules. Gated at +48.1e-6 [+7.1, +91.2] on the
+#     shared holdout over v7s, and +23.7e-6 out of sample under repeated 2-fold CV, positive in 86% of
+#     splits (tuning the flat threshold instead gives -18.8e-6).
+#   - countries WITHOUT labels: a narrowed hunt (number-dropped acronym adds only, no cap drops, because
+#     French pc cannot rank near-identical copies), then the address polish - add same-name copies at the
+#     exact address (99.99% true in US/India), drop cross-commune pairs (French true copies change commune
+#     in 3 of 546,465). That last rule also fixes the acronym join's cross-city leak from RESEARCH_v6 6.14.
+# The labelled countries are read from the train records, never hard-coded.
+#
+# It reuses the SAME candidate set as step 9 - it only adds or reclassifies pairs already inside
+# ameya-cands-$VARIANT-c2a - so there is no new candidate tag, and matches stay a subset of candidates.
+if [ "${STACK:-1}" = 1 ]; then
+  echo "== 9b. stacked rules: per-country-group decision, acronym hunt and caps, French address polish =="
+  bash "$M/stack/stack.sh" "$VARIANT"
+  FINAL_TAG="$MT-s3-ops3a-dpc"
+else
+  echo "== 9b. STACK=0: skipping the stacked-rules pass =="
+  FINAL_TAG="$MT-s3-ops3a"
+fi
+
 cd "$ROOT"
 
-echo "== 10. write the organiser TSVs and validate =="
-python -m ber.pipeline --stage write --split test --tag "$MT-s3-ops3a" \
-  --in "candidates=ameya-cands-$VARIANT-c2a" --in "matches=$MT-s3-ops3a"
+echo "== 10. write the organiser TSVs and validate (tag $FINAL_TAG) =="
+python -m ber.pipeline --stage write --split test --tag "$FINAL_TAG" \
+  --in "candidates=ameya-cands-$VARIANT-c2a" --in "matches=$FINAL_TAG"
 python student_resource/utils/validate_submission.py \
   --matching "$BER_OUTPUT_DIR/matching_results.tsv" \
   --candidate "$BER_OUTPUT_DIR/candidate_pairs.tsv" --test-dir "$BER_DATA_DIR/test"

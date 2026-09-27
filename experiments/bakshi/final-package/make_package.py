@@ -266,10 +266,18 @@ def build(args: argparse.Namespace) -> int:
         print(f"  manifest: {len(manifest)} entries, all extracted hashes match")
 
         missing = [r for r in REQUIRED if not (ex / r).is_file()]
+        # Every 27 Sep final candidate is a "-dpc" package, i.e. it runs the stacked-rules pass after
+        # acr_join. If the shipped model needs that pass, its scripts have to be IN the archive or the
+        # reproduction is incomplete — so this is a hard check, not a warning.
+        stack = ex / "code/business_entity_resolution/src/model_v1/stack/stack.sh"
+        if args.stacked and not stack.is_file():
+            missing.append("code/business_entity_resolution/src/model_v1/stack/stack.sh (--stacked was given)")
         if missing:
             print(f"FAIL: required path(s) missing from the archive: {missing}")
             return 1
-        print(f"  required paths: all {len(REQUIRED)} present")
+        print(f"  required paths: all {len(REQUIRED)} present"
+              + (f"; stacked-rules pass shipped ({sum(1 for _ in stack.parent.glob('*.py'))} scripts)"
+                 if args.stacked else ""))
 
         m_sha = sha256(ex / "output/matching_results.tsv")
         c_sha = sha256(ex / "output/candidate_pairs.tsv")
@@ -314,6 +322,8 @@ def build(args: argparse.Namespace) -> int:
                   "Do not ship a package built this way without running both checks separately.")
 
     summary = {
+        "variant": args.variant,
+        "stacked_rules": bool(args.stacked),
         "zip": {"path": str(zip_path), "bytes": zip_path.stat().st_size, "sha256": zip_sha},
         "output": {"matching_results.tsv": m_sha, "candidate_pairs.tsv": c_sha},
         "n_files": len(members),
@@ -337,6 +347,11 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("dist"))
     ap.add_argument("--audit", action="store_true", help="run audit_matching.py before packaging")
     ap.add_argument("--test-dir", type=Path, default=None, help="dataset/test, for --audit and the validator")
+    ap.add_argument("--variant", default="v7nst",
+                    help="which model these outputs came from, recorded in package_manifest.json so the "
+                         "archive says what it ships (default: %(default)s)")
+    ap.add_argument("--stacked", action="store_true",
+                    help="the shipped model uses the stacked-rules ('-dpc') pass; requires stack/ in the archive")
     return build(ap.parse_args())
 
 
