@@ -11,6 +11,8 @@
 #   4. apply_combo.py  countries with labels: expected-F0.5 per S1 (logit shift 0.2, phantom 0.01, crowd shift -0.3)
 #                      + acr + cap
 #   5. merge_dpc.py    labelled countries from 4, other countries from 3 -> tag ...-dpc
+# Optional, countries without labels only: apply_swapsim.py <matches tag> <new tag> drops look-alike word swaps
+# (RESEARCH_v6.md 6.17).
 # To take the countries without labels from another stacked model, compose.py <labelled matches> <labelled cands>
 # <other matches> <other cands> <name> writes ameya-model-<name> / ameya-cands-<name> (RESEARCH_v6.md 6.17).
 # Then write the submission from the -dpc (or composed) tag with its candidates:
