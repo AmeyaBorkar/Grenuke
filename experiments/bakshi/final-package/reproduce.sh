@@ -81,6 +81,11 @@ case "$VARIANT" in
   v7sq)     CE_RUNS="e5l qst e5ls bge";   GROUP=cmq;  TEACHER=v7ce3;    BAG="" ;;
   v7ens2)   CE_RUNS="";                   GROUP="";   TEACHER="";       BAG="ameya-s2-v7nst,ameya-s2-v7nst2" ;;
   v7ensall) CE_RUNS="";                   GROUP="";   TEACHER="";       BAG="ameya-s2-v7nst,ameya-s2-v7mst,ameya-s2-v7s,ameya-s2-v7sq" ;;
+  # ---- round 2: taught by v7sq-dpc, the best MEASURED model (public 0.990545) rather than by v7ce3 ----
+  # This is a TWO-ROUND teacher chain. v7sq must be built first, stack included, because its -dpc decisions
+  # are what label France. The guard below refuses to run if it has not been.
+  v7sqr2)   CE_RUNS="e5l qst e5ls bge";   GROUP=cmq;  TEACHER=v7sq;     BAG="" ;;
+  v7sq5)    CE_RUNS="e5l qstr2 e5lsr2 bge"; GROUP=cmq5; TEACHER=v7sq;   BAG="" ;;
   # Deliberately NOT guessed. These two exist as packages but their tags were never written down, and a
   # wrong feature-group or bag name here would silently reproduce a different model than the one shipped.
   v7sb)  echo "VARIANT=v7sb needs its stage-2 feature-group tag confirmed (the mix is e5l + e5ls + bges, but the group name is not recorded). Confirm it, add a line here, and rerun." >&2; exit 4 ;;
@@ -143,12 +148,12 @@ python post_ops.py --matches ameya-model-v7ce3-s3 --scores ameya-s3-v7ce3 --cand
 python acr_join.py --split test --matches ameya-model-v7ce3-s3-ops3 --cands ameya-cands-v6all-c2 \
   --tag ameya-model-v7ce3-s3-ops3a --cands-tag ameya-cands-v7ce3-c2a
 
-pseudo_for () {   # $1 = teacher tag -> writes the two pseudo-label files and echoes the stage-2 one
-  local t="$1"
+pseudo_for () {   # $1 = teacher tag, $2 = its FINAL matches tag -> writes both label files, echoes the stage-2 one
+  local t="$1" fin="$2"
   python pseudo_labels.py "ameya-model-$t-s3" "ameya-s3-$t" "ameya-model-$t-s3-ops3" \
-    "ameya-model-$t-s3-ops3a" "s1:ameya-s1-v6all" "$CE_BOX_DIR/pseudo_s2_fr_$t.parquet" >&2
+    "$fin" "s1:ameya-s1-v6all" "$CE_BOX_DIR/pseudo_s2_fr_$t.parquet" >&2
   python pseudo_labels.py "ameya-model-$t-s3" "ameya-s3-$t" "ameya-model-$t-s3-ops3" \
-    "ameya-model-$t-s3-ops3a" "$CE_BOX_DIR/band_test.parquet" "$CE_BOX_DIR/pseudo_fr_$t.parquet" >&2
+    "$fin" "$CE_BOX_DIR/band_test.parquet" "$CE_BOX_DIR/pseudo_fr_$t.parquet" >&2
   echo "$CE_BOX_DIR/pseudo_s2_fr_$t.parquet"
 }
 
@@ -156,12 +161,26 @@ if [ -n "$TEACHER" ]; then
   echo "== 7. pseudo-labels for the unlabelled country, from $TEACHER's final decisions =="
   # y=1: in the final matches with pc >= 0.9, or added by the rules / the acronym join.
   # y=0: not in the final matches with pc <= 0.05, or an op-B prediction the rules dropped.  y=-1: unlabelled.
-  if [ "$TEACHER" != "v7ce3" ]; then
-    echo "   round 2: teacher is $TEACHER, so build it first with VARIANT=$TEACHER" >&2
-    [ -d "$BER_WORK_DIR/matches/ameya-model-$TEACHER-s3-ops3a" ] || {
-      echo "   FAIL: $TEACHER has not been built. Run VARIANT=$TEACHER first." >&2; exit 3; }
+  #
+  # Which of the teacher's tags counts as "final" depends on whether the teacher was stacked. v7ce3 predates
+  # the stack, so its final is -s3-ops3a. Round-2 teachers are stacked, so theirs is -s3-ops3a-dpc, and using
+  # the pre-stack tag would silently label France from a DIFFERENT set of decisions than the teacher's
+  # measured output.
+  if [ "$TEACHER" = "v7ce3" ]; then
+    TFIN="ameya-model-$TEACHER-s3-ops3a"
+  else
+    TFIN="ameya-model-$TEACHER-s3-ops3a-dpc"
+    echo "   round 2: teacher is $TEACHER (stacked), final tag $TFIN" >&2
+    echo "   its own chain must have been built first: VARIANT=$TEACHER STACK=1 bash reproduce.sh" >&2
   fi
-  PSEUDO="$(pseudo_for "$TEACHER")"
+  for t in "matches/$TFIN" "matches/ameya-model-$TEACHER-s3" "matches/ameya-model-$TEACHER-s3-ops3" \
+           "scores/ameya-s3-$TEACHER"; do
+    [ -d "$BER_WORK_DIR/$t" ] || {
+      echo "   FAIL: teacher artifact $BER_WORK_DIR/$t is missing." >&2
+      echo "   Build the teacher first: VARIANT=$TEACHER STACK=1 bash reproduce.sh" >&2
+      exit 3; }
+  done
+  PSEUDO="$(pseudo_for "$TEACHER" "$TFIN")"
 fi
 
 S2=ameya-s2-$VARIANT
@@ -176,10 +195,14 @@ else
       e5l)  : ;;                                          # already built for the teacher
       e5l2) python ce_box.py --model intfloat/multilingual-e5-large --name e5l2 --lr 2e-5 --batch 128 --epochs 2 --seed 7 ;;
       bge)  python ce_box.py --model BAAI/bge-reranker-v2-m3 --name bge --lr 2e-5 --batch 128 --epochs 1 --seed 26 ;;
-      # e5ls and qst are self-trained on the TEACHER's French band pseudo-labels, cross-fitted by S1 group.
-      e5ls) python ce_box.py --model intfloat/multilingual-e5-large --name e5ls --lr 2e-5 --batch 128 \
+      # e5ls/qst and their round-2 twins e5lsr2/qstr2 are self-trained on the TEACHER's French band
+      # pseudo-labels, cross-fitted by S1 group. The only difference between a round-1 and a round-2 run is
+      # WHICH teacher wrote pseudo_fr_*, which is why one recipe covers both.
+      e5ls|e5lsr2)
+            python ce_box.py --model intfloat/multilingual-e5-large --name "$r" --lr 2e-5 --batch 128 \
                  --epochs 2 --seed 7 --pseudo "$CE_BOX_DIR/pseudo_fr_$TEACHER.parquet" ;;
-      qst)  python ce_llm_st.py --model Qwen/Qwen2.5-1.5B --name qst --lr 1e-4 --batch 64 \
+      qst|qstr2)
+            python ce_llm_st.py --model Qwen/Qwen2.5-1.5B --name "$r" --lr 1e-4 --batch 64 \
                  --pseudo "$CE_BOX_DIR/pseudo_fr_$TEACHER.parquet" --us-in-frac 0.5 ;;
     esac
   done
