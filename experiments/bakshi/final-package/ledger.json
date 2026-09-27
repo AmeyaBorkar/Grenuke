@@ -29,7 +29,41 @@
     "source": "C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset/test",
     "note": "France's whole-test S1 share (0.1497523) equals the 0.14975 coefficient in the team's F_France = (LB - 0.843226) / 0.14975 formula. That formula therefore assumes the PUBLIC-leaderboard subset has the same country composition as the whole test set. That assumption is unverified, so every France level derived from it is an estimate, not a measurement."
   },
+  "_LIVE_RISK_2026-09-27T11:00": "v7nst-dpc (0.990264) was uploaded AFTER v7sq-dpc (0.990545), and the final upload is what counts. As of now we would be graded on the WORSE of the two, a live loss of 0.000281. The restore of the best measured file is not optional and must not be left late. Hard rule proposed to the captain: if the best measured file is not the last upload by 18:30 IST, stop experimenting and restore.",
   "entries": [
+    {
+      "variant": "v7sq-dpc",
+      "package": "submissions/files/2026-09-27-v7sq-s3-ops3a-dpc-c2",
+      "parent": "v7nst",
+      "changed_component": "cross-encoder group cmq = z-mean of e5l, qst (Qwen2.5-1.5B LoRA, France self-trained), e5ls (e5-large, France self-trained) and bge; plus the stacked per-country-group rules (-dpc)",
+      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7sq.tsv", "bytes": 97874391, "sha256": "cdda9a2da0147c06039d83b673e26d8bfc71c5171915148c1dcd24979ea0e85c", "sha256_verified_locally": true},
+      "candidate": {"expected_sha256": "55b766efbe7473e17985d06810d27f5d758951b1ce42832a0dd9081a76af5331", "local_path": null, "status": "MISSING — this is the candidate file of the BEST MEASURED result, so no valid archive can be produced for what we would actually submit. Top blocker."},
+      "validation": {"matching_hard_checks": "PASS", "row_count": 1732544, "final_pairs": 5853353, "empty_rows": 99840, "mean_matches_per_s1": 3.3785, "owner_conflicts": 0, "cross_country_pairs": 0, "targets_absent": 0, "package_pairing": "NOT YET CHECKED — needs the candidate file", "report": "experiments/bakshi/final-package/audit_v7sq_dpc.json", "verified_locally": true},
+      "affected_by_country": {"France": {"s1": 259452, "s1_nonempty": 244403, "pairs": 871478, "pairs_per_s1": 3.3589}, "India": {"pairs": 2734478}, "US": {"pairs": 2247397}, "verified_locally": true},
+      "holdout": {"macro_f05_s3": 0.991246, "us_india_part": 0.843258, "verified_locally": false, "source": "RESEARCH_v6 6.16 / issue #45"},
+      "public_score": 0.990545,
+      "public_rank_when_reported": 7,
+      "delta_vs_v7nst": 0.000366,
+      "my_prior_estimate": 0.00012,
+      "estimate_error": "I was low by 3.0x. Cause: every offline French proxy we have under-reports French adaptation. fhs rated this +2.19 and the captain notes it 'got the direction right and the size badly wrong'. LESSON: use the offline French proxies to RANK candidates and to DETECT DRIFT, never to size a gain.",
+      "measured_decomposition": {"stack_alone_v7nst_dpc_minus_v7nst": 0.000085, "model_alone_v7sq_dpc_minus_v7nst_dpc": 0.000281, "france_share_of_the_model_change": "about +0.00023, i.e. France F0.5 up about +0.0016 (captain's decomposition)"},
+      "selected_best": true
+    },
+    {
+      "variant": "v7nst-dpc",
+      "package": "submissions/files/2026-09-27-v7nst-s3-ops3a-dpc-c2",
+      "parent": "v7nst",
+      "changed_component": "the stacked per-country-group rules only; the model is unchanged from v7nst. This makes it a clean controlled measurement of the stack with the model held fixed.",
+      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_results_7nst_dpc.tsv", "bytes": 97870453, "sha256": "f349012516cdd239106cc88f53e4f5ccaf8b5531d30a9345e82f0584783494a2", "sha256_verified_locally": true},
+      "candidate": {"sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa", "sha256_verified_locally": true, "note": "byte-identical to v7nst's candidate file — the stack adds no candidates, only adds or reclassifies pairs already inside the set. Confirmed empirically, not assumed."},
+      "validation": {"matching_hard_checks": "PASS", "row_count": 1732544, "final_pairs": 5853049, "empty_rows": 99837, "owner_conflicts": 0, "cross_country_pairs": 0, "targets_absent": 0, "matches_outside_candidates": 0, "package_pairing": "PASS", "report": "experiments/bakshi/final-package/audit_v7nst_dpc.json", "verified_locally": true},
+      "affected_by_country": {"France": {"s1": 259452, "s1_nonempty": 244431, "pairs": 871528, "pairs_per_s1": 3.3591}, "India": {"pairs": 2734250}, "US": {"pairs": 2247271}, "verified_locally": true},
+      "public_score": 0.990264,
+      "delta_vs_v7nst": 0.000085,
+      "significance": "This is the value of the stacked rules with the model held fixed — the controlled comparison, and the cleanest number of the day. It also empirically verifies the stack's subset invariant: all 5,853,049 matched pairs lie inside the unchanged 6,410,247-pair candidate set.",
+      "selected_best": false,
+      "WARNING": "This was uploaded AFTER v7sq-dpc and is therefore the CURRENT final submission, despite scoring 0.000281 lower. Must be superseded by a restore of the best measured file."
+    },
     {
       "variant": "v7nst",
       "package": "submissions/files/2026-09-27-v7nst-s3-ops3a-c2",
@@ -119,7 +153,8 @@
       "public_score": 0.990179,
       "public_rank_when_reported": 7,
       "upload": {"slot": "2026-09-26 sub04", "time_ist_reported": "~23:35", "by": "ameya (captain)"},
-      "selected_best": true
+      "selected_best": false,
+      "superseded": "By v7sq-dpc (0.990545, measured) on 27 Sep. v7nst remains a fully validated fallback with a runnable archive, but it is no longer the best measured result."
     },
     {
       "variant": "v7ens2",
