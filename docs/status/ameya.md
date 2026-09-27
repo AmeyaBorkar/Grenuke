@@ -1,7 +1,7 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-27 20:15
-- **Current focus:** the single final upload, `mixf2`, agreed by the whole team on issue #64 (Bakshi and Sachi confirmed). Predicted about 0.99091.
+- **Last updated (IST):** 2026-09-27 22:45
+- **Current focus:** the final upload `B+` (Composite B, LB 0.990879, plus 8 confirmed 7B decoy drops; matching `a5b0e90f36d5c598…`). mixf7 0.990833 and mixf2 0.990819 were measured tonight; RESEARCH_v6.md §6.20.
 - **Branch(es):** `ameya/final-stack`, commits ad84d66 to ea2067b:
   - `ce_box.py` options;
   - `stack/dp_france.py`;

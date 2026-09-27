@@ -917,3 +917,32 @@ v7sqsyc's lead rests on cal alone:
   - At logit < −8, 13 of its 15 holdout drops are false (+21e-6, both halves positive).
   - Its 329 extra French flags add +1e-6 on the holdout, so they are not used.
   - The e5-base detector is miscalibrated: its holdout rejects are mostly true.
+
+### 6.20 The leaderboard verdicts and the final upload (27 Sep, 20:50–22:40)
+
+| upload | LB | what it isolates |
+|---|---|---|
+| mixmdp | 0.990699 | baseline |
+| **Composite B** (g1w US/India − 7B drops; mixmdp France − 7B drops) | **0.990879** | the 7B parts: +180e-6, against +149 predicted |
+| mixf7 (B with v7sq6r3 France) | 0.990833 | round-3 France: **−46** vs B; cal had predicted +69 |
+| mixf2 (mixf7 with v7sq3 US) | 0.990819 | g1w US: +14 (holdout +10) |
+
+**What the round-3 miss teaches.** Decomposed decoy-aware (7B-cal: US/India holdout truth by 7B-logit band, applied to 7B-scored pairs):
+- mixmdp's **France DP carried +51** (pc-cal saw +15).
+- The round-3 model itself was **+24** better on scored pairs.
+- The look-alike drop was about neutral (LB residual +18; no pair was 7B-scored).
+
+**The pc-based estimators are biased on decoys.** They value putting back the 7B-rejected French decoys as a gain of +49 to +65e-6, which the LB contradicted.
+- For the round-3 model family they were 53–98e-6 too optimistic.
+- So after the 7B drops, pc-cal alone cannot rank French models. Use the 7B's own logit on the changed pairs, and prefer LB evidence.
+
+**Checked and not used after the verdicts:**
+- Corrected-label round 4, the 859 7B rejects as y = 0 (v7sq6q4): −44 by 7B-cal.
+- The 3-adapter 7B ensemble: its extra French drops hit garbled "EHPAD" copies. US/India only +5e-6 on 8 holdout pairs.
+- US/India hybrids of g1w and v7sq3: none beats full g1w at P ≥ 0.85.
+- A pc × 7B recall rule: +13 to +18e-6 in one holdout half only.
+- The bge detector's extra flags: same street + different number, which is 99.7% true on the holdout where predicted.
+- mixfq (round-3 France with B's treatment): nominal +20, bias-corrected about −33.
+- A more inclusive France DP at shift 0.5 / 0.8: most adds have pc ≤ 0.7, below the 7B calibration; ranges −10 to +16 and −38 to +30.
+
+**Final upload: `B+`** = Composite B (rebuilt byte-identical, matching `df4bccd785b3fa78…`) plus 8 more French decoys dropped by the LB-confirmed 7B rule (logit < −6, p1 > 0.99), from pairs the 7B had not scored. Matching `a5b0e90f36d5c598…`, candidates `b55c2b1d01fa9699…`, validator + strict audit PASS; expected about 0.99088.
