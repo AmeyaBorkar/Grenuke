@@ -33,7 +33,8 @@ def main() -> int:
     f = read_table("matches", final, "test", ["s1", "r"]).astype("int64")
     h = pd.read_parquet(hunted)[["s1", "r"]].astype("int64")
     ch = pd.read_csv(changes)
-    assert set(key(apply(f, ch))) == set(key(h)), "the changes csv does not reproduce the hunted parquet"
+    if set(key(apply(f, ch))) != set(key(h)):
+        raise SystemExit("the changes csv does not reproduce the hunted parquet")
     labelled = set(pc.unique(pq.read_table(records_path("train"), columns=["country"])["country"]).to_pylist())
     other = ~ch.country.isin(labelled)
     o_acr = ch[other & (ch.rule == "acr")]
@@ -44,7 +45,8 @@ def main() -> int:
     nodigit = ~addr.reindex(o_acr.r).fillna("0").str.contains(r"\d").to_numpy()
     keep = pd.concat([ch[~other], o_acr[nodigit]], ignore_index=True)
     h2 = apply(f, keep)
-    assert not h2.r.duplicated().any()
+    if h2.r.duplicated().any():
+        raise SystemExit("a record has two owners")
     h2.to_parquet(out, index=False)
     print(f"final {len(f)}; hunt all {len(h)}; h2 {len(h2)}")
     print(keep.groupby(["rule", "action", "country"]).size().to_string())
