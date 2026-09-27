@@ -838,3 +838,71 @@ Validation on the US/India holdout (predictions; truth known):
 **The French estimators, backtested on every LB pair** (France-diff agent, `agents/fdiff/backtest_table.txt`): `cal` (the new model's pc calibrated on the US/India holdout, applied to the French changes) tracks best (scale 0.96, mean abs error 42e-6, corr 0.98); `s1` has the right shape but under-predicts by about 20%; `s2` (the old model's pc as truth) had the wrong sign on every pair. Rule-only changes are undervalued by the pc-based estimators.
 
 **Calibrated France value vs v7sq-dpc (LB units):** v7sq7wg + DP +0.000174, v7sq6w5 +0.000167 (guarded labels ×5: the weight has saturated), v7sq6wg +0.000166, v7sq6 + DP +0.000121, v7sqwg + DP +0.000104, v7sq4 + DP +0.000088, v7xbag + DP +0.000039. The France-heavy members (e5fr, bgefr, holdout band AUC 0.918–0.926) add nothing measurable.
+
+### 6.19 The last evening: round-3 labels, Bakshi's 7B, the upload (27 Sep, 15:05–20:30)
+
+**Round-3 stage-2 labels move France; round 4 does not.** Round 3 is mixmdp's French decisions, guarded (`pseudo_labels.py` + `pseudo_guard.py`) and weighted ×3. Round 4 is the same from mixqc; it changes 3,553 of 1.43M labels.
+
+| France model (vs v7sq-dpc, LB e-6) | CE group | labels | cal | s1 ×1.24 | own |
+|---|---|---|---|---|---|
+| v7sq6r3 | cmq6 | round 3 | **+215** | +170 | +127 |
+| v7sq7r3 | cmq7 | round 3 | +204 (+15 with the France DP) | | |
+| v7sq6r4 | cmq6 | round 4 | +212 (+14 DP) | +155 (+29 DP) | +122 |
+| v7sqsyc | cmq9 + synth3 cesy3, cesy3b | round 3 | +249 | +167 | **+51** |
+| v7sq8wg / v7sq9wg / v7sq7wg (mixmdp) | cmq8 / cmq9 / cmq7 | round 2 | +179 / +175 / +159 | | |
+
+v7sqsyc's lead rests on cal alone:
+- It reverses 1,182 of the LB-confirmed v7nst → v7sq moves (v7sq6r3 reverses 927).
+- Its drops are ones our French cross-encoders like (z +0.59 vs +0.43), so they come from the synthetic cross-encoders, not from the confirmed direction.
+
+**Bakshi's Qwen2.5-7B cross-encoder `q7st`** (Apache-2.0, 7.6B, LoRA, self-trained on the v7sq-dpc French labels) was used three ways.
+
+1. **As a stage-2 cross-encoder.**
+   - France: a tie (v7sqq7 +159).
+   - India: g1w (7B ×2) is **+66.1e-6 F vs v7sq3 on the holdout, P 0.998** (paired Poisson bootstrap; our combo DP on his pc reproduces his g1w-dpc within 25 pairs).
+   - US: +26.2 at P 0.906, which fails a multiple-testing correction.
+   - Paired against g1w on India: g1x3 −13.5, g7only −70.3.
+2. **Rescoring the predictions outside the CE band.** 94.5% of predictions have p1 > 0.99, and no cross-encoder ever scored them.
+   - Rule: drop when the 7B logit < −6.
+   - Holdout: +33e-6, both halves positive.
+   - Test: 859 French pairs (25× the US/India rate) and 310 US/India pairs.
+3. **Recall.** Scoring the unpredicted candidates whose record no S1 owns, holdout precision peaks at 71% (logit > 4: 69 adds, 49 true). That is under the ~75% break-even of an F0.5 addition, so no rule.
+
+**The French 7B rejects are generic-name decoys.** 78% are same name + same house number + different street, e.g. `lille ecole sarl | 42 rue gutenberg` vs `42 q. du wault`. On the labelled US/India holdout this pattern is both a copy and a decoy, and the 7B separates the two:
+
+| same name + same number, different street | pairs | true | 7B median | 7B < −6 |
+|---|---|---|---|---|
+| predicted | 380 | 99.7% | +7.9 | 0 |
+| unpredicted (rejected by the model) | 218 | 0.5% | −9.9 | 202 |
+
+- French names are generic: a median of 43 same-name French S1 per rejected pair.
+- Only 4 of the 859 records sit at another same-name S1's street and number, so they are decoys, not misassigned copies.
+- The drop rate is the same in the third of S1 the adapter never trained on: 0.112% vs 0.108% and 0.107% (Bakshi's leakage check).
+- US/India rejects are mostly name look-alikes (`osd`/`otd`, `century mist`/`century services`).
+
+**Negative results this evening.**
+
+| idea | measurement | verdict |
+|---|---|---|
+| Synthetic cross-encoders as out-of-band detectors (e5-base) | at logit < −4, 181 of 192 holdout drops are true; France flags 7,263 at −5 against 39 on the holdout | miscalibrated |
+| Empty-address exact-name recall rule | 40% true (287 holdout pairs) | below break-even |
+| "(france)" acronym copies | 143 test pairs | +1 to +4e-6 at best |
+| France recall | 3.354 predictions per S1, against 3.389 US and 3.376 India | a gap of about 0.03 per S1, but no signal adds pairs above the F0.5 break-even |
+
+**The upload: `mixf2`** (issue #64, confirmed by Bakshi and Sachi).
+
+- **Sources:**
+  - US: v7sq3-dpc.
+  - India: g1w-dpc (Bakshi).
+  - France: v7sq6r3-dpc.
+- **Drops:** 832 French and 310 US/India 7B rejects.
+- **Package:** 5,851,827 pairs; validator and strict audit PASS; matching sha256 `4c3b4527d608fdf5…`, candidates `d2c7af15cf5331fd…`.
+- **Predicted 0.99091:**
+  - round-3 France +0.00007;
+  - French drops +0.00008;
+  - India +0.00003;
+  - US/India drops +0.00003.
+- **Not uploaded: mixf4** (France v7sq6r4 + DP, +11e-6 by cal). Round 4 alone adds nothing, and one more self-training round is a risk out of distribution (Sachi's LOCO ladder, 0.882 → 0.851 → 0.831 → 0.823).
+- Cal's track record: it gave mixmdp's France +146e-6, and the measured France part was about +134e-6.
+
+**Tools.** `stack/compose3.py` builds a package per S1 country, each country from its own matches tag or parquet, then applies drop and add lists. Adds go only inside the candidates and onto unowned records. It reproduces mixqq pair for pair. Bakshi's documentation of the 7B components is `experiments/bakshi/box/COMPONENTS_FOR_DOC.md` (PR #62).
