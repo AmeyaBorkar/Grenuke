@@ -1,7 +1,7 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-27 22:45
-- **Current focus:** the final upload `B+` (Composite B, LB 0.990879, plus 8 confirmed 7B decoy drops; matching `a5b0e90f36d5c598…`). mixf7 0.990833 and mixf2 0.990819 were measured tonight; RESEARCH_v6.md §6.20.
+- **Last updated (IST):** 2026-09-27 23:55
+- **Current focus:** done. **Team best: Composite B, public LB 0.990879.** The last slot went to Bakshi's B7 (0.990875, a tie). Other measured uploads: mixf7 0.990833, mixf2 0.990819. B+ was prepared but not uploaded. Artefacts: Bakshi's `SOLUTION_DOC_compositeB.md` (PR #62), with my edits on #64.
 - **Branch(es):** `ameya/final-stack`, commits ad84d66 to ea2067b:
   - `ce_box.py` options;
   - `stack/dp_france.py`;
@@ -39,5 +39,7 @@
   - Remove the session SSH keys (`~/.ssh/grenuke_vast`, `~/.ssh/grenuke_vast2`).
   - Bakshi's boxes are wound down; my scratch folders there (`ameya_oob`, `ameya_q7add`, `ameya_val`) can be deleted.
 - **Candidate set:** 3.70 pairs per test S1, as before (the stage-2 input; organisers review it with the code).
-- **Blocked on / need from others:** the captain's upload of `B+` and its score, which goes in `CHANGELOG.md` and `submissions/records/`.
+- **Blocked on / need from others:**
+  - the captain: merge #62 and #65, number and commit the submission records (Bakshi's drafts), destroy `grenuke-vast3`, remove the session SSH keys;
+  - Bakshi: fold the three edits (#64) into the solution document.
 - **Latest handover:** `docs/handover/2026-09-27_2014_ameya_final-upload.md`.
