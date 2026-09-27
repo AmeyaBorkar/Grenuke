@@ -21,7 +21,8 @@ def main() -> int:
     dl = d[s1c.reindex(d.s1).isin(labelled).to_numpy()]
     fo = f[~s1c.reindex(f.s1).isin(labelled).to_numpy()]
     m = pd.concat([dl, fo], ignore_index=True)
-    assert not m.r.duplicated().any(), "a record has two owners"
+    if m.r.duplicated().any():
+        raise SystemExit("a record has two owners")
     m.to_parquet(out, index=False)
     print(f"{'/'.join(labelled)} {len(dl)} from {dec.replace(chr(92), '/').split('/')[-1]}; other countries {len(fo)} "
           f"from {ftag}; total {len(m)}")
