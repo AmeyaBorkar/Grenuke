@@ -60,7 +60,7 @@ setup)
   # models download while the records build (both are I/O bound on different ends)
   nohup python - > "$LOGS/prefetch.log" 2>&1 <<EOF &
 from huggingface_hub import snapshot_download
-for r in ["$Q7", "$Q34", "microsoft/mdeberta-v3-base", "Alibaba-NLP/gte-multilingual-reranker-base"]:
+for r in "${PREFETCH:-$Q7 $Q34 microsoft/mdeberta-v3-base Alibaba-NLP/gte-multilingual-reranker-base}".split():
     p = snapshot_download(r, allow_patterns=["*.json", "*.safetensors", "*.py", "*.txt", "*.model", "*.tiktoken", "tokenizer*", "spm*"])
     print("fetched", r, p, flush=True)
 EOF
@@ -120,6 +120,20 @@ status)
   ;;
 merge)
   python "$B/box/llm_merge.py" --name "${2:?merge NAME}"
+  ;;
+run-group)  # NAME MODEL GPU GROUP: one llm_group.py run in the foreground
+  group "${2:?name}" "${3:?model}" "${4:?gpu}" "${5:?group}"
+  ;;
+small)  # mdbs|gtes GPU: one small self-trained encoder (ce_box.py recipe, v7sq-dpc pseudo-labels) in the foreground
+  case "${2:?mdbs|gtes}" in
+    mdbs) CUDA_VISIBLE_DEVICES="${3:?gpu}" python "$M/ce_box.py" --model microsoft/mdeberta-v3-base --name mdbs \
+            --lr 3e-5 --batch 128 --epochs 1 --seed 26 --pseudo "$PSEUDO" ;;
+    gtes) CUDA_VISIBLE_DEVICES="${3:?gpu}" python "$B/box/ce_rc.py" --model Alibaba-NLP/gte-multilingual-reranker-base \
+            --name gtes --lr 2e-5 --batch 128 --epochs 1 --seed 26 --pseudo "$PSEUDO" ;;
+  esac
+  ;;
+after7b)  # replaces "gpu3 q34"'s sequential chain (kill that chain's bash first; its running group keeps going)
+  bash "$B/box/sched_after7b.sh"
   ;;
 *) echo "unknown command $CMD" >&2; exit 2 ;;
 esac
