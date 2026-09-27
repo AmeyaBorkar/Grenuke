@@ -2,7 +2,7 @@
 
 - **Last updated (IST):** 2026-09-27 08:35
 - **Current focus:** the 5 uploads of 27 Sep. The window closes **21:00 IST**; the final upload counts, so the chosen best goes up last.
-- **Branch(es):** `ameya/final-stack` (#58, draft: the stacked rules `experiments/ameya/model-v1/stack/`, RESEARCH_v6.md §6.16, the decision record, an `fhs.py` fix, this file). #35–#57 merged.
+- **Branch(es):** `ameya/final-stack` (#58, ready for review: the stacked rules `experiments/ameya/model-v1/stack/`, RESEARCH_v6.md §6.16, the decision record, an `fhs.py` fix, this file). #35–#57 merged.
 - **Leaderboard vs holdout:**
 
   | model | holdout (s3) | leaderboard | France implied |
