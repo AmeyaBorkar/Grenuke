@@ -86,6 +86,38 @@ So the remaining French gap needs **a better French model**, not better post-pro
 
 **Recommendation unchanged: ship `v7sq-dpc`, bank the ≈+0.00012, protect the 0.990179 floor.**
 
+## Does any of this depend on our France estimate being right? No — and that was worth checking
+
+Every French figure the team quotes comes from one equation with two unknowns:
+`LB = 0.8502477 × F_ui + 0.1497523 × F_fr`, resolved by assuming `F_ui` equals the re-weighted shared
+holdout (0.991742). **That assumption is the weakest link in the whole diagnosis** — the holdout is not an
+untouched test set, since the pipeline was developed against it for days and the final `--all` fit uses it as
+a fourth out-of-fold group. If it is optimistic, France is higher than 0.981 and the leaders' advantage is
+less French than we think.
+
+I expected that to matter. It doesn't, and the reason is worth stating because it makes the conclusion
+stronger rather than weaker (`france_sensitivity.py`):
+
+| assumed `F_ui` | vs holdout | implied our France | implied leader's France | **French gap** |
+|---|---|---|---|---|
+| 0.991742 | +0.0000 (the assumption) | 0.981307 | 0.990015 | **+0.008708** |
+| 0.991442 | −0.0003 | 0.983010 | 0.991718 | **+0.008708** |
+| 0.991042 | −0.0007 | 0.985282 | 0.993989 | **+0.008708** |
+| 0.990242 | −0.0015 | 0.989824 | 0.998531 | **+0.008708** |
+
+**The French gap is invariant at +0.008708.** Any error in `F_ui` shifts our France and the leader's by the
+same amount, so it cancels in the difference. The *level* of France is uncertain; the *gap* is not, and the
+gap is what decides whether anything is reachable.
+
+The table also yields a bound nobody had derived. The leader's implied France cannot exceed 1.0, which forces
+**`F_ui` ≥ 0.98998** — so `F_ui` sits in [0.98998, 0.99174] and our France in [0.9813, 0.9898]. Even at the
+most favourable end of that range the gap to the leader is the same +0.0087.
+
+The one experiment that would pin the level down is an **fr0 probe** (submit with France emptied), which
+measures `0.8502477 × F_ui` directly. **We are deliberately not running it:** it costs an upload slot, cannot
+improve the score, and no decision today depends on the answer — the gap is unreachable at every point in the
+range. Recorded here as the clean experiment we chose not to run, and why.
+
 ## Reproducing
 
 ```bash
