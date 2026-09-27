@@ -4,8 +4,17 @@
 **Team Members:** Ameya Borkar (coordinator, submissions captain), Sachi Dhoka, Aarush Bakshi
 **Submission Date:** 2026-09-27
 
-**Submitted model: `v7nst`** (package `2026-09-27-v7nst-s3-ops3a-c2`).
-Public leaderboard macro F0.5 **0.990179**. Shared-holdout macro F0.5 **0.991194**.
+> **SUBMITTED MODEL — this one line must match the archive's `output/`. Both candidates are documented
+> throughout, so nothing else changes when the selection changes.**
+>
+> | | status | package | holdout s3 | public |
+> |---|---|---|---|---|
+> | **`v7sq-dpc`** | **intended final** | `2026-09-27-v7sq-s3-ops3a-dpc-c2` | **0.991246** | pending |
+> | `v7nst` | fallback; **currently in this archive** | `2026-09-27-v7nst-s3-ops3a-c2` | 0.991194 | **0.990179** |
+>
+> `v7nst` is the only model with a **measured** public score, so it is the floor. `v7sq-dpc` adds two further
+> cross-encoder families (§4.3) and the stacked per-country-group rules (§4.5); its expected public score is
+> ≈0.990295. Everything in §§1–3 and §4.1–4.2 is common to both.
 
 > **Provenance of every number below.** Figures marked **[measured]** were recomputed directly from the
 > submitted output files and the provided test data while preparing this package. Figures marked
@@ -251,6 +260,39 @@ The rules consequently almost stop firing: 305 op-B drops, against 17,914 for th
 positive gains ≈0.18 while dropping a true pair costs ≈0.07. It is therefore roughly neutral even if only
 half its changes are right.
 
+### 4.5 Stacked per-country-group rules (`-dpc`, in `v7sq-dpc` only)
+
+The final candidate adds one pass after the acronym join (`src/model_v1/stack/stack.sh`), which **decides
+separately for the countries that have training labels and those that do not** — hence `dpc`, decide per
+country. The labelled set is read from the train records, never hard-coded.
+
+**Countries with labels.** The flat threshold is replaced by an expected-F0.5 decision per S1 (logit shift
++0.2, phantom 0.01, −0.3 shift for crowded records), plus an initials rule and the generator's caps of 5 S2,
+6 S3 and 11 records per S1. Gate: **+48.1e-6 [+7.1, +91.2]** on the shared holdout over `v7s`.
+
+What makes that credible rather than another holdout fit is the pair of controls: **repeated 2-fold CV puts
+the decision part at +23.7e-6 out of sample, positive in 86% of 42 splits, while tuning the flat threshold
+instead gives −18.8e-6.** The improvement is in the decision rule, not in the tuning.
+
+**Countries without labels.** A narrowed version — only the number-dropped acronym additions, and no cap
+drops, because French `pc` cannot rank near-identical copies — then two rules justified by **base rates
+measured where labels exist**, not by model score:
+
+| rule | evidence | effect on `v7s` |
+|---|---|---|
+| `copy`: add same-name copies at the exact address | the population is 99.99% true in US/India | +332 pairs |
+| `city`: drop pairs whose S1 and record name different communes | French true copies change commune in **3 of 546,465** | −89 pairs |
+
+`city` also closes the acronym join's known cross-city leak (48 of 3,832 French additions named another
+commune, because the same-address test accepts a shared house number plus one shared street word and French
+streets share first names).
+
+**Invariants.** Every layer is re-imported through a check that asserts one owner per record and that every
+pair lies inside the model's own candidate set — the stack only adds or reclassifies pairs already in that
+set, so it needs no new candidate tag and the submission stays a subset of its candidates. Verified
+independently on the final bytes by `audit_matching.py`, because the organiser validator only *warns* about
+the subset property.
+
 ---
 
 ## 5. Results & Error Analysis
@@ -268,7 +310,15 @@ half its changes are right.
 | v6all: blocking v3 repairs, signed number features | 0.990842 (s3) | 0.988609 |
 | v7ce3: + e5-large and e5-base logits, stage 3, rules v3, acronym join | 0.991138 (s3) | — |
 | v7n: e5-small + z-mean of two e5-large | 0.991211 (s3) | 0.989721 |
-| **v7nst (submitted): + France stage-2 self-training** | **0.991194 (s3)** | **0.990179** |
+| **v7nst: + France stage-2 self-training** | **0.991194 (s3)** | **0.990179** |
+| v7mst: bge joins the cross-encoder mean | 0.991206 (s3) | — |
+| v7s: the France self-trained e5-large replaces the 2-epoch run | 0.991229 (s3) | — |
+| **v7sq-dpc (intended final): + Qwen in the mean, + stacked rules (§4.5)** | **0.991246 (s3)** | pending |
+
+Later candidates were separated by holdout differences inside the ~0.00005 noise floor, so they were ranked
+on a label-free French measure instead — net true copies gained against v7nst, per 1000 French S1: v7ens2
+−0.65, v7mst −0.85, v7nst2 −1.54; `v7s` +0.02 and `v7sq-dpc` **+2.19** were the only ones that did not lose
+ground. §5.4 explains why that measure, and not the rule-population AUC, is the usable one here.
 
 Submitted model, per country [holdout]: US 0.991005, India 0.991472.
 
@@ -346,6 +396,25 @@ Stated explicitly, because several of these are easy to overclaim:
    rows to gate on. Several were adopted on label-free evidence plus a US/India no-regression check.
 6. Larger cross-encoders **did** help (§4.3) — an earlier draft of this document claimed the opposite,
    which was true only of e5-base and of adding correlated checkpoints to an average.
+7. **Most of our label-free French diagnostics became unusable once the models were self-trained.** The
+   rule-population AUC saturates: 0.9844 / 0.9857 / 0.9846 for three different candidates, because they were
+   trained on pseudo-labels derived from those populations. Scoring *final decisions* on the same populations
+   saturates for a second reason — `post_ops` forces the outcome on exactly those pairs, so every candidate
+   predicts **0 of 64,016** look-alikes and they differ on only **29 of 128,856** pairs. The measure that
+   still discriminates is the COPY population, precisely because the rules do **not** override it. The general
+   requirement for a usable label-free check here is: known truth rate transferred from the labelled
+   countries, **and** not a population any rule decides.
+8. **The remaining French loss is not reachable by post-processing, and this was tested rather than assumed.**
+   97% of the final French predictions sit at pc ≥ 0.99, so no threshold or rule acts on them. The suspect
+   population is real and about the right size — cross-encoder disagreement is 12.17% on French kept pairs
+   against a 2.04% US/India background, i.e. ~8,100 pairs, worth up to +0.0008 if every one were wrong — but
+   that signal fires on **17.76%** of *known-true* French pairs against 8.74% of unknown-truth ones, so it is
+   anti-selective and cannot be used to find them. Closing the gap needs a better French model.
+9. **France's absolute level is uncertain; the gap is not.** Resolving `LB = 0.8502 F_ui + 0.1498 F_fr`
+   requires assuming `F_ui`, and the holdout value used is the number most likely to be optimistic. The
+   implied French level therefore only bounds to **[0.9813, 0.9898]** (the upper end forced by the leader's
+   implied France not exceeding 1.0). The *difference* to a competitor is invariant to that assumption,
+   because it shifts both sides equally — which is why the diagnosis survives its own weakest input.
 
 ### 5.5 Error analysis
 
@@ -419,15 +488,19 @@ listed as such in §5.4 rather than presented as proven.
   French departments → regions, generator list words, the OCR digit map, ordinal words.
 - **Pretrained models — all ≤ 8B parameters and MIT or Apache-2.0:**
 
-  | model | role | parameters | license |
-  |---|---|---|---|
-  | XGBoost | stages 0–3 | — | Apache-2.0 |
-  | `intfloat/multilingual-e5-small` | stage-2 feature `ce` | 118M | MIT |
-  | `intfloat/multilingual-e5-large` | two fine-tunes, z-averaged into feature `cem2` | 560M | MIT |
-  | `intfloat/multilingual-e5-base` | **teacher only** — feature `ceb` of `v7ce3`, whose decisions become the pseudo-labels. Needed to reproduce; absent from the submitted model's own feature set. | 278M | MIT |
+  | model | role | parameters | license | in `v7nst` | in `v7sq-dpc` |
+  |---|---|---|---|---|---|
+  | XGBoost | stages 0–3 | — | Apache-2.0 | yes | yes |
+  | `intfloat/multilingual-e5-small` | stage-2 feature `ce` | 118M | MIT | yes | yes |
+  | `intfloat/multilingual-e5-large` | 1 epoch seed 26 (`e5l`) + 2 epochs seed 7 (`e5l2`), z-averaged into `cem2` | 560M | MIT | yes | `e5l` only |
+  | `intfloat/multilingual-e5-large` | `e5ls`: 2 epochs seed 7, additionally self-trained on the French band pseudo-labels | 560M | MIT | no | yes |
+  | `intfloat/multilingual-e5-base` | feature `ceb` of the `v7ce3` **teacher**, whose decisions become the pseudo-labels. Needed to reproduce either model; absent from both students' own feature sets. | 278M | MIT | teacher | teacher |
+  | `BAAI/bge-reranker-v2-m3` | in the `cmq` mix — a different family (XLM-R reranker), which is why it lifts the French mean most despite being weakest alone | 568M | Apache-2.0 | no | yes |
+  | `Qwen/Qwen2.5-1.5B` | in the `cmq` mix, LoRA r=16 classifier, self-trained on the French pseudo-labels. Admitted only after a **predeclared** gate on both accuracy and decorrelation: band AUC 0.9381 ≥ 0.93 and correlation with `e5l` 0.9433 ≤ 0.975. | 1.5B | Apache-2.0 | no | yes |
 
-  Every cross-encoder was fine-tuned **only on our own training pairs**. `BAAI/bge-reranker-v2-m3` and
-  `Qwen2.5-1.5B` were evaluated during development and are **not** part of the submitted model.
+  Every cross-encoder was fine-tuned **only on our own training pairs and our own pseudo-labels derived from
+  them** — no external supervision. All seven entries are ≤ 8B and MIT or Apache-2.0, so both candidates sit
+  inside the competition rule.
 
 ### C. Additional results
 
