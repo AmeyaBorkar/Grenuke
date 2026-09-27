@@ -41,4 +41,4 @@
 - **Crash and memory:** the integration laptop froze at 03:35 (memory) and rebooted; at 04:46 the memory reaper killed the background wrappers, but every script survived. Nothing was lost (§6.16).
 - **Vast.ai:** `grenuke-vast` runs the second e5-large seed; it **stops itself** once that output is fetched (about 06:40). Destroy it in the console after the competition.
 - **Blocked on / need from others:** the captain's uploads and their scores; Bakshi: the `stack/stack.sh` step in `reproduce.sh`.
-- **Latest handover:** `docs/handover/2026-09-26_2049_ameya_squeeze-v7n.md`.
+- **Latest handover:** `docs/handover/2026-09-27_0706_ameya_final-stack.md`.
