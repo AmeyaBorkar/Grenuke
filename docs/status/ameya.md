@@ -38,5 +38,9 @@
   - laptop queue: v7sq6 → v7sqwg (guarded v7sq labels at stage 2, French rows ×3) → v7sq5g (round-2 cross-encoders), then v7xbag (stage-2 bag of all variants and v7sq's seeds 1–3); each gets a France-only test package.
   - `grenuke-vast3` (H100, 128 CPU): stage 2 for v7sqwg, v7sq seeds 1–3 and v7sq5g, and the round-2 cross-encoders (guarded labels), fetched back sha-checked so the laptop skips those stage-2 runs.
 - **Vast.ai:** `grenuke-vast` stopped at 06:21; `grenuke-vast3` is running. Destroy both in the console after the competition and remove the SSH keys.
-- **Blocked on / need from others:** the captain's uploads and their scores; send Bakshi the v7sq-dpc `candidate_pairs.tsv` (he has only the matching file); merge #58 when ready (rebase-merge).
+- **Candidate set (organisers, 27 Sep ~12:50):** `candidate_pairs.tsv` is part of the final submission and is reviewed
+  with its code; smaller per S1 ranks higher beyond the leaderboard. Ours is the stage-2 input (`cands_final.py`:
+  p1 ≥ 0.02 and each record's top 2 S1, plus acronym joins): **3.70 pairs per test S1** (matches 3.38; blocking
+  about 34). Relayed on #45.
+- **Blocked on / need from others:** the captain's uploads and their scores; the final zip must hold both TSVs of the chosen package (Bakshi had only the matching file of v7sq-dpc); merge #58 when ready (rebase-merge).
 - **Latest handover:** `docs/handover/2026-09-27_0706_ameya_final-stack.md`.
