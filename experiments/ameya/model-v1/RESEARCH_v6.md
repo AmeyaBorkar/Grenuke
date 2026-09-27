@@ -906,3 +906,14 @@ v7sqsyc's lead rests on cal alone:
 - Cal's track record: it gave mixmdp's France +146e-6, and the measured France part was about +134e-6.
 
 **Tools.** `stack/compose3.py` builds a package per S1 country, each country from its own matches tag or parquet, then applies drop and add lists. Adds go only inside the candidates and onto unowned records. It reproduces mixqq pair for pair. Bakshi's documentation of the 7B components is `experiments/bakshi/box/COMPONENTS_FOR_DOC.md` (PR #62).
+
+**Late results (20:15–20:25).**
+- **v7sqsyd** (all six synthetic cross-encoders + round 3) scores cal +293e-6, but own-cal +3.
+  - It reverts 1,576 LB-confirmed moves.
+  - Its drops have French-CE z +0.73, where the confirmed direction is −0.20.
+  - Its US/India holdout is −43e-6.
+  - It is the v7sqsyc pattern, only stronger, so it is not used. Synthetic cross-encoders raise cal by reverting what the leaderboard confirmed.
+- **The bge synthetic detector corroborates the French 7B drops.** `cesyoobg` (bge-reranker on US/India labels + synth3, with no self-training labels) flags 708 of the 859 French pairs the 7B rejects out of band (82%).
+  - At logit < −8, 13 of its 15 holdout drops are false (+21e-6, both halves positive).
+  - Its 329 extra French flags add +1e-6 on the holdout, so they are not used.
+  - The e5-base detector is miscalibrated: its holdout rejects are mostly true.
