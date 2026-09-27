@@ -219,6 +219,8 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0, help="XGBoost seed (row/column sampling), for seed bagging")
     ap.add_argument("--param", action="append", default=[], help="override a stage-2 XGBoost parameter: key=value")
     ap.add_argument("--pseudo", default="", help="self-training: parquet (s1, r, y) of target-country test pairs")
+    ap.add_argument("--pseudo-weight", type=float, default=1.0,
+                    help="sample weight of the pseudo-labelled target rows (1 = unweighted; v7sqwg used 3)")
     args = ap.parse_args()
     import common
     common.GROUPS[:] = args.groups.split(",")
@@ -282,7 +284,10 @@ def main() -> int:
         va = train_rows & (g2 != g) & es
         if tmask is not None:
             pl = (gtg != g) & (ytg >= 0)
-            dtr = xgb.QuantileDMatrix(np.vstack([X[tr], Xtg[pl]]), np.r_[yr[tr], ytg[pl]], feature_names=names)
+            w = None if args.pseudo_weight == 1.0 else np.r_[np.ones(int(tr.sum()), np.float32),
+                                                             np.full(int(pl.sum()), args.pseudo_weight, np.float32)]
+            dtr = xgb.QuantileDMatrix(np.vstack([X[tr], Xtg[pl]]), np.r_[yr[tr], ytg[pl]], feature_names=names,
+                                      weight=w)
         else:
             dtr = xgb.QuantileDMatrix(X[tr], yr[tr], feature_names=names)
         dva = xgb.QuantileDMatrix(X[va], yr[va], feature_names=names, ref=dtr)
