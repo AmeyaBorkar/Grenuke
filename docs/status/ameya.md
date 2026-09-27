@@ -1,6 +1,6 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-27 12:00
+- **Last updated (IST):** 2026-09-27 12:30
 - **Current focus:** the last 3 uploads of 27 Sep. The window closes **21:00 IST**; the final upload counts, so the chosen best goes up last (by 18:30).
 - **Branch(es):** `ameya/final-stack` (#58, approved: the stacked rules `experiments/ameya/model-v1/stack/`, RESEARCH_v6.md §6.16, the decision record, an `fhs.py` fix, this file). #35–#57 merged.
 - **Leaderboard vs holdout:**
@@ -30,7 +30,10 @@
 - **Packages ready** (validator and strict audit PASS):
   - `2026-09-27-fr-v7sq4-c2` (sha `e7334cce…`): v7sq-dpc with France from v7sq4 (+1,809 / −1,018 French pairs), US/India byte-identical. The LB minus 0.990545 is the French effect alone.
   - `2026-09-27-mixb-c2` (sha `e67e9b81…`): US/India from v7sq3-dpc, France from v7sq-dpc. The low-risk final candidate (about +0.00002 expected).
-- **Upload plan (3 left, the captain decides):** test 1 `fr-v7sq4` now; test 2 about 15:00 (the best of v7sq6, v7sqwg, v7sq5g, or the bag v7xbag); the final by 18:30 = the best France by LB + the best US/India by holdout (v7sq3 or a bag).
+  - `2026-09-27-mixc-c2` (sha `3688950c…`): `mixb` minus 592 French look-alike word swaps (`stack/apply_swapsim.py`,
+    RESEARCH_v6.md 6.17). Expected about 0.99061. Rebuilt from this branch alone (`stack.sh` v7sq3 and v7sq, then
+    `compose.py` and `apply_swapsim.py`): both TSVs byte-identical.
+- **Upload plan (3 left, the captain decides):** every upload is a candidate final: `mixc` now; about 15:00 `mixc` with France from the best new variant (France-diff E-method); the final by 18:30 = the best measured, re-uploaded.
 - **Running:**
   - laptop queue: v7sq6 → v7sqwg (guarded v7sq labels at stage 2, French rows ×3) → v7sq5g (round-2 cross-encoders), then v7xbag (stage-2 bag of all variants and v7sq's seeds 1–3); each gets a France-only test package.
   - `grenuke-vast3` (H100, 128 CPU): stage 2 for v7sqwg, v7sq seeds 1–3 and v7sq5g, and the round-2 cross-encoders (guarded labels), fetched back sha-checked so the laptop skips those stage-2 runs.
