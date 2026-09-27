@@ -1,5 +1,20 @@
 # Status: bakshi
 
+## Recovery review, 27 September approximately 10:00 IST
+
+- **Branch:** `bakshi/recovery-audit`, main `1dd5a71`.
+- **Latest handover:** `docs/handover/2026-09-27_0952_bakshi_recovery-audit.md`.
+- **Plan:** `plans/bakshi/RECOVERY_0991.md`. Corrects the unproved 0.991 ceiling and specifies one
+  bounded candidate-recovery audit through trusted sibling aliases, with coverage/accuracy gates and
+  the existing 13:00 model cutoff. This is a plan, not a newly measured ML improvement.
+- **Best measured:** v7nst 0.990179. User will send stacked-model public scores later.
+- **Validation:** 115 repository tests pass in 45.84 seconds; no prediction files changed, no GPU spend.
+- **Coordination:** Active packaging continues independently in `bakshi/opus-exec` / PR56;
+  stacked pipeline changes remain in PR58. Their newer issue45 updates supersede the historical
+  artifact blockers below. This review does not restart completed family-blend/self-training experiments.
+
+## Earlier integration status (retained for history)
+
 - **Last updated (IST):** 2026-09-27 01:30
 - **Current focus:** Final packaging of the submitted model **v7nst** (public 0.990179), and preparing
   Tracks A/B so they can run the moment their inputs arrive.
