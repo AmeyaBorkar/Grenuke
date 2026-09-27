@@ -753,3 +753,26 @@ Self-training on French pseudo-labels cost e5ls nothing on US/India (e5ls holdou
 - The DP rule converges on the same prediction density from any model: 3.389 (US) and 3.376 (India) per S1 on v7s, v7sb and v7nst alike, starting from thresholds of 0.70 and 0.675.
 
 **Memory peaks of the post-stage-2 steps** (v7sb): `decide.py` 9.8 GB, `acr_join.py` 6.0 GB, `post_ops.py` 3.3 GB, `stage3.py` 2.8 GB. Stage 2 itself peaks at 16.5–17.5 GB.
+
+**All final candidates (27 Sep 08:21)**, each stacked with `stack.sh`, validator and strict audit PASS:
+
+| model | cross-encoder mean | holdout s3 | US/India part | French changes per 1000 S1 | COPY net (model) | `fhs` of `-dpc` |
+|---|---|---|---|---|---|---|
+| v7nst (uploaded) | e5l, e5l2 | 0.991194 | 0.843210 | — | 0 | +1.43 |
+| v7s | e5l, e5ls, bge | 0.991229 | 0.843247 | +7.1 / −9.5 | +0.05 | +1.11 |
+| v7sb | e5l, e5ls, bges | 0.991226 | 0.843241 | +12.0 / −11.1 | +1.21 | +1.13 |
+| **v7sq** | e5l, **qst**, e5ls, bge | 0.991246 | 0.843258 | +10.3 / −10.2 | **+1.45** | **+2.19** |
+| v7ensall | bag of the five above | 0.991239 | 0.843253 | +5.8 / −7.7 | +0.62 | +1.94 |
+| v7sq3 | v7sq + e5ls2 | 0.991250 | 0.843265 | +10.6 / −11.9 | +0.60 | +1.13 |
+| v7sq2 | e5l, qst, e5ls, bges | 0.991245 | 0.843256 | +11.8 / −12.8 | +0.58 | +0.86 |
+| **v7ensall2** | bag of all seven | **0.991256** | **0.843266** | +7.7 / −9.0 | +0.83 | +1.85 |
+
+- **Qwen2.5-1.5B helps on both sides.** Its French self-trained LoRA classifier `qst` has holdout band AUC 0.9381 and correlation 0.943 with e5l. Adding it to the mean (v7sq) moves US/India by +0.000011 over v7s, and gives the best French copy count of any model.
+- **More French self-trained members drop more true copies.** Adding bges (v7sb, v7sq2) or a second e5ls seed (v7sq3) raises COPY lost against v7nst: v7sq −2.04, v7sq3 −2.83, v7sq2 −3.20 per 1000. `copy` cannot win these back, because they are mostly empty-address copies. Only v7sq keeps the balance.
+- **The bags damp the French changes.** v7ensall2 has the best holdout and US/India part, and changes fewer French pairs than any single Qwen model.
+- **Expected LB against v7nst,** counting US/India part, rules, and `fhs` at about 1.3e-5 per unit:
+  - v7sq-dpc about 0.990295;
+  - v7ensall2-dpc about 0.990299.
+  - That is a tie well inside the ±0.00004 LB noise between near-identical candidates.
+- **The repo port is verified.** `stack/stack.sh v7s`, run from this branch with a `-rt` tag suffix, reproduces the scratchpad outputs set for set at every layer (hunted, h2, h2pc, combo, dpc: `PORT OK`). The 115 package tests pass.
+- **Memory reaper, 06:30:** a second reap of the shell wrappers during v7sq3's stage 2. As at 04:46, every script survived.
