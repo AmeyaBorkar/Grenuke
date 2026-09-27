@@ -25,8 +25,10 @@ mkdir -p "$BER_OUTPUT_DIR" "$L"
 step () {
   local name="$1"; shift
   local t0=$(date +%s)
+  if [ -f "$L/.doneB_${V}_$name" ]; then echo "$(date +%T) SKIP  $V/$name (done earlier)" | tee -a "$LOG"; return 0; fi
   echo "$(date +%T) START $V/$name" | tee -a "$LOG"
   if "$@" > "$L/B_${V}_$name.log" 2>&1; then
+    touch "$L/.doneB_${V}_$name"
     echo "$(date +%T) DONE  $V/$name ($(( $(date +%s) - t0 ))s)" | tee -a "$LOG"
   else
     echo "$(date +%T) FAIL  $V/$name -- see $L/B_${V}_$name.log" | tee -a "$LOG"
@@ -70,19 +72,32 @@ step acr_join  python acr_join.py --split test --matches "$MT-s3-ops3" --cands a
   --tag "$MT-s3-ops3a" --cands-tag "ameya-cands-$V-c2a"
 export STACK_OUT="$BER_WORK_DIR/stack_$V"
 step stack bash "$M/stack/stack.sh" "$V"
-FIN="$MT-s3-ops3a-dpc"
-step write python -m ber.pipeline --stage write --split test --tag "$FIN" \
-  --in "candidates=ameya-cands-$V-c2a" --in "matches=$FIN"
+# France-only additions from ameya/final-stack d6c2e38 (RESEARCH_v6.md 6.17-6.18), run from the stack dir as
+# stack.sh runs its own scripts: drop the look-alike word swaps (-dpcs), then the French expected-F0.5 decision
+# (-dpcsf). dp_france expects exactly that input: the -dpc minus its look-alike swaps. US/India are unchanged.
+(cd "$M/stack" && step swapsim python apply_swapsim.py "$MT-s3-ops3a-dpc" "$MT-s3-ops3a-dpcs")
+(cd "$M/stack" && step dp_france python dp_france.py "$V" "ameya-cands-$V-c2a" "$MT-s3-ops3a-dpcs" "$MT-s3-ops3a-dpcsf")
 
-MR="$BER_OUTPUT_DIR/matching_results.tsv"; CP="$BER_OUTPUT_DIR/candidate_pairs.tsv"
-step validate python "$ROOT/repo/student_resource/utils/validate_submission.py" --matching "$MR" --candidate "$CP" \
-  --test-dir "$BER_DATA_DIR/test"
-step audit python "$B/final-package/audit_matching.py" --matching "$MR" --candidate "$CP" --test-dir "$BER_DATA_DIR/test"
-step diff  python "$B/final-package/diff_candidates.py" --base "v7sq-dpc=$ROOT/ref/v7sq_dpc_matching.tsv" \
-  --cand "$V=$MR" --s1-tsv "$BER_DATA_DIR/test/test_source1.tsv"
-tail -3 "$L/B_${V}_validate.log" | tee -a "$LOG"
-grep -E "AUDIT" "$L/B_${V}_audit.log" | tee -a "$LOG"
-grep -E "^$V " "$L/B_${V}_diff.log" | tee -a "$LOG"
+finalize () {   # finalize <suffix> <matches tag>: write, validate, audit, diff vs v7sq-dpc
+  local sfx="$1" tag="$2"
+  export BER_OUTPUT_DIR="$ROOT/output/$V/$sfx"; mkdir -p "$BER_OUTPUT_DIR"
+  local MR="$BER_OUTPUT_DIR/matching_results.tsv" CP="$BER_OUTPUT_DIR/candidate_pairs.tsv"
+  step "write_$sfx" python -m ber.pipeline --stage write --split test --tag "$tag" \
+    --in "candidates=ameya-cands-$V-c2a" --in "matches=$tag"
+  step "validate_$sfx" python "$ROOT/repo/student_resource/utils/validate_submission.py" --matching "$MR" \
+    --candidate "$CP" --test-dir "$BER_DATA_DIR/test"
+  step "audit_$sfx" python "$B/final-package/audit_matching.py" --matching "$MR" --candidate "$CP" \
+    --test-dir "$BER_DATA_DIR/test"
+  step "diff_$sfx" python "$B/final-package/diff_candidates.py" --base "v7sq-dpc=$ROOT/ref/v7sq_dpc_matching.tsv" \
+    --cand "$V-$sfx=$MR" --s1-tsv "$BER_DATA_DIR/test/test_source1.tsv"
+  echo "   --- $V-$sfx ($tag) ---" | tee -a "$LOG"
+  tail -2 "$L/B_${V}_validate_$sfx.log" | tee -a "$LOG"
+  grep -E "AUDIT" "$L/B_${V}_audit_$sfx.log" | tee -a "$LOG"
+  grep -E "^$V-$sfx " "$L/B_${V}_diff_$sfx.log" | tee -a "$LOG"
+  sha256sum "$MR" "$CP" | tee -a "$LOG"
+}
+finalize dpc   "$MT-s3-ops3a-dpc"
+finalize dpcsf "$MT-s3-ops3a-dpcsf"
 python - "$V" <<'EOF' | tee -a "$LOG"
 import json, sys
 from ber.paths import report_path
@@ -94,5 +109,4 @@ for t in (f"ameya-model-{v}-s3",):
     except Exception as e:
         print(f"   (no holdout report for {t}: {e})")
 EOF
-sha256sum "$MR" "$CP" | tee -a "$LOG"
-echo "$(date +%T) ===== variant $V done: $MR =====" | tee -a "$LOG"
+echo "$(date +%T) ===== variant $V done: $ROOT/output/$V/{dpc,dpcsf}/ =====" | tee -a "$LOG"

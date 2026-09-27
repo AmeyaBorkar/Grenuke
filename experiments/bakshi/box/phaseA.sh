@@ -17,11 +17,13 @@ L="$ROOT/logs"
 mkdir -p "$L" "$CE_BOX_DIR"
 NJ="${NTHREADS:-64}"
 
-step () {   # step <name> <command...>: timed, logged, fails the phase on error
+step () {   # step <name> <command...>: timed, logged, fails the phase on error; a finished step is skipped on rerun
   local name="$1"; shift
   local t0=$(date +%s)
+  if [ -f "$L/.doneA_$name" ]; then echo "$(date +%T) SKIP  $name (done earlier)" | tee -a "$L/phaseA.log"; return 0; fi
   echo "$(date +%T) START $name" | tee -a "$L/phaseA.log"
   if "$@" > "$L/A_$name.log" 2>&1; then
+    touch "$L/.doneA_$name"
     echo "$(date +%T) DONE  $name ($(( $(date +%s) - t0 ))s)" | tee -a "$L/phaseA.log"
   else
     echo "$(date +%T) FAIL  $name ($(( $(date +%s) - t0 ))s) -- see $L/A_$name.log" | tee -a "$L/phaseA.log"
@@ -47,8 +49,10 @@ step dict python "$M/feats.py" --split train --tag ameya-fx1 --dict-only
 
 # ---- 1. blocking v3 ----
 BP="--set trim_s1=15 --set trim_r=4 --set indic_dict=ameya-fx1 --set ns_ngrams=4 --set ns_domain_len=8 --set nw_words=6"
-step block_train python -m ber.pipeline --stage block --split train --tag ameya-block-v3 $BP --n-jobs "$NJ"
-step block_test  python -m ber.pipeline --stage block --split test  --tag ameya-block-v3 $BP --n-jobs "$NJ"
+# train and test blocking are independent: each reads only its own records and the ameya-fx1 dictionary
+blk_tr () { step block_train python -m ber.pipeline --stage block --split train --tag ameya-block-v3 $BP --n-jobs "$NJ"; }
+blk_te () { step block_test  python -m ber.pipeline --stage block --split test  --tag ameya-block-v3 $BP --n-jobs "$NJ"; }
+par blk_tr blk_te
 
 cd "$M"
 # ---- 2. pair features, bundle ameya-fx5 ----
