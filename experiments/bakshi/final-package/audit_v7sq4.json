@@ -1,0 +1,47 @@
+{
+  "matching": {
+    "path": "C:\\Users\\baksh\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\matching_results.tsv",
+    "bytes": 97881948,
+    "sha256": "45ea616a0cda8719962fc354771e0f3c3d0f8cd040ef8863f51bb0de9856bc24"
+  },
+  "candidate": {
+    "path": "C:\\Users\\baksh\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\candidate_pairs.tsv",
+    "bytes": 105028709,
+    "sha256": "457a2aa71732f8a775dce61f12e6da3794197d6415d92233d644cf6a9597a991"
+  },
+  "checks": {
+    "n_test_s1": 1732544,
+    "n_test_targets": 9969589,
+    "matching_rows": 1732544,
+    "matching_pairs": 5853938,
+    "matching_empty_rows": 99842,
+    "matching_mean_matches_per_s1": 3.378810581434007,
+    "owner_conflicts": 0,
+    "cross_country_pairs": 0,
+    "per_country": {
+      "France": {
+        "s1": 259452,
+        "s1_nonempty": 244426,
+        "pairs": 872269,
+        "pairs_per_s1": 3.361966760711037
+      },
+      "India": {
+        "s1": 809986,
+        "s1_nonempty": 763328,
+        "pairs": 2734328,
+        "pairs_per_s1": 3.3757719269221935
+      },
+      "US": {
+        "s1": 663106,
+        "s1_nonempty": 624948,
+        "pairs": 2247341,
+        "pairs_per_s1": 3.3891127512041814
+      }
+    },
+    "candidate_rows": 1732544,
+    "candidate_pairs": 6410304,
+    "matches_outside_candidates": 0,
+    "s1_with_matches_outside_candidates": 0
+  },
+  "errors": []
+}
