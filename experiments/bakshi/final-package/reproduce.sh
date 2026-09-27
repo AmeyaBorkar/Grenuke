@@ -56,6 +56,12 @@ export BER_DATA_DIR="${BER_DATA_DIR:-$ROOT/student_resource/dataset}"
 export BER_WORK_DIR="${BER_WORK_DIR:-$ROOT/work}"
 export BER_OUTPUT_DIR="${BER_OUTPUT_DIR:-$ROOT/output}"
 M="${MODEL_DIR:-$ROOT/experiments/ameya/model-v1}"
+# PYTHONPATH must contain BOTH the model dir and the package src: stack/*.py import `post_ops` and `common`
+# from $M, and everything imports `ber` from src.
+# Windows note: Python there splits PYTHONPATH on ';', not ':'. Under Git Bash this is handled for you --
+# MSYS converts a ':'-separated list of POSIX paths (/c/...) to 'C:\...;C:\...' when it launches python.exe.
+# That works because $ROOT comes from `pwd`, which is POSIX-style there. If you override MODEL_DIR, give it a
+# POSIX-style path (/c/Users/...) rather than C:\Users\..., or the list will not be split correctly.
 export PYTHONPATH="$M:$ROOT/code/business_entity_resolution/src:${PYTHONPATH:-}"
 export CE_BOX_DIR="${CE_BOX_DIR:-$BER_WORK_DIR/box}"
 mkdir -p "$CE_BOX_DIR"
