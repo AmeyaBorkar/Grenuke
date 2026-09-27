@@ -85,6 +85,8 @@ Open question for Ameya: his calibrated estimator scores the look-alike drop (`a
 | Same house number + different street (France's "biggest pattern") | 100% true among US/India *predictions*; the 7B rejects only 0.55–2.5% of the French ones | **corrected by Ameya (#62, #64):** it is both a copy pattern and a decoy pattern. The US/India decoys the model rejects are 0.5% true (7B median −9.9). In France, generic names (median 43 same-name S1) let the decoys through at p1 > 0.99. About 78% of the 859 French 7B drops are this pattern, so the q7 < −6 drop is catching real errors |
 | 7B drop at logit −4 / −2 / 0 | −0.000003 … −0.0032 | only −6 is safe |
 | 7B weight ×3, 7B alone | flat / lower than ×2 | ×2 kept |
+| Drop mining on labelled predictions (7B logit, p1, pc, name/address similarity, house number, name frequency, matches per S1; depth-5 tree fit on half A) | 631,001 predictions, 654 false; one leaf < 70% true (140 pairs), half A +0.000033, **held-out half B −0.000015** | overfit; false positives too thin to isolate beyond the 7B −6 rule |
+| 1-to-1 conflict resolution / France match-count histogram matching (external LLM suggestions) | 0 conflicts in every audit; France non-empty 94.21% vs 94.24/94.25%, 3.36 pairs/S1 vs 3.38/3.39 | nothing to fix |
 
 Conclusion: **US/India is at this model family's ceiling.** A team at 0.992 must separate the generator's empty-address decoys better than name+address models do. None of tonight's measurements found a cheap lever of that size.
 
@@ -99,3 +101,7 @@ Conclusion: **US/India is at this model family's ceiling.** A team at 0.992 must
   - rescoring launchers;
   - Drive backup loop.
 - No data, parquet, TSV or credentials are committed. Ameya's `stack/` files (including swapsim, compose and dp_france from ameya/final-stack d6c2e38) were used as-is and not committed.
+
+## 8. Leaderboard results (27 Sep evening)
+
+Composite B **0.990879** (best, rank 16); mixf7 0.990833; mixf2 0.990819 (round-3 France: −0.00006 vs B); mixmdp 0.990699. The last upload candidate is **B+** (`bplus_tsv.py`): B plus the 255 look-alike pairs the 7B accepts, minus the 83 never-scored mixmdp French pairs it rejects. Matching sha256 `09c45bff…`.
