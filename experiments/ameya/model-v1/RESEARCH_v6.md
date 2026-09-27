@@ -776,3 +776,32 @@ Self-training on French pseudo-labels cost e5ls nothing on US/India (e5ls holdou
   - That is a tie well inside the ±0.00004 LB noise between near-identical candidates.
 - **The repo port is verified.** `stack/stack.sh v7s`, run from this branch with a `-rt` tag suffix, reproduces the scratchpad outputs set for set at every layer (hunted, h2, h2pc, combo, dpc: `PORT OK`). The 115 package tests pass.
 - **Memory reaper, 06:30:** a second reap of the shell wrappers during v7sq3's stage 2. As at 04:46, every script survived.
+
+### 6.17 The uploads split the gain; French acronyms are true copies (27 Sep, 09:30–12:00)
+
+**Two uploads on 27 Sep.** v7sq-dpc scored **0.990545** (rank 7, then 8); v7nst-dpc scored 0.990264. The stack on v7nst gave +0.000085 over v7nst (0.990179), and the model change v7nst → v7sq gave +0.000281, which is about +0.0016 of French F. The France-diff agent traced it to the French self-trained cross-encoders (qst, e5ls) overruling the US-trained ones, mostly by dropping confident false pairs. US/India truth by v7sq's new pc band, carried to France, predicts +362 of the LB-implied +441 F-units (category rates predict only +131).
+
+**France-only test packages.** `novel/compose.py` takes the labelled countries (read from the train records) from one matches tag and every other country from another. `fr-<m>` = v7sq-dpc for US/India and model m's `-dpc` for France, so the LB difference from 0.990545 is the French effect alone. `fr-v7sq4` changes 2,778 French S1 (+1,809 / −1,018 pairs); US/India are byte-identical.
+
+**The acronym anomaly.** The error agent found 72.1 predicted acronym matches per 1000 French S1 (18,707 pairs; the record name is the initials of the S1's content words), against 5.2 true per 1000 in US/India (2.6 US, 9.2 India) and 6.4 expected from French name shapes at US/India rates. If a share f were false, dropping them all would be worth about +0.0028·f − 0.00095·(1 − f), so it pays above f ≈ 25%. Checks that did not decide it:
+- In US/India the acronym candidates are 99.7% true (1,440 of 1,444), and none of the 7,309 look-alike non-matches the model found plausible (pc > 0.3) is an acronym.
+- The rate is flat in the legal form: 60–80 per 1000 French S1 with or without SARL/SAS/…, against 2–3 (US) and 6–12 (India).
+- The vendor split differs: 44% of French acronyms are S2, against 25% (US) and 1% (India). The labelled countries already differ from each other by 5–10×, so the vendors' acronym rates are country-specific.
+- The count test (mean predictions of holders) cannot tell the two cases apart: an acronym copy is itself an extra copy, and for a near-Poisson copy count (variance/mean ≈ 1) the size-biased mean is also about +1.
+
+**A label-free test that does decide it: size bias.** If a record is a true copy of S1 x, x was picked in proportion to its copy count, so x's *other* copies m follow the size-biased distribution n − 1. If it is an extra record, x's other copies are just any S1's copies, singletons included (5.8% have none). Fitting m ~ (1 − f)·SB + f·ALL by maximum likelihood:
+
+| population | holders | P(m = 0) | mean m | fitted false share f |
+|---|---|---|---|---|
+| size-biased reference (true copies) | | 0.019 | 3.20 | 0 |
+| all French S1 (extras) | | 0.058 | 3.35 | 1 |
+| French acronyms, all | 17,917 | 0.019 | 3.16 | **0.00 [0.00, 0.01]** |
+| French acronyms from S2 | 8,105 | 0.023 | 3.12 | 0.00 [0.00, 0.06] |
+| French acronyms from S3 | 10,218 | 0.017 | 3.17 | 0.00 [0.00, 0.01] |
+
+Validation on the US/India holdout (predictions; truth known):
+- True name populations score −0.05 to 0.0 (acronyms 0.13 [−0.05, 0.32]).
+- False candidates the model found plausible (pc > 0.2), treated as predicted, score 0.10–0.76 by address type (same address 0.47 [0.23, 0.73]). False pairs do not attach to random S1, so the test under-states f, but it separates the French acronyms (−0.04) from every false population.
+- It is not valid for a population that takes most of an S1's copies (whole pc bands, exact names): subtracting them empties m.
+
+**Verdict: keep the French acronyms.** The 11× rate is a property of how French records were generated, not planted look-alikes; the `noacr` packages (all 18,707, or the 8,245 from S2) are not proposed. The same test flags one small French population: 592 predicted real-word swaps where the new word resembles the old one at the S1's address ("maternelle → culturelle", `swap_real_sim`), f = 0.83 [0.56, 1.10], with the error agent's count test agreeing (holders 4.39 against 4.01). Dropping them is worth about +0.00005 if f ≈ 0.8, and the break-even is f ≈ 0.28.
