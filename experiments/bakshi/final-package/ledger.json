@@ -82,10 +82,12 @@
       },
       "final_package": {
         "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
-        "zip_bytes": 87526328,
-        "zip_sha256": "4bd6c7a1d6b38cc5c7cfba197704d2004b4b9b607f91021053e29c7075b0f6ab",
-        "n_files": 103,
-        "built_ist": "2026-09-27T03:00+05:30",
+        "zip_bytes": 87529581,
+        "zip_sha256": "d9eb4388409a9d17af483213fbaa88c6b8a475ab501b3c88d62e1980e34f0cd2",
+        "n_files": 107,
+        "built_ist": "2026-09-27T09:40+05:30",
+        "CRITICAL_FIX": "Every build before this one was BROKEN and would not have run. ber/features/tokens.py was missing from the archive: the builder's secret-shaped-filename filter used the glob *token*, which matched a legitimate source file. It passed every check I had, because compileall compiles files individually and never resolves an import, and because the 115-test run was executed against the REPOSITORY rather than the archive. Caught by running the shipped tests from inside the extracted zip. Fixed twice over: the filename globs are now narrow and never applied to source suffixes (contents are still scanned, which is the right mechanism), and make_package.py now walks and imports every ber submodule AND runs the shipped tests from the extracted archive as hard build gates. Superseded broken hashes: d2e62fb9, bad61fee, c241b788, f933f7df, 4bd6c7a1 — do not ship any of them.",
+        "archive_run_evidence": {"ber_submodules_imported": "34 of 34, 0 failures", "shipped_tests_from_archive": "115 passed", "cli_responds": true},
         "note": "Fifth and current build, superseding d2e62fb9 (01:30), bad61fee (01:40), c241b788 (02:50) and f933f7df (02:55). Every rebuild was a DOCUMENTATION or tooling correction — the archived output/ TSVs are byte-identical in all five (matching 659f5169..., candidates 510a33ea...), re-verified after extraction each time. This build carries the completed environment pins and the variant-driven reproduce.sh. It is the v7nst FALLBACK, held per ameya's instruction in issue #45 pending the chosen model.",
         "reissue_for_another_variant": "VARIANT=<name> in reproduce.sh now covers v7n, v7nst, v7nst2, v7mst, v7s, v7sq, v7ens2 and v7ensall, so swapping the shipped model is a parameter change plus a ~4 minute rebuild, not a script rewrite. make_package.py refuses on a hash mismatch, so the bundle cannot silently disagree with what was uploaded.",
         "verified_after_extraction": [

@@ -39,6 +39,7 @@ import argparse
 import compileall
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -48,14 +49,14 @@ import zipfile
 from pathlib import Path
 
 
-def run(cmd: list[str]) -> int:
+def run(cmd: list[str], env: dict | None = None) -> int:
     """Run a child process with our own stdout flushed first.
 
     Without the flush our buffered prints land *after* the child's unbuffered output, so the log
     reads out of order and a child's failure can appear under the wrong heading.
     """
     sys.stdout.flush()
-    rc = subprocess.call(cmd)
+    rc = subprocess.call(cmd, env=env)
     sys.stdout.flush()
     return rc
 
@@ -83,7 +84,14 @@ DENY_NAMES = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".mypy_ca
               ".ssh", "node_modules", ".idea", ".vscode", "work", "output", "data_cache", "dataset"}
 DENY_SUFFIX = {".parquet", ".npy", ".npz", ".pkl", ".pt", ".pth", ".bin", ".safetensors", ".zip", ".gz",
                ".pyc", ".pyo", ".so", ".dll", ".pem", ".key", ".ppk", ".crt", ".log"}
-DENY_GLOB = ("id_rsa*", "id_ed25519*", "*.env", ".env*", "*token*", "*secret*", "*credential*")
+# Secret-shaped FILENAMES. These are matched only against non-source files -- see `denied()`.
+# A previous version applied them to everything, and `*token*` silently ate `ber/features/tokens.py`,
+# producing an archive that imported but could not run. Filenames are a weak signal for secrets anyway;
+# the real defence is `scan_secrets()`, which reads the contents.
+DENY_GLOB = ("id_rsa*", "id_ed25519*", "*.env", ".env*", "*.pem", "*.key",
+             "secrets.*", "secret.*", "credentials.*", "credential.*", "*.token", "token.json")
+# Files that are part of the solution and must never be dropped by a filename heuristic.
+SOURCE_SUFFIX = {".py", ".md", ".toml", ".cfg", ".sh", ".yml", ".yaml", ".ini"}
 
 # Second net: scan staged text for things that look like a live credential.
 SECRET_PATTERNS = [
@@ -107,6 +115,9 @@ def sha256(path: Path, chunk: int = 1 << 22) -> str:
 def denied(p: Path) -> bool:
     if p.name in DENY_NAMES or p.suffix.lower() in DENY_SUFFIX:
         return True
+    # Never let a filename heuristic drop source. `*token*` once removed ber/features/tokens.py.
+    if p.suffix.lower() in SOURCE_SUFFIX:
+        return False
     return any(p.match(g) for g in DENY_GLOB)
 
 
@@ -294,6 +305,39 @@ def build(args: argparse.Namespace) -> int:
         print(f"  byte-compile of code/: {'ok' if ok else 'FAILED'}")
         if not ok:
             return 1
+
+        # Byte-compiling is NOT enough: it compiles each file alone and never resolves an import, so a
+        # MISSING module passes it. That is exactly how `*token*` once dropped ber/features/tokens.py and
+        # produced an archive that compiled but could not run. These two checks are the ones that catch it,
+        # and they run against the EXTRACTED tree with nothing on the path but the archive's own src.
+        src = ex / "code/business_entity_resolution/src"
+        env = {**os.environ, "PYTHONPATH": str(src), "PYTHONDONTWRITEBYTECODE": "1"}
+        print("  import check (archive src only):")
+        rc = subprocess.call(
+            [sys.executable, "-c",
+             "import importlib, pkgutil, sys\n"
+             "import ber\n"
+             "bad = []\n"
+             "for m in pkgutil.walk_packages(ber.__path__, 'ber.'):\n"
+             "    try:\n"
+             "        importlib.import_module(m.name)\n"
+             "    except Exception as e:\n"
+             "        bad.append(f'{m.name}: {type(e).__name__}: {e}')\n"
+             "print(f'    imported every ber submodule' if not bad else '    FAILED:')\n"
+             "[print('     ', b) for b in bad]\n"
+             "sys.exit(1 if bad else 0)"],
+            env=env)
+        if rc != 0:
+            print("FAIL: the archived package does not import. A module is missing from the zip.")
+            return 1
+
+        print("  shipped tests against shipped src:")
+        rc = run([sys.executable, "-m", "pytest", str(ex / "code/business_entity_resolution/tests"),
+                  "-q", "--basetemp", str(ex / "_ptmp")], env=env)
+        if rc != 0:
+            print("FAIL: the archived tests do not pass against the archived source.")
+            return 1
+        shutil.rmtree(ex / "_ptmp", ignore_errors=True)
 
         if args.test_dir:
             # Both checks run on the EXTRACTED bytes, not on the staged inputs, so what is verified is
