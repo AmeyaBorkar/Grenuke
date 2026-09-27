@@ -37,7 +37,7 @@
   2. **`2026-09-27-v7ensall2-s3-ops3a-dpc-c2`** (best holdout 0.991256 and US/India part 0.843266; fewer French changes; sha `711601bf…`).
   3. `2026-09-27-v7nst-s3-ops3a-dpc-c2` (the rules on the uploaded model; tells whether the new cross-encoders help France).
   4. Spare.
-  5. **The final, uploaded last:** the best public score if it leads the others by more than about 0.00004; otherwise **v7ensall2-dpc** (the best labelled evidence and the steadiest French changes).
+  5. **The final, uploaded last:** the best public score if it leads the others by more than about 0.00004; otherwise **v7sq-dpc**. The two tie on expected LB, and ties go to the simpler option: v7sq needs 4 cross-encoders and 1 stage 2 to reproduce, the bag of seven needs 7 and 7.
 - **Done (08:25):** every model stacked and audited; the repo port of the stack reproduces the scratchpad outputs set for set (`PORT OK`), 115 tests pass. #58 is ready for review.
 - **Crash and memory:** the integration laptop froze at 03:35 (memory) and rebooted. The memory reaper killed shell wrappers at 04:46 and 06:30, but every script survived. Nothing was lost (§6.16).
 - **Vast.ai:** `grenuke-vast` was stopped at 06:21 after Qwen, bges and e5ls2 were fetched. Destroy it in the console after the competition.
