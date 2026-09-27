@@ -49,11 +49,25 @@ What *has* been verified, so the claim is neither more nor less than it is:
 | check | result |
 |---|---|
 | `bash -n reproduce.sh` | syntax OK |
-| every `VARIANT` dispatch path exercised | all 8 resolve to the right group/column/teacher/bag; unknown variant exits 2 |
+| every `VARIANT` dispatch path exercised | all 8 resolve to the right group/column/teacher/bag; unknown variant exits 2, and the two with unrecorded tags exit 4 naming what is missing |
 | every flag cross-checked against the scripts' own `argparse` | matches `s2.py`, `decide.py`, `stage3.py`, `cands_final.py`, `ce_import.py`, `post_ops.py`, `acr_join.py`, `ce.py`, `ce_box.py` |
 | chain correctness | reconstructed from `RECIPE.md` (which the captain wrote and has since extended with the teacher-before-student ordering this review asked for), the v7n handover and the sub04 record |
-| `pytest -q` on the packaged tests | **115 passed** |
+| **every `ber` submodule imports from the extracted archive, nothing else on the path** | **34 of 34, 0 failures** |
+| **the shipped tests pass against the shipped src, run from the archive** | **115 passed** |
+| `python -m ber.pipeline` responds from the archive | yes |
 | package byte-compiles from the extracted archive | yes |
+
+**A real defect was found by doing this, and it would have shipped.** Earlier builds ran the tests against the
+*repository*, not the archive. Running them against the archive exposed that
+`code/business_entity_resolution/src/ber/features/tokens.py` **was missing from the zip**: the builder's
+secret-shaped-filename filter included the glob `*token*`, which matched a legitimate source file. The
+archive byte-compiled cleanly — `compileall` compiles each file alone and never resolves an import — so every
+check I had was passing on a package that could not run.
+
+Fixed two ways: the filename globs are now narrow and are never applied to source suffixes at all (contents
+are still scanned for secrets, which is the appropriate mechanism), and `make_package.py` now **walks and
+imports every `ber` submodule and runs the shipped tests, from the extracted archive, as hard build gates**.
+The lesson generalises: *verify the artifact, not the source it came from.*
 
 **What would close this properly:** one run of `VARIANT=v7nst bash reproduce.sh` on the integration machine
 plus an H100, into a fresh `BER_WORK_DIR` and `BER_OUTPUT_DIR` so the production cache is untouched,
