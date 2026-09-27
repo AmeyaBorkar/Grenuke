@@ -53,7 +53,11 @@ The files are on the laptop under `Downloads/New folder/UPLOAD*`, and in Drive u
 
 Predicted: B about 0.9908; B′ 0.9906–0.9910. Composites are built per country group with `compose_tsv.py`. Records never cross countries, so ownership is preserved.
 
-## 5. Proposal for the remaining uploads (for Ameya to confirm)
+## 5. Proposal for the remaining uploads (superseded)
+
+Superseded by #64: one upload tonight, `mixf2`. It is v7sq3 US + our g1w India + v7sq6r3 France, minus our 7B rejects in all three countries, predicted ~0.99091. Bakshi confirmed it; Composite B is the backup.
+
+The original proposal, kept for the record:
 
 The best upload counts, so every upload is a free shot.
 
@@ -78,7 +82,7 @@ Open question for Ameya: his calibrated estimator scores the look-alike drop (`a
 | Empty-address + same core name, record left unassigned | 24% true (holdout-only); 17% true when all train S1 compete | decoys; the model already takes the 95%-true unique ones |
 | + sibling / same-source evidence | best slice 59% true (193 pairs); break-even ~75% | no rule |
 | Empty-S1 rescue (top free candidate) | negative at every pc threshold | DP already optimal |
-| Same house number + different street (France's "biggest pattern") | 100% true on US/India; the 7B rejects only 0.55–2.5% of the French ones | not an error pattern |
+| Same house number + different street (France's "biggest pattern") | 100% true among US/India *predictions*; the 7B rejects only 0.55–2.5% of the French ones | **corrected by Ameya (#62, #64):** it is both a copy pattern and a decoy pattern. The US/India decoys the model rejects are 0.5% true (7B median −9.9). In France, generic names (median 43 same-name S1) let the decoys through at p1 > 0.99. About 78% of the 859 French 7B drops are this pattern, so the q7 < −6 drop is catching real errors |
 | 7B drop at logit −4 / −2 / 0 | −0.000003 … −0.0032 | only −6 is safe |
 | 7B weight ×3, 7B alone | flat / lower than ×2 | ×2 kept |
 
