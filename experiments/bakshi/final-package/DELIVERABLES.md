@@ -1,7 +1,21 @@
 # Deliverables status, against the six required items
 
-Checked 2026-09-27 03:10 IST. Branch `bakshi/opus-exec`. One item is **incomplete and cannot be completed on
-this machine**; it is named as a blocker rather than quietly marked done.
+Re-checked **2026-09-27 11:00 IST** (first written 03:10). Branch `bakshi/opus-exec`.
+
+**The best measured result moved during the day, so item 2 went from complete back to incomplete.** That is
+recorded rather than smoothed over: a deliverable that was satisfied for `v7nst` is not satisfied for
+`v7sq-dpc`, and `v7sq-dpc` is what we would submit.
+
+| | measured public | package status |
+|---|---|---|
+| **`v7sq-dpc`** | **0.990545** (best) | matching held + audited; **candidate file MISSING** → no valid archive |
+| `v7nst-dpc` | 0.990264 | **complete, validated** — `34300a75…` |
+| `v7nst` | 0.990179 | **complete, validated** — `d9eb4388…` |
+
+**Live risk at the top of the list:** `v7nst-dpc` (0.990264) was uploaded *after* `v7sq-dpc` (0.990545) and
+the final upload is what counts, so we are currently carrying **−0.000281**. Restoring the best measured file
+is not optional. Proposed hard rule: if it is not the last upload by **18:30 IST**, stop experimenting and
+restore.
 
 ---
 
@@ -12,23 +26,42 @@ this machine**; it is named as a blocker rather than quietly marked done.
 comment. Includes the honest limitations, the corrections the captain made to my claims, and the two
 hypotheses I tested and rejected.
 
-## 2. Protected best matching and its correct candidate TSV, both validated — **complete**
+## 2. Best matching and its correct candidate TSV, both validated — **INCOMPLETE for the current best**
 
-| file | bytes | sha256 |
-|---|---|---|
-| `matching_results.tsv` | 97,909,982 | `659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533` |
-| `candidate_pairs.tsv` | 105,027,973 | `510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa` |
+**Three matching files are held and hash-verified. Two of three pairs are complete. The one that matters
+most is not.**
 
-**AUDIT PASS** on every hard check: 1,732,544 rows (exact set equality with the test S1), 5,856,096 pairs,
-100,137 empty, 0 duplicate rows, 0 duplicate pairs, 0 bad prefixes, 0 targets absent from `test_source2/3`,
-**0 records claimed by more than one S1**, **0 cross-country pairs**, **0 matched pairs outside the candidate
-set**. Report: `audit_v7nst_FINAL.json`.
+| model | matching sha256 | candidate | audit |
+|---|---|---|---|
+| **`v7sq-dpc`** 0.990545 | `cdda9a2da0147c06039d83b673e26d8bfc71c5171915148c1dcd24979ea0e85c` | **MISSING** (`55b766ef…`) | PASS on every check **except** matches-⊆-candidates, which needs the file |
+| `v7nst-dpc` 0.990264 | `f349012516cdd239106cc88f53e4f5ccaf8b5531d30a9345e82f0584783494a2` | `510a33ea…` ✓ | **PASS**, incl. 0 outside candidates |
+| `v7nst` 0.990179 | `659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533` | `510a33ea…` ✓ | **PASS**, incl. 0 outside candidates |
 
-## 3. `Grenuke_submission.zip` with extracted validation, manifest and sha256 — **complete**
+**Why I will not substitute a candidate file.** v7sq-dpc's matches fall outside v7nst's candidate set by only
+**69 pairs over 66 S1** — so the sets are nearly identical, and `acr_join` is evidently very stable across
+models. But 69 matched pairs outside the shipped candidate set is still an invalid package, the same class of
+defect as the v6all mismatch (3,790 pairs) just smaller. Constructing the file by adding those 69 to v7nst's
+would be **manufacturing a candidate list**: it would still omit v7sq's other acronym additions that happen
+not to be predicted, and still carry v7nst's that v7sq never made. `make_package.py`'s hash gate refuses it,
+correctly.
 
-`4bd6c7a1d6b38cc5c7cfba197704d2004b4b9b607f91021053e29c7075b0f6ab`, 87,526,328 bytes, 103 files.
-Verified **after extraction to a separate directory**: all 103 manifest hashes match, all 15 required paths
-present, `code/` byte-compiles, organiser validator PASS, strict audit PASS. `MANIFEST.sha256` ships inside.
+**Byproduct worth keeping:** the v7nst-dpc pair passing in full verifies the stack's invariant on real output
+— all 5,853,049 matched pairs inside the **unchanged** 6,410,247-pair candidate set — rather than only by
+reading `import_tag.py`.
+
+## 3. `Grenuke_submission.zip` with extracted validation, manifest and sha256 — **complete for two models**
+
+| model | zip sha256 | files | bytes |
+|---|---|---|---|
+| `v7nst-dpc` (stacked) | `34300a759c9bae7fd0b11db56255bcec57cf25003b6ded03520f38ebfc83052a` | 118 | 87,540,682 |
+| `v7nst` (pre-stack) | `d9eb4388409a9d17af483213fbaa88c6b8a475ab501b3c88d62e1980e34f0cd2` | 107 | 87,529,581 |
+
+Both verified **after extraction to a separate directory**: every manifest hash matches, all required paths
+present, **every `ber` submodule imports with nothing but the archive on the path**, **the shipped tests pass
+from inside the archive (115)**, organiser validator PASS, strict audit PASS. `MANIFEST.sha256` ships inside.
+The stacked build additionally ships `stack/` (10 scripts) and hard-fails if it is absent.
+
+`v7sq-dpc`'s archive is ~4 minutes' work once its candidate file arrives.
 
 ## 4. Reproduction instructions **and actual clean-run evidence** — **INSTRUCTIONS COMPLETE, CLEAN RUN NOT DONE**
 
