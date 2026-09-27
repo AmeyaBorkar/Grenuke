@@ -1,0 +1,39 @@
+{
+  "matching": {
+    "path": "C:\\Users\\baksh\\Downloads\\New folder\\matching_resultsv7sq.tsv",
+    "bytes": 97874391,
+    "sha256": "cdda9a2da0147c06039d83b673e26d8bfc71c5171915148c1dcd24979ea0e85c"
+  },
+  "candidate": {},
+  "checks": {
+    "n_test_s1": 1732544,
+    "n_test_targets": 9969589,
+    "matching_rows": 1732544,
+    "matching_pairs": 5853353,
+    "matching_empty_rows": 99840,
+    "matching_mean_matches_per_s1": 3.378472927671678,
+    "owner_conflicts": 0,
+    "cross_country_pairs": 0,
+    "per_country": {
+      "France": {
+        "s1": 259452,
+        "s1_nonempty": 244403,
+        "pairs": 871478,
+        "pairs_per_s1": 3.358918027226616
+      },
+      "India": {
+        "s1": 809986,
+        "s1_nonempty": 763342,
+        "pairs": 2734478,
+        "pairs_per_s1": 3.375957115308166
+      },
+      "US": {
+        "s1": 663106,
+        "s1_nonempty": 624959,
+        "pairs": 2247397,
+        "pairs_per_s1": 3.389197202257256
+      }
+    }
+  },
+  "errors": []
+}
