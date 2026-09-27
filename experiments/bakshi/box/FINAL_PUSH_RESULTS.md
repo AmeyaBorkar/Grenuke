@@ -1,0 +1,97 @@
+# Final push, 27 Sep: results, candidates and the proposal for the last uploads
+
+Owner: Bakshi. Status at about 19:40 IST. The plan is in `FINAL_PUSH_PLAN.md` and the machines are in `HANDOFF.md`.
+Best measured upload so far: **mixmdp, 0.990699** (Ameya). It is +0.000154 over v7sq-dpc (0.990545): US/India +20e-6, France +134e-6.
+
+## 1. What was built (all on our own boxes)
+
+**Rebuild reproduces v7sq-dpc.**
+- Blocking gives 66,429,057 train / 58,437,794 test pairs.
+- Our band matches Ameya's to 99.9999% (1 missing pair).
+- The g0 variant (v7sq recipe, Ameya's cross-encoders remapped by (s1, r)) scores holdout macro F0.5 **0.991261**; v7sq's original was 0.991246.
+- g0 vs v7sq-dpc: France changes 4.3 per 1000, US/India about 1.2 per 1000. Validator and strict audit PASS.
+
+**Qwen2.5-7B France cross-encoder `q7st`** (Apache-2.0, 7.6B).
+- Recipe: ce_llm_st.py, trained on v7sq-dpc pseudo-labels, one OOF group per H100 via `llm_group.py` / `llm_merge.py`.
+- Checkpoints are resumable. The run survived the interruptible box being taken away.
+- Holdout AUC **0.9436**, OOF 0.9396. For comparison, e5ls is 0.9439 and qst 0.9381.
+- It is not stronger on US/India. Its value is diversity and French rescoring.
+
+**Qwen3-4B-Base `q34st`** (Apache-2.0, 4.0B): merged. Not used in any candidate (no time for a variant).
+
+## 2. Stage-2 variants (US/India holdout macro F0.5, the labelled measure)
+
+| variant | cross-encoder mix | holdout F0.5 | vs g0 |
+|---|---|---|---|
+| g0 | e5l, qst, e5ls, bge (= v7sq) | 0.991261 | — |
+| g1 | + q7st | 0.991276 | +0.000015 |
+| **g1w** | + q7st ×2 | **0.991323** | **+0.000062** |
+| g1x3 | + q7st ×3 | 0.991322 | +0.000061 (flat) |
+| g7only | q7st alone | 0.991286 | +0.000025 |
+| gbag | bag of g0, g1, g1w stage 2 | 0.991313 | +0.000052 |
+
+## 3. 7B rescoring of predictions outside the band
+
+94.5% of final predictions have p1 > 0.99, so no cross-encoder ever scored them.
+
+- **Method.** Score them with the q7st adapter (`score_pairs.py`). Check on labelled holdout S1, which no adapter trained on (`rescore_eval.py`).
+- **Rule:** drop a predicted pair outside the band when its 7B logit < −6. On the holdout, that bucket is 8% true.
+- **Measured effect:** +0.000033 on the holdout sample. Both fixed halves are positive (+0.000022, +0.000043).
+  - At t = −4 and above, the effect turns negative, so the rule is kept at −6.
+- **Size on test:** 859 French predictions (0.10% of French predictions, **25× the US/India rate** of 0.004%) and 310 US/India predictions.
+
+## 4. Candidates (all: validator PASS, strict audit PASS)
+
+The files are on the laptop under `Downloads/New folder/UPLOAD*`, and in Drive under `grenuke-train-backup/candidates/`.
+
+| candidate | US/India | France | vs mixmdp (France, per 1000) | matching sha256 |
+|---|---|---|---|---|
+| **Composite B** (upload 1) | g1w − 7B drops | mixmdp − 7B drops | −3.2 (drops only) | `df4bccd7…` |
+| **Composite B′** (upload 2) | g1w − 7B drops | g1w-dpcsfq (7B-driven) | 15.3 (+4.7 / −10.6) | `723be333…` |
+| Composite A | g1w | mixmdp − French 7B drops | −3.2 | `cb260099…` |
+| g1w-dpcsfq | g1w | g1w + swapsim + dp_france + French 7B drops | vs v7sq-dpc 15.8 | `ddb969c4…` |
+
+Predicted: B about 0.9908; B′ 0.9906–0.9910. Composites are built per country group with `compose_tsv.py`. Records never cross countries, so ownership is preserved.
+
+## 5. Proposal for the remaining uploads (for Ameya to confirm)
+
+The best upload counts, so every upload is a free shot.
+
+1. **Upload B.** It is the safe step: every component is either leaderboard-proven (mixmdp France) or checked on the labelled holdout (g1w US/India, 7B drops).
+2. **Upload B′.** B and B′ have identical US/India, so **the score difference is purely France**. It shows which French direction is right:
+   - mixmdp adds French predictions (leaderboard-proven +134e-6 over v7sq-dpc);
+   - the 7B-driven France drops them (−10.6 per 1000).
+3. **Upload 3 follows the winner.**
+   - If B′ > B: the "precise" France (dp_france with SHIFT −0.4, `fr_probe.sh g1w -0.4 frp`).
+   - If B > B′: the "inclusive" France (SHIFT +0.8, `frr`), or keep B.
+   - Both are built on the pipeline box: `output/g1w/{frp,frr}/`.
+4. If upload slots reset at midnight, keep pushing the winning direction.
+
+Open question for Ameya: his calibrated estimator scores the look-alike drop (`apply_swapsim`) at −26.7e-6. B′'s France (g1w-dpcsfq) includes swapsim; B's France is mixmdp's as uploaded.
+
+## 6. Leads checked on labelled data and closed (so nobody repeats them)
+
+| idea | measured | verdict |
+|---|---|---|
+| Where US/India loses (549,699 holdout S1) | 99.9% of predictions true. Loss is 69% partial misses, 20% S1 missed entirely, 8% FP | recall-bound |
+| Missed true pairs (48,509) | 16,455 not candidates; only 237 went to another S1; 15,152 rejected at pc ≈ 0 | — |
+| Empty-address + same core name, record left unassigned | 24% true (holdout-only); 17% true when all train S1 compete | decoys; the model already takes the 95%-true unique ones |
+| + sibling / same-source evidence | best slice 59% true (193 pairs); break-even ~75% | no rule |
+| Empty-S1 rescue (top free candidate) | negative at every pc threshold | DP already optimal |
+| Same house number + different street (France's "biggest pattern") | 100% true on US/India; the 7B rejects only 0.55–2.5% of the French ones | not an error pattern |
+| 7B drop at logit −4 / −2 / 0 | −0.000003 … −0.0032 | only −6 is safe |
+| 7B weight ×3, 7B alone | flat / lower than ×2 | ×2 kept |
+
+Conclusion: **US/India is at this model family's ceiling.** A team at 0.992 must separate the generator's empty-address decoys better than name+address models do. None of tonight's measurements found a cheap lever of that size.
+
+## 7. Files
+
+- **Scripts:** `score_pairs.py` (7B scoring of any pairs), `rescore_export.py`, `rescore_eval.py`, `compose_tsv.py`, `fr_probe.sh`, plus the earlier `llm_group.py`, `llm_merge.py`, `remap_ce.py`, `phaseA.sh`, `phaseB.sh`, `train_jobs.sh`, `setup.sh`.
+- **`analysis/`:** the scripts behind section 6 (run on the pipeline box, from the model dir, with `env.sh`).
+- **`ops/`:** the one-off orchestration used tonight:
+  - chain resume (s1 `--test-only` after the optional baseline read failed; an empty placeholder `ameya-baseline-v0` is written for report-only comparisons);
+  - bagged variant;
+  - Qwen3-4B scheduler;
+  - rescoring launchers;
+  - Drive backup loop.
+- No data, parquet, TSV or credentials are committed. Ameya's `stack/` files (including swapsim, compose and dp_france from ameya/final-stack d6c2e38) were used as-is and not committed.
