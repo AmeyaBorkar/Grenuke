@@ -105,3 +105,17 @@ Conclusion: **US/India is at this model family's ceiling.** A team at 0.992 must
 ## 8. Leaderboard results (27 Sep evening)
 
 Composite B **0.990879** (best, rank 16); mixf7 0.990833; mixf2 0.990819 (round-3 France: −0.00006 vs B); mixmdp 0.990699. The last upload candidate is **B+** (`bplus_tsv.py`): B plus the 255 look-alike pairs the 7B accepts, minus the 83 never-scored mixmdp French pairs it rejects. Matching sha256 `09c45bff…`.
+
+## 9. The final upload: B7 (27 Sep 23:36 IST)
+
+The last slot went to **B7** (matching sha256 `3d7b09d6c3b964b67d3ce164512bf22df5130dab53cd99e53d8f2d35673a468d`,
+candidates `58c824a3…`), validator PASS, strict audit PASS. It is Composite B with France-only edits from the 7B/4B drop
+ladder in `fr_drop_ladder.py` (+251 / −1,699 French pairs vs B). Why the ladder went past the labelled −6 cut-off: B's
++0.00018 over mixmdp was mostly its 840 French 7B drops, i.e. they were nearly all false; a French drop pays off at
+about 18–25% false; and the Qwen3-4B agrees with the 7B's rejections 2–15× more often in France than on US/India at
+the same score, the signature of decoys. Two more checks tonight, both on the labelled holdout:
+- a cross-fitted blend of all six cross-encoder logits + stage-3 pc has band AUC 0.9575 (pc 0.9276) but **loses
+  0.001** as a replacement decision score, and is worth only +2…4e-6 as an edit signal (`analysis/meta_band.py`,
+  `meta_edit.py`): the pipeline's decisions are at the ceiling of these signals;
+- the in-band two-model drop (B6's step) is +8e-6 overall, halves −7e-6 / +24e-6.
+Staged but not uploaded: B++ (`5ed33137…`), B3 (`1cc0727d…`), B4 (`d8c7d522…`), B5 (`69da05f1…`), B6 (`37608e5b…`), B8.
