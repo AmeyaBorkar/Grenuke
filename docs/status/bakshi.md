@@ -5,8 +5,10 @@
 - **New best:** user-reported v7sq-dpc **0.990545**, +0.000366 vs v7nst; +0.000455 needed for 0.991.
 - **File verified:** `matching_resultsv7sq.tsv` hashes to `cdda9a2d...ea0e85c`, the registered dpc output.
   A matching preserved copy is under the workspace `outputs/best_measured_0990545/`.
-- **Next decisions:** `plans/bakshi/AFTER_0990545.md`; quota-dependent v7nst-dpc control, then one gated
-  recovery correction against the measured winner. User's remaining quota/control score are pending.
+- **10:22 control:** user-reported v7nst-dpc **0.990264**, local hash verified as `f3490125...3494a2`.
+  v7sq-dpc remains best by +0.000281. Latest upload is lower: reserve a final restoration slot.
+- **Next decisions:** `plans/bakshi/AFTER_0990545.md`; bounded recovery against v7sq-dpc, no repeat
+  control upload. Quota pending. New handover: `docs/handover/2026-09-27_1022_bakshi_nstdpc-control.md`.
 - **Packaging:** matching-only audit is clean; paired candidate `55b766ef...af5331` still needed in the
   active package session. Local distribution currently contains v7nst's old candidate file.
 - **Branch / handover:** `bakshi/score-0990545`; `docs/handover/2026-09-27_1010_bakshi_score-0990545.md`.
