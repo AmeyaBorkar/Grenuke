@@ -50,9 +50,9 @@ td strong { color: #0b2e59; }
 code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 9.3pt; background: #eef1f5; padding: 0 2pt;
        border-radius: 2pt; }
 p.figure { text-align: center; margin: 4pt 0 2pt; break-inside: avoid; break-after: avoid; page-break-after: avoid; }
-p.figure img { width: 95%; }
+p.figure img { width: 90%; }
 p.caption { font-size: 9.5pt; color: #46505b; margin: 0 0 12pt; }
-p.caption.fig { text-align: center; }
+p.caption.fig { text-align: center; margin-bottom: 6pt; }
 p.caption.tab { margin: 8pt 0 3pt; break-after: avoid; page-break-after: avoid; }
 p.caption em { font-style: italic; }
 hr { display: none; }
