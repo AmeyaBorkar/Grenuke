@@ -204,14 +204,14 @@ For comparison, g0's stage 2: pc @0.725 0.991185, c2 decision 0.991179 [holdout]
 | −2 | 213 | 177 | −55e-6 | −67e-6 | −42e-6 | 1,389 |
 | 0 | 6,829 | 6,768 | −3,168e-6 | −3,318e-6 | −3,018e-6 | 2,286 |
 
-- **−6 is the loosest cut positive in both halves.**
+- **−6 has the largest gain and is positive in both halves.** −5 gains less (+26e-6, also positive in both halves), −4 has a negative half (−3e-6), and −3 and looser lose.
 - Ameya's check on the whole holdout (3× larger): −6 +37e-6 (halves +33 / +41), −5 +29e-6, −4 +17e-6 [Ameya].
-- On 3,000 random 25% subsets of the holdout S1 the −6 gain is positive in **99.7%** (mean +32.8e-6, sd 16.7e-6) [estimate: resampling, 29 Sep].
+- On 3,000 random 25% subsets of the holdout S1 the −6 gain is positive in **99.7%** (mean +32.8e-6, sd 16.7e-6) [`analysis/resample_drop.py`].
 
-**Leakage check.** Adapter 0 trained on the French pseudo-labels of S1 thirds 1–2 (band pairs only), yet it flags French pairs outside the band at the same rate in every third: 0.112% (unseen third 0), 0.108%, 0.107%, with median logit 9.6 in each [log, 27 Sep].
+**Leakage check.** Adapter 0 trained on the French pseudo-labels of S1 thirds 1–2 (band pairs only), yet it flags French pairs outside the band at the same rate in every third: 0.112% (unseen third 0), 0.108%, 0.107%, with median logit 9.6 in each [`analysis/leak_by_third.py`].
 
 **On test.**
-- 859 French rejects (0.10% of French predictions, **25× the US/India rate** of 0.004%) and 310 US/India rejects out of 4.74M.
+- 859 French rejects (0.10% of French predictions) and 310 US/India rejects out of 4.74M (0.0065%). That is **about 15× the US/India test rate**, or 25× the US/India holdout rate of 0.004%, so 15–25×.
 - The French rejects are mostly **generic-name decoys**: the same generic name and the same house number on a different street [Ameya]. On the labelled holdout that pattern is 0.5% true where our model rejected it (7B median −9.9), and 99.7% true where it predicted it (median +7.9). 78% of the French rejects are this pattern; a bge detector with no self-training labels flags 82% of them [Ameya].
 
 ## 6. Composite B and B7
@@ -245,7 +245,7 @@ For comparison, g0's stage 2: pc @0.725 0.991185, c2 decision 0.991179 [holdout]
 | **French 7B drops: the remainder, ≈ +111e-6** | **so the 840 French drops were nearly all false** |
 
 **For comparison:**
-- **mixf2** (India g1w, US v7sq3, France from round-3 self-training, the same 7B drops) scored **0.990819** [LB]. So round-3 French labels lost to round 2's, the pattern the LOCO self-training ladder predicted.
+- **mixf7** (B with the round-3 France, v7sq6r3-dpc, and the same US/India) scored **0.990833**, −46e-6 vs B; **mixf2** (also v7sq3 US) scored **0.990819** [LB]. The leaderboard does not isolate the labels: B's France (mixmdp) also carries the French expected-F0.5 decision and the look-alike drop, and v7sq6r3-dpc has neither. Ameya's decoy-aware decomposition attributes the gap to the missing France DP (+51e-6), with the round-3 model itself +24e-6 better on the 7B-scored pairs and the look-alike drop about neutral [Ameya §6.20].
 - **B7** (`fr_drop_ladder.py --stop B7`) extends the French drops below −6:
   - [−6, −4) everywhere;
   - [−4, 0) where Qwen3-4B also rejects (logit < −2);
