@@ -11,7 +11,7 @@ Models: intfloat/multilingual-e5-large (MIT, 560M parameters), intfloat/multilin
 0.9244 / 0.9287 (e5-small 0.9191 / 0.9240; stage-1 p1 on the holdout band 0.9297). Resumable per OOF group.
 
 Self-training (``--pseudo``): test band pairs of the countries without labels (France), pseudo-labelled from a finished
-chain's decisions (scratchpad make_pseudo.py: y 1/0, -1 unlabelled), join the training set, cross-fitted: their S1 are
+chain's decisions (pseudo_labels.py: y 1/0, -1 unlabelled), join the training set, cross-fitted: their S1 are
 split three ways (fold_of % 3); model g trains on the pseudo-labels of the other two thirds and alone scores the
 target pairs of third g. The other test pairs get the mean of the three models, as before.
 """

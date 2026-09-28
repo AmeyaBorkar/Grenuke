@@ -14,7 +14,7 @@ US/India, applied to a model's French stage-3 pc instead of the stage-3 threshol
   apply_swapsim.py). Drops are applied first; an addition is kept only if it is a candidate and its record has no
   other S1 after the drops. Other countries are not changed.
 
-The error agent's valuation (holdout calibration of the pc bands, US/India): +0.00001 to +0.000016 LB on every French
+Our error-analysis valuation (holdout calibration of the pc bands, US/India): +0.00001 to +0.000016 LB on every French
 base tried, positive under every valuation; the same DP against the threshold on the US/India holdout: +0.000027.
 """
 from __future__ import annotations

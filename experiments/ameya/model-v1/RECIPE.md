@@ -68,7 +68,7 @@ python -m ber.pipeline --stage write --split test --tag ameya-model-v7nst-s3-ops
 |---|---|
 | v7nst2 | `--pseudo` from v7nst's own decisions (round 2) |
 | v7ens2 | `bag_scores.py --scores ameya-s2-v7nst,ameya-s2-v7nst2`, then the chain from `decide.py` |
-| `<tag>-frs2` | France takes the stage-2 decision (`ameya-model-<tag>-c2`), the rest stage 3 (scratchpad `split_s3.py`); then `post_ops.py --scores ameya-s2-<tag>`, acronym join, write |
+| `<tag>-frs2` | France takes the stage-2 decision (`ameya-model-<tag>-c2`), the rest stage 3 (a one-off `split_s3.py`); then `post_ops.py --scores ameya-s2-<tag>`, acronym join, write |
 | v7mst | group `cem` (e5l, e5l2, bge) instead of `cem2` |
 | v7s | group `cms` = z-mean of e5l, **e5ls** and bge. e5ls is `ce_box.py --name e5ls --epochs 2 --seed 7 --pseudo pseudo_fr_v7ce3.parquet` (French pseudo-labels, cross-fitted) |
 | v7sq | group `cmq` = z-mean of e5l, **qst**, e5ls and bge. qst is `ce_llm_st.py --model Qwen/Qwen2.5-1.5B --name qst --pseudo pseudo_fr_v7ce3.parquet --us-in-frac 0.5 --batch 64 --lr 1e-4` (Sachi's LoRA classifier + French pseudo-labels), included only if its US/India holdout band AUC ≥ 0.93 and its correlation with e5l ≤ 0.975 |
