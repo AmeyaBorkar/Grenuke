@@ -4,7 +4,7 @@
 **Team Members:** Ameya Borkar, Aarush Bakshi, Sachi Dhoka  
 **Submission Date:** 29 September 2026
 
-> **At a glance.** **0.990879** macro F0.5 on the public leaderboard, with the submission in this package ("Composite B", our best). **0.9913** on a labelled US/India holdout. Blocking keeps **99.1%** of true pairs at **3.70 candidates per S1**. We used only the provided data, and every model is **MIT or Apache-2.0** with **at most 8B** parameters.
+> **At a glance.** **Public leaderboard: 0.990879** macro F0.5, the official score of this package's submission ("Composite B"). **Local validation: 0.9913**, on our labelled US/India holdout (France has no labels). Blocking keeps **99.1%** of true pairs at **3.70 candidates per S1**. Only the provided data; every model is **MIT or Apache-2.0** and **≤ 8B** parameters.
 
 ### Contents
 
@@ -58,7 +58,7 @@ Our blocking keys (§3) and features (§4) are built around exactly these edits.
 - **Shared addresses:** 11% of French S1 share their exact address with another S1.
 - **Administrative names:** 32% of French addresses carry department or region names.
 
-Our first uploads scored 0.976–0.980 on the leaderboard, against 0.984–0.989 on the US/India holdout. That implied France near 0.93, **so most of our later work targeted France**.
+Our first uploads scored 0.976–0.980 on the public leaderboard, against 0.984–0.989 on our local US/India holdout. That implied France near 0.93, **so most of our later work targeted France**.
 
 ### 2.2 Solution Strategy
 
@@ -67,10 +67,10 @@ Our first uploads scored 0.976–0.980 on the leaderboard, against 0.984–0.989
 **Core Innovation:**
 
 1. **Guarded, cross-fitted self-training for a country without labels.** We pseudo-label French pairs from our best model's final decisions: *positive* if kept with calibrated probability ≥ 0.9, *negative* if rejected with ≤ 0.05, and unlabelled otherwise. **Guards** protect against known failure modes: rule-derived populations override the labels, and empty-address records keep the first round's labels. The labels are **cross-fitted by S1 group**, so no French pair is ever scored by a model that saw its own label. Round 1 added **+0.00046** on the leaderboard; round 2, together with the French decision layers, added **+0.00015**.
-2. **A decision that optimises the metric itself.** Instead of one global threshold, each S1 gets the prediction set with the highest **expected F0.5** under calibrated probabilities, found by a small dynamic programme (§4). It beat a tuned threshold on the holdout by **+0.000048** (95% CI +0.000007 to +0.000091).
+2. **A decision that optimises the metric itself.** Instead of one global threshold, each S1 gets the prediction set with the highest **expected F0.5** under calibrated probabilities, found by a small dynamic programme (§4). It beat a tuned threshold on our local holdout by **+0.000048** (95% CI +0.000007 to +0.000091).
 3. **An independent second opinion on "certain" predictions.** 94.5% of final predictions have a stage-1 probability above 0.99, so no cross-encoder ever read them. A LoRA-tuned **Qwen2.5-7B** re-reads them and drops those it rejects strongly (logit < −6), a cut-off we fixed on labelled data beforehand. It removed **840 French predictions**; on labelled data, only 8% of such rejects are true matches.
 
-**How we decided what to keep.** For US/India we used a **fixed holdout of 25% of train S1** (549,699 S1). It was never used for fitting, and we scored it with the official macro F0.5. A component was kept only if a **paired bootstrap** showed a gain, with ties going to the simpler option. Post-hoc rules also had to gain on **both halves** of the holdout. France has no labels, so we judged it with label-free checks, estimates corrected with the 7B's judgement, and leaderboard probes that changed only France.
+**How we decided what to keep.** For US/India, our **local validation** is a **fixed holdout of 25% of train S1** (549,699 S1). It was never used for fitting, and we scored it with the official macro F0.5. A component was kept only if a **paired bootstrap** showed a gain, with ties going to the simpler option. Post-hoc rules also had to gain on **both halves** of the holdout. France has no labels, so we judged it with label-free checks, estimates corrected with the 7B's judgement, and leaderboard probes that changed only France.
 
 ---
 
@@ -90,7 +90,7 @@ Our first uploads scored 0.976–0.980 on the leaderboard, against 0.984–0.989
 
 **Candidate pairs generated.** Retrieval yields **58.4M test pairs** (66.4M train). A stage-0/1 gradient-boosted scorer then keeps the pairs with **p1 ≥ 0.02**, plus each record's **two highest-scoring S1**, and acronym joins are added. That leaves **6,410,308 candidates, or 3.70 per test S1** (`candidate_pairs.tsv`).
 
-**How you ensured true matches were not lost.** We **measured blocking recall on the holdout** rather than assuming it. **99.1%** of true pairs are candidates; the 16.5k misses (of about 1.9M) are mostly empty-address copies whose name changed. Tighter candidate cuts lost holdout F0.5 (top-1 per record −0.000106; p1 ≥ 0.05 −0.000041), so we kept the more generous cut.
+**How you ensured true matches were not lost.** We **measured blocking recall on the local holdout** rather than assuming it. **99.1%** of true pairs are candidates; the 16.5k misses (of about 1.9M) are mostly empty-address copies whose name changed. Tighter candidate cuts lost holdout F0.5 (top-1 per record −0.000106; p1 ≥ 0.05 −0.000041), so we kept the more generous cut.
 
 ---
 
@@ -112,7 +112,7 @@ Our first uploads scored 0.976–0.980 on the leaderboard, against 0.984–0.989
 
 **The cross-encoders** read only the **uncertain band**, 0.02 ≤ p1 ≤ 0.99 (1.49M test pairs), because that's where reading the text pays off. Each is trained as three out-of-fold models on `name ; address` of both records, up to 96 tokens. Their z-scored scores are **averaged into one stage-2 feature**: separate scores let stage 2 extrapolate where the models disagree, which happens four times as often in France. Table 3 lists the models.
 
-*Table 3. Cross-encoders (band AUC on labelled holdout pairs; stage-1 p1 alone scores 0.930).*
+*Table 3. Cross-encoders (band AUC on labelled local-holdout pairs; stage-1 p1 alone scores 0.930).*
 
 | model | size | licence | training | band AUC |
 |---|---|---|---|---|
@@ -123,7 +123,7 @@ Our first uploads scored 0.976–0.980 on the leaderboard, against 0.984–0.989
 
 French self-trained versions of e5-large and bge are also in the mix, and e5-base (278M, MIT) served only the first French teacher. Notably, the **7B is no more accurate** than a self-trained e5-large (both 0.944). Its value is **diversity**: it counts twice in the US/India mix, and it gives an **independent reading** of confident pairs in the re-check.
 
-**Threshold selection method.** There is no single threshold. The calibrated stage-3 probabilities feed an **expected-F0.5 set selection**: a dynamic programme picks, for each S1, the prefix of its candidates with the highest expected F0.5, with settings tuned on the holdout (a logit shift of +0.2, −0.3 for records contested by four or more S1, and 0.01 expected missed match). Each record goes to its highest-scoring S1. **Rules** then add acronym joins and per-source caps. For France they also apply an exact-address copy rule (99.99% precise on US/India), a cross-commune drop, a look-alike word-swap drop, and the same set selection on France's own probabilities. Finally, the **7B re-check** drops confident pairs with logit < −6. That cut-off gave the largest holdout gain (+0.000037), positive in both halves and in 99.7% of random subsets.
+**Threshold selection method.** There is no single threshold. The calibrated stage-3 probabilities feed an **expected-F0.5 set selection**: a dynamic programme picks, for each S1, the prefix of its candidates with the highest expected F0.5, with settings tuned on the local holdout (a logit shift of +0.2, −0.3 for records contested by four or more S1, and 0.01 expected missed match). Each record goes to its highest-scoring S1. **Rules** then add acronym joins and per-source caps. For France they also apply an exact-address copy rule (99.99% precise on US/India), a cross-commune drop, a look-alike word-swap drop, and the same set selection on France's own probabilities. Finally, the **7B re-check** drops confident pairs with logit < −6. That cut-off gave the largest local-holdout gain (+0.000037), positive in both halves and in 99.7% of random subsets.
 
 ---
 
@@ -137,8 +137,10 @@ French self-trained versions of e5-large and bge are also in the mix, and e5-bas
 
 | evaluation | macro F0.5 |
 |---|---|
-| labelled holdout, US + India (549,699 S1) | **0.9913** (US 0.9911, India 0.9916); precision 99.9%, recall 97.5% |
-| public leaderboard, US + India + France | **0.990879** |
+| **public leaderboard** (official; US + India + France) | **0.990879** |
+| local validation: our labelled holdout, US + India only (549,699 S1) | 0.9913 (US 0.9911, India 0.9916); precision 99.9%, recall 97.5% |
+
+The local score is higher because France, which has no labels, cannot be part of it; most of the gap is France. The private leaderboard, which decides the final ranking, had not been published when we wrote this.
 
 ![Figure 2: public leaderboard score, step by step](figures/fig2_score.png)
 
@@ -154,7 +156,7 @@ The largest steps were the **e5-large cross-encoders** (+0.0011) and the **block
 
 ## 6. Conclusion
 
-A **precision-first pipeline** with **calibrated, set-level decisions** brought US and India to 0.9913 macro F0.5, and **guarded self-training** carried France most of the way without a single label. An **independent 7B re-check** of the predictions that looked certain found decoys that feature models accept. We learned two things: self-training paid for **two rounds**, and without labels any probability-based estimate needs a **second, independent judge**, because it inherits the model's blind spots.
+A **precision-first pipeline** with **calibrated, set-level decisions** brought US and India to 0.9913 on our local validation, and **guarded self-training** carried France most of the way without a single label, for **0.990879** on the public leaderboard. An **independent 7B re-check** of the predictions that looked certain found decoys that feature models accept. We learned two things: self-training paid for **two rounds**, and without labels any probability-based estimate needs a **second, independent judge**, because it inherits the model's blind spots.
 
 ---
 
@@ -175,7 +177,7 @@ A **precision-first pipeline** with **calibrated, set-level decisions** brought 
 
 ### B. Additional Results
 
-*Table B1. Ablations (labelled US/India holdout, paired bootstrap).*
+*Table B1. Ablations (local validation: labelled US/India holdout, paired bootstrap).*
 
 | change | effect on macro F0.5 |
 |---|---|
@@ -184,7 +186,7 @@ A **precision-first pipeline** with **calibrated, set-level decisions** brought 
 | 7B re-check (drop logit < −6) | +0.000037, both halves positive |
 | tighter candidate cut (top-1 / p1 ≥ 0.05) | −0.000106 / −0.000041 |
 
-*Table B2. The 7B re-check on predictions with p1 > 0.99 (a labelled 34% holdout sample, and the French test predictions).*
+*Table B2. The 7B re-check on predictions with p1 > 0.99 (a labelled 34% sample of the local holdout, and the French test predictions).*
 
 | 7B logit | holdout predictions | truly a match | French predictions |
 |---|---|---|---|
