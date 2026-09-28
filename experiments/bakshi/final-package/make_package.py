@@ -247,7 +247,13 @@ def build(args: argparse.Namespace) -> int:
     shutil.copy2(here / "reproduce.sh", pkg / "reproduce.sh")
     shutil.copy2(here / "requirements.txt", pkg / "requirements.txt")
     shutil.copy2(here / "PACKAGE_README.md", pkg / "README.md")
-    shutil.copy2(args.doc or (here / "Documentation_template.md"), stage / "Documentation_template.md")
+    doc = args.doc or (here / "Documentation_template.md")
+    shutil.copy2(doc, stage / "Documentation_template.md")
+    # its typeset PDF and the figures the .md links to, when they sit beside it
+    if (doc.parent / "Documentation_template.pdf").is_file():
+        shutil.copy2(doc.parent / "Documentation_template.pdf", stage / "Documentation_template.pdf")
+    if (doc.parent / "figures").is_dir():
+        copy_tree(doc.parent / "figures", stage / "figures")
 
     # organiser validator, so the archive can check itself
     (stage / "student_resource/utils").mkdir(parents=True)
@@ -425,7 +431,8 @@ def main() -> int:
     ap.add_argument("--audit", action="store_true", help="run audit_matching.py before packaging")
     ap.add_argument("--test-dir", type=Path, default=None, help="dataset/test, for --audit and the validator")
     ap.add_argument("--doc", type=Path, default=None,
-                    help="the filled Documentation_template.md for the zip root (default: the one in this folder)")
+                    help="the filled Documentation_template.md for the zip root (default: the one in this folder); "
+                         "a Documentation_template.pdf and a figures/ folder beside it are shipped too")
     ap.add_argument("--variant", default="compositeB",
                     help="which model these outputs came from, recorded in package_manifest.json so the "
                          "archive says what it ships (default: %(default)s)")
