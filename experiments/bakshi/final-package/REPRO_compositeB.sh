@@ -112,7 +112,9 @@ done
 # 4c. The rule, checked on the labelled holdout before use: drop when q7 logit < -6 and p1 > 0.99.
 cd $M && python $B/box/rescore_eval.py --dir $ROOT/box/rescore --out-band-only
 #     t = -6: +0.000033 macro F0.5 (fixed halves +0.000022 / +0.000043); that bucket is 8% true.
-#     t = -4 and looser turn negative. On 3,000 random 25% subsets of the holdout S1 the gain is positive in 99.7%.
+#     -6 has the largest gain; -5 gains less (+26e-6, both halves positive), -4 has a negative half (+12e-6 overall),
+#     -3 and looser lose. On 3,000 random 25% subsets of the holdout S1 the -6 gain is positive in 99.7%
+#     (analysis/resample_drop.py).
 
 # =====================================================================================================================
 # 5. LAPTOP (CPU): the composition that produced Composite B (both output files)
