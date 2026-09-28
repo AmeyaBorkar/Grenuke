@@ -27,7 +27,7 @@ def encode_synth(tok, synth_path, rec_path, smoke):
     band["row"] = np.arange(len(band))
     rec = pd.read_parquet(rec_path, columns=["eid", "name", "address"])
     text = (rec["name"].fillna("") + " ; " + rec["address"].fillna("")).str.slice(0, 300)
-    text = text.set_index(rec["eid"])
+    text.index = rec["eid"].to_numpy()
     a_list = text.reindex(band["s1"]).tolist()
     b_list = text.reindex(band["r"]).tolist()
     enc = []
