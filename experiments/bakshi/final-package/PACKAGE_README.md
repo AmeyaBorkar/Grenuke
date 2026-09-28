@@ -38,7 +38,7 @@ pip install -e code/business_entity_resolution/src
 pytest -q code/business_entity_resolution/src/tests
 ```
 
-Data: the organiser folder `student_resource/dataset/{train,test}/*.tsv` (set `BER_DATA_DIR` if it lives elsewhere).
+Data: place the organisers' `student_resource/` folder (`dataset/` and `utils/validate_submission.py`) at the unzipped root; the run and the checks read it from there, and the zip does not include it (set `BER_DATA_DIR` if the data lives elsewhere).
 Intermediate artifacts go to `work/` (`BER_WORK_DIR`).
 
 ## Hardware
