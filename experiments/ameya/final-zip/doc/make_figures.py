@@ -1,7 +1,8 @@
 """Figures for Documentation_template.md, drawn at print size (6.6 in wide) so the fonts stay >= 8 pt in the PDF.
 
 fig1_pipeline.png : the pipeline, left to right, titles only (the numbers are in the text)
-fig2_score.png    : the public leaderboard score after each submission step
+fig2_strategy.png : the solution strategy, challenge -> what we did -> measured gain
+fig3_score.png    : the public leaderboard score after each submission step
 """
 from pathlib import Path
 
@@ -69,7 +70,7 @@ def fig2():
              ("+ round 2\nFrance", 0.990699), ("+ Qwen 7B\n+ re-check", 0.990879)]
     xs = list(range(1, len(steps) + 1))
     ys = [v for _, v in steps]
-    fig, ax = plt.subplots(figsize=(6.4, 2.5))
+    fig, ax = plt.subplots(figsize=(6.4, 2.2))
     ax.plot(xs, ys, color="#8fb3dc", lw=2, zorder=1)
     ax.scatter(xs[:-1], ys[:-1], s=34, color="#5b8fc7", zorder=2)
     ax.scatter(xs[-1:], ys[-1:], s=60, color=ACC, zorder=3)
@@ -90,11 +91,54 @@ def fig2():
     ax.set_axisbelow(True)
     ax.tick_params(axis="x", length=0, pad=4)
     fig.tight_layout()
-    fig.savefig(OUT / "fig2_score.png", dpi=300, bbox_inches="tight", pad_inches=0.03)
+    fig.savefig(OUT / "fig3_score.png", dpi=300, bbox_inches="tight", pad_inches=0.03)
+    plt.close(fig)
+
+
+def fig_strategy():
+    """Challenge -> what we did -> measured gain, one row per strategic choice."""
+    W = 6.4
+    rows = [
+        (("58M pairs to score,", "limited compute"),
+         ("Cascade: XGBoost on every pair,", "cross-encoders on the 1.49M uncertain"), ("+0.0011 LB",)),
+        (("F0.5 punishes wrong", "merges, scored per S1"),
+         ("Pick each S1's whole set", "by expected F0.5"), ("+0.000048", "local")),
+        (("France has no labels", "(test set only)"),
+         ("Guarded self-training, 2 rounds", "cross-fitted, on our own decisions"), ("+0.00046 and", "+0.00015 LB")),
+        (("Decoys the features", "accept with confidence"),
+         ("Qwen2.5-7B re-check", "of the predictions with p1 > 0.99"), ("about", "+0.00011 LB")),
+    ]
+    rh, gap, top = 0.46, 0.1, 0.28
+    H = top + len(rows) * (rh + gap)
+    fig, ax = plt.subplots(figsize=(W, H))
+    ax.set_xlim(0, W)
+    ax.set_ylim(0, H)
+    ax.axis("off")
+    lx, lw, rx, rw, gx = 0.02, 1.75, 2.03, 3.0, 5.76
+    for x, t in ((lx + lw / 2, "What makes it hard"), (rx + rw / 2, "What we did"), (gx, "Measured gain")):
+        ax.text(x, H - 0.12, t, ha="center", va="center", fontsize=9.0, fontweight="bold", color=INK)
+    for i, (left, right, gain) in enumerate(rows):
+        yc = H - top - i * (rh + gap) - rh / 2
+        ax.add_patch(FancyBboxPatch((lx, yc - rh / 2), lw, rh, boxstyle="round,pad=0.0,rounding_size=0.07",
+                                    fc="#f4e6e1", ec="#c47a64", lw=1.2))
+        ax.add_patch(FancyBboxPatch((rx, yc - rh / 2), rw, rh, boxstyle="round,pad=0.0,rounding_size=0.07",
+                                    fc="#dbe9f7", ec="#5b8fc7", lw=1.2))
+        arrow(ax, (lx + lw + 0.03, yc), (rx - 0.03, yc))
+        ax.text(lx + lw / 2, yc + 0.09, left[0], ha="center", va="center", fontsize=8.3, color=INK)
+        ax.text(lx + lw / 2, yc - 0.1, left[1], ha="center", va="center", fontsize=8.3, color=INK)
+        ax.text(rx + rw / 2, yc + 0.09, right[0], ha="center", va="center", fontsize=8.5, color=INK, fontweight="bold")
+        ax.text(rx + rw / 2, yc - 0.1, right[1], ha="center", va="center", fontsize=8.3, color=INK)
+        if len(gain) == 1:
+            ax.text(gx, yc, gain[0], ha="center", va="center", fontsize=8.6, color=ACC, fontweight="bold")
+        else:
+            ax.text(gx, yc + 0.095, gain[0], ha="center", va="center", fontsize=8.6, color=ACC, fontweight="bold")
+            ax.text(gx, yc - 0.1, gain[1], ha="center", va="center", fontsize=8.6, color=ACC, fontweight="bold")
+    fig.savefig(OUT / "fig2_strategy.png", dpi=300, bbox_inches="tight", pad_inches=0.03)
     plt.close(fig)
 
 
 if __name__ == "__main__":
     fig1()
+    fig_strategy()
     fig2()
     print("figures written to", OUT)

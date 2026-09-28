@@ -37,17 +37,23 @@ The pipeline makes three passes. **Blocking** looks up candidate records for eac
 
 Each S1 business has between **0 and 11 copies** in the Source-2 and Source-3 files, 3.46 on average, and about **5.6% have none** at all. The metric is F0.5 averaged over S1, so **a wrong merge costs twice as much as a missed copy**. An S1 with no copies also scores zero as soon as we predict anything for it. That pushed the whole design towards **precision**.
 
-The copies are **noisy**. In the labelled data we found case and accent changes, **legal forms** dropped or rewritten (in France, SARL, SAS or EURL changes in about 23% of copies), reordered or appended words, **acronyms**, typos, shortened **street types** ("Rue" to "R."), reordered addresses, changed **house numbers** and **empty addresses**. Most of our blocking keys and features target one of these edits directly.
+The copies are **noisy**: case and accent changes, **legal forms** dropped or rewritten (about 23% of French copies), reordered or appended words, **acronyms**, typos, shortened **street types** ("Rue" to "R."), changed **house numbers** and **empty addresses**. Most of our blocking keys and features target one of these edits directly.
 
 The test set also contains **decoys**. It has about **23% more records per S1** than the training set but the same number of true matches, so the extra records are **look-alikes**: a different business word at the same address, a nudged house number, or the same name somewhere else. Between **46% and 54% of S1 share their name** with another S1, so the **address** usually settles the match. We therefore let candidates **compete within each S1**, and each record can belong to **at most one S1**.
 
-**France** is harder still. Its names are **generic**, a city plus a category such as "lille club sarl", and each French decoy we removed shares its name with a median of **43 other S1**. About **11%** of French S1 share their exact address with another S1, and **32%** of French addresses contain a department or region name.
-
-We noticed early how much this mattered. Our first uploads scored **0.976 to 0.980** on the leaderboard, while our local validation said **0.984 to 0.989**. The only thing the leaderboard had that our validation lacked was France. Working backwards put **France at around 0.93**, and most of what we did afterwards was aimed at it.
+**France** is harder still: its names are **generic** ("lille club sarl"; each French decoy we removed shares its name with a median of **43 other S1**), **11%** of French S1 share their exact address with another, and **32%** of addresses carry a department or region name. We noticed early how much this mattered. Our first uploads scored **0.976 to 0.980** on the leaderboard while our local validation said **0.984 to 0.989**, and the only difference was France. Working backwards put **France at around 0.93**, and most of what we did afterwards was aimed at it.
 
 ### 2.2 Solution Strategy
 
 **Approach Type:** Hybrid. **Blocking** generates candidates, three stages of **gradient-boosted classifiers** score the pairs, **cross-encoders** read the uncertain pairs, a **per-S1 decision** picks the final set, **rules** clean up known patterns, and an **LLM re-checks** the confident predictions (Figure 1).
+
+Our strategy follows directly from the problem analysis. **Figure 2** maps each difficulty to what we did about it and what it gained, and the rest of this section explains the choices.
+
+![Figure 2: the solution strategy](figures/fig2_strategy.png)
+
+**Figure 2.** The solution strategy: each difficulty, what we did about it, and the gain we measured.
+
+**Two principles** run through the whole design. The first is to **spend effort where the uncertainty is**. XGBoost is cheap enough to score all 58M retrieved pairs, the cross-encoders are affordable on the **1.49M pairs** where that score is uncertain, and the 7B model is used where a second opinion pays: in the mix, and as a reader of the predictions we were most sure about. The second principle is to **decide the way the metric scores**, per S1 and with precision first, so the last step chooses a set of records for each S1 rather than applying a threshold to pairs.
 
 **Core Innovation:** three ideas carried most of the gain.
 
@@ -56,6 +62,8 @@ We noticed early how much this mattered. Our first uploads scored **0.976 to 0.9
 *A decision that optimises the metric directly.* For each S1, a small **dynamic programme** over the calibrated candidate probabilities finds the prediction set with the **highest expected F0.5**. On our local holdout this beat the best global threshold by **+0.000048** (95% interval 0.000007 to 0.000091).
 
 *A second opinion on predictions we were sure about.* **94.5%** of our final predictions have a stage-1 probability above 0.99, so **no cross-encoder ever looked at them**. A LoRA-tuned **Qwen2.5-7B** reads them again, and we drop the ones it rejects with a **logit below −6**, a cut-off we fixed on labelled data first. It dropped **840 French predictions**. On labelled data, only **8%** of predictions rejected that strongly are real matches.
+
+*Why not a simpler design.* Each simpler option lost when we measured it. Scoring every retrieved pair with the 7B was out of reach: at the **roughly 600 pairs per second** we measured on an H100, the 58M test pairs alone would take **about 27 GPU-hours**, before any training. Carrying the US/India model over to France without self-training left the gap open, since the first round of self-training alone added **+0.00046**. And a **tuned global threshold** lost to the set selection on the local holdout.
 
 *How we decided what to keep.* For US and India we held out a **fixed 25% of the training S1** (549,699 S1) and never trained on it. A component stayed only if it gained on that holdout in a **paired bootstrap**, and ties went to the simpler option. Rules added late also had to gain on **both halves** of the holdout. France has no labels, so there we relied on label-free checks, on estimates corrected with the 7B model's judgements, and on **leaderboard submissions that changed France alone**.
 
@@ -127,11 +135,11 @@ Table 3 lists the models. French self-trained versions of e5-large and bge are a
 | public leaderboard, official (US, India and France) | **0.990879** |
 | local validation: labelled holdout, US and India only (549,699 S1) | 0.9913 (US 0.9911, India 0.9916); precision 99.9%, recall 97.5% |
 
-Figure 2 shows how the leaderboard score grew over our submissions. The largest steps were the **e5-large cross-encoders (+0.0011)** and the **blocking repairs together with stage 3 (+0.0008)**. **French self-training** added +0.00046, and the last step, the **7B model in the mix plus the re-check**, added +0.00018.
+Figure 3 shows how the leaderboard score grew over our submissions. The largest steps were the **e5-large cross-encoders (+0.0011)** and the **blocking repairs together with stage 3 (+0.0008)**. **French self-training** added +0.00046, and the last step, the **7B model in the mix plus the re-check**, added +0.00018.
 
-![Figure 2: public leaderboard score over our submissions](figures/fig2_score.png)
+![Figure 3: public leaderboard score over our submissions](figures/fig3_score.png)
 
-**Figure 2.** Public leaderboard score after each step. The last point is the submission in this package.
+**Figure 3.** Public leaderboard score after each step. The last point is the submission in this package.
 
 **Common false positives (wrong merges):** The most expensive errors were **generic-name decoys in France**: the same generic name and house number on a **different street**, such as "lille ecole sarl, 42 rue gutenberg" against "lille ecole sarl, 42 q. du wault". On labelled data this pattern is a real match **0.5%** of the time when our model rejects it, and **99.7%** of the time when it accepts it. String features cannot tell the two apart, but **the 7B model can**, and removing its 840 French rejects was worth an estimated **+0.00011** of the final +0.00018. Smaller groups of errors are **business words swapped** at the same address ("antenne danse" and "antenne gaz"), very **short names** that differ by one letter ("osd" and "otd"), and **branches of a chain** that share a name.
 
@@ -153,23 +161,14 @@ Two lessons stay with us. Self-training helped for **two rounds**, and a third d
 
 `code/business_entity_resolution/` **regenerates both output files** from the raw train and test TSVs. Its `README.md` gives the exact commands, the run time of each step, and what each step should print.
 
-`reproduce.sh` is the **entry point**; with `VARIANT=compositeB` (the default) it runs `src/box/compositeB.sh`. The team package is in `src/ber`, the model chain (XGBoost stages, cross-encoders, self-training labels, decision, rules, the France block) in `src/model_v1`, and the Qwen2.5-7B training, the 7B re-check and the per-country composition in `src/box`. The XGBoost stages need **24 or more CPU cores and 32 GB of RAM**, the cross-encoders ran on **one 80 GB H100**, and Qwen2.5-7B needs **three 80 GB GPUs** for about two hours. We used Python 3.12 to 3.13, torch 2.11, transformers 5.17, peft 0.21 and xgboost 3.2.0.
+`reproduce.sh` is the **entry point**; with `VARIANT=compositeB` (the default) it runs `src/box/compositeB.sh`. The team package is in `src/ber`, the model chain (XGBoost stages, cross-encoders, self-training labels, decision, rules, the France block) in `src/model_v1`, and the Qwen2.5-7B training, the 7B re-check and the per-country composition in `src/box`. The XGBoost stages need **24 or more CPU cores and 32 GB of RAM**, the cross-encoders ran on **one 80 GB H100**, and Qwen2.5-7B needs **three 80 GB GPUs** for about two hours. Exact versions are pinned in `requirements.txt`.
 
 **Seeds are fixed**, and every artifact records the command and git commit that made it. GPU training is not bit-identical across machines (an earlier model rebuilt on other hardware moved from 0.991246 to 0.991261 on the holdout), so a rerun should land **within about 0.0001**. The `output/` folder holds the **exact bytes we submitted**.
 
 ### B. Additional Results
 
-**Table B1.** Ablations on the local validation set (labelled US/India holdout), each tested with a paired bootstrap.
+Every local-validation gain quoted in this document was tested with a **paired bootstrap** on the labelled US/India holdout. Counting the 7B twice in the cross-encoder mix gained **+0.000066 on India** (P 0.998) and +0.000026 on the US.
 
-| change | effect on macro F0.5 |
-|---|---|
-| expected-F0.5 set selection instead of a tuned threshold | +0.000048 (0.000007 to 0.000091) |
-| Qwen2.5-7B counted twice in the cross-encoder mix | India +0.000066 (P 0.998), US +0.000026 |
-| 7B re-check, dropping logit < −6 | +0.000037, positive in both halves |
-| tighter candidate cut (best S1 only / p1 ≥ 0.05) | −0.000106 / −0.000041 |
+On a labelled 34% sample of the local holdout, **8.3%** of the confident predictions the 7B scored below −6 were real matches, against **92.6%** between −6 and −2. It rejects **0.10% of French predictions** but only **0.004% to 0.007%** of US and India ones, at the same rate in each third of the French S1, including the third it never saw labels for. Two **leaderboard controls** agree: the round-3 French model without the French decision layers scored **0.990833**, and pushing the French 7B drops below −6 scored **0.990875**, a tie.
 
-On a labelled 34% sample of the local holdout, **8.3%** of the confident predictions the 7B scored below −6 were real matches, against **92.6%** between −6 and −2 and **over 99.9%** above that. The 7B rejects **0.10% of French predictions**, but only **0.004% to 0.007%** of US and India ones. The French rate is the same in each third of the French S1, including the third the model never saw labels for, so the re-check is **not repeating its training labels**.
-
-Two **leaderboard controls** support these choices. Composite B with the round-3 French model, but without the French decision layers, scored **0.990833**, which is 0.000046 lower. Pushing the French 7B drops below −6 scored **0.990875**, a tie, so the −6 cut-off was already in the right place.
-
-We also **measured and dropped** several ideas: **recall rules** (17% to 71% precise); **a learned blend** of all six cross-encoder scores as the decision score (band AUC 0.9575, but 0.001 lower F0.5); **mining extra drops** with a decision tree (+0.000033 on one half of the holdout, −0.000015 on the other); **breaking ties** between empty-address records by copy count (−0.00057); **renormalising French probabilities** per record (−0.000007 to −0.000137); and **other encoders** (Qwen3-4B scored below the 7B, and mDeBERTa-v3 and gte-multilingual could not be trained or run reliably).
+We also **measured and dropped** several ideas: **recall rules** (17% to 71% precise), **a learned blend** of all six cross-encoder scores as the decision score (0.001 lower F0.5), **mining extra drops** with a decision tree (it failed on the held-out half), **breaking ties** by copy count (−0.00057), **renormalising French probabilities** per record (up to −0.000137), and **other encoders** (Qwen3-4B was weaker than the 7B; mDeBERTa-v3 and gte-multilingual failed to train or run).
