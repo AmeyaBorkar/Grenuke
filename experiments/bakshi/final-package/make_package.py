@@ -227,8 +227,18 @@ def build(args: argparse.Namespace) -> int:
     copy_tree(src_pkg / "tests", pkg / "tests")
     shutil.copy2(src_pkg / "pyproject.toml", pkg / "pyproject.toml")
 
-    # the model chain: copied into the package, so the zip does not reference a developer path
+    # the model chain: copied into the package, so the zip does not reference a developer path. Left out: the
+    # research notes (*.md other than RECIPE.md) and pipeline/, the as-run records of the rented boxes and laptop
+    # (machine paths, box addresses), except the two pipeline scripts the Composite B driver calls.
     copy_tree(root / "experiments/ameya/model-v1", pkg / "src/model_v1")
+    for p in sorted((pkg / "src/model_v1").glob("*.md")):
+        if p.name != "RECIPE.md":
+            p.unlink()
+    pipe = pkg / "src/model_v1/pipeline"
+    shutil.rmtree(pipe, ignore_errors=True)
+    pipe.mkdir(parents=True)
+    for name in ("france_mixmdp.sh", "s2w.py"):
+        shutil.copy2(root / "experiments/ameya/model-v1/pipeline" / name, pipe / name)
     here = Path(__file__).parent
     shutil.copy2(here / "audit_matching.py", pkg / "src/model_v1/audit_matching.py")
     # ce_llm_st.py imports Sachi's LoRA module `ce_llm` from experiments/sachi/ in the repository; in the package it
@@ -238,7 +248,8 @@ def build(args: argparse.Namespace) -> int:
     # scripts the documentation cites. ops/ is left out: one-off orchestration of the rented boxes (fixed paths).
     box = root / "experiments/bakshi/box"
     (pkg / "src/box/analysis").mkdir(parents=True, exist_ok=True)
-    for f in sorted(box.glob("*.py")) + sorted(box.glob("*.sh")):
+    # Shell scripts: only the driver; the others orchestrated the rented boxes and backups (machine paths).
+    for f in sorted(box.glob("*.py")) + [box / "compositeB.sh"]:
         shutil.copy2(f, pkg / "src/box" / f.name)
     for f in sorted((box / "analysis").glob("*.py")):
         shutil.copy2(f, pkg / "src/box/analysis" / f.name)
@@ -255,10 +266,8 @@ def build(args: argparse.Namespace) -> int:
     if (doc.parent / "figures").is_dir():
         copy_tree(doc.parent / "figures", stage / "figures")
 
-    # organiser validator, so the archive can check itself
-    (stage / "student_resource/utils").mkdir(parents=True)
-    shutil.copy2(root / "student_resource/utils/validate_submission.py",
-                 stage / "student_resource/utils/validate_submission.py")
+    # The organisers' validator is not ours to ship; the checks below run the repository's copy on the extracted outputs.
+    validator = root / "student_resource/utils/validate_submission.py"
 
     n_files = sum(1 for p in stage.rglob("*") if p.is_file())
     print(f"  staged {n_files} files under {stage}")
@@ -382,7 +391,7 @@ def build(args: argparse.Namespace) -> int:
             # Both checks run on the EXTRACTED bytes, not on the staged inputs, so what is verified is
             # exactly what a grader would unzip.
             print("  [1/2] organiser validator on the extracted outputs:")
-            rc = run([sys.executable, str(ex / "student_resource/utils/validate_submission.py"),
+            rc = run([sys.executable, str(validator),
                       "--matching", str(ex / "output/matching_results.tsv"),
                       "--candidate", str(ex / "output/candidate_pairs.tsv"),
                       "--test-dir", str(args.test_dir)])
