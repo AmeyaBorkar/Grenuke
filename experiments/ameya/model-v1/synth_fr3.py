@@ -1,5 +1,5 @@
-"""synth_fr3.py: synth_fr2.py re-weighted to the real French operation mix measured by the France-diff agent
-(agents/fdiff/synth_vs_real.txt, 27 Sep 17:20): true copies are mostly legal-form drops/changes and word reorders
+"""synth_fr3.py: synth_fr2.py re-weighted to the real French operation mix measured in our France error
+analysis (27 Sep 17:20): true copies are mostly legal-form drops/changes and word reorders
 (22.6% of real French copies), with whole-word garbles, -1/-2 house-number moves (the NUM operation) and few list
 appends, typos, acronyms or brands; about 30% of real French non-matches are the same name at another address, and
 only +d house-number nudges are look-alikes; 32% of real addresses name the department. Defaults follow those rates.

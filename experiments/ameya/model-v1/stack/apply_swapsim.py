@@ -5,13 +5,13 @@
 A predicted pair is dropped when, after legal forms and stop words, the names differ by exactly one content word, the
 record's word is a real word (in at least REAL_MIN S1 names of the country, at least MIN_LEN letters), is not a list
 word (LIST_A), and resembles the S1's word (Indel similarity >= GARBLE_SIM): "college du marie" -> "ecole du marie",
-"vgp amis sa" -> "vgp maison sa", "fraicheur agricole sarl" -> "fraicheur amicale sarl". This is the error agent's
+"vgp amis sa" -> "vgp maison sa", "fraicheur agricole sarl" -> "fraicheur amicale sarl". This is the error analysis's
 swap_real_sim population: 592 French predictions of v7sq-dpc. France has 4,088 such candidates at the S1's address
 against 172 in a same-size US/India holdout sample, so the population is the French look-alike trap; US/India base
 rates allow about 130 true copies among the 484 predicted at the address, and the size-bias test fits a false share
 of 0.83 [0.56, 1.10]. Countries with training labels are never changed (there these pairs are 99.3% true).
 Other name categories (acronym, concatenation, typo, abbreviation, one word added or dropped, list-word swap, several
-words) are recognised first and kept, exactly as the error agent's classifier did. Peak memory about 3 GB.
+words) are recognised first and kept, exactly as our error-analysis classifier did. Peak memory about 3 GB.
 """
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def _abbr(a: str, b: str) -> bool:
 
 
 def is_swapsim(sc: tuple, rc: tuple, vocab: Counter) -> bool:
-    """True for the swap_real_sim category of the error agent's name classifier (content-word tuples)."""
+    """True for the swap_real_sim category of our error-analysis name classifier (content-word tuples)."""
     if not sc or not rc or sc == rc:
         return False
     if len(sc) >= 2 and len(rc) == 1 and 2 <= len(rc[0]) <= 5 and rc[0] == "".join(w[0] for w in sc):

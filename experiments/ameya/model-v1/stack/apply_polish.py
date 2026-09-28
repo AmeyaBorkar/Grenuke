@@ -78,7 +78,7 @@ def legrel(a: str, b: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("matches", nargs="?", default="ameya-model-v7nst-s3-ops3a",
-                    help="a test matches tag, or a .parquet file (s1, r) such as the hunt agent's hunted_<tag>.parquet")
+                    help="a test matches tag, or a .parquet file (s1, r) such as a hunted_<tag>.parquet from the error analysis")
     ap.add_argument("--cands", default="", help="candidate tag (default: derived from the matches tag)")
     ap.add_argument("--scores", default="", help="stage-3 scores tag (default: derived from the matches tag)")
     ap.add_argument("--rules", default="copy", help="comma list of: copy, city, city_acr")
