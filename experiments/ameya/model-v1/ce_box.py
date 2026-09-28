@@ -44,6 +44,15 @@ def main() -> int:
     ap.add_argument("--max-len", type=int, default=96)
     ap.add_argument("--seed", type=int, default=26)
     ap.add_argument("--pseudo", default="", help="parquet (s1, r, y) of target-country test band pairs: self-training")
+    ap.add_argument("--only-group", type=int, default=-1,
+                    help="fold-parallel: train and score only this OOF group (0-2) into checkpoint_g<G>.npz, then stop")
+    ap.add_argument("--merge", action="store_true",
+                    help="combine the three --only-group checkpoints and write the outputs as a resumed run")
+    ap.add_argument("--us-in-frac", type=float, default=1.0,
+                    help="train each group on this sample of the labelled rows (with all its pseudo-labelled rows)")
+    ap.add_argument("--target-only-test", action="store_true",
+                    help="score only the pseudo-labelled countries' test rows; other test rows get NaN")
+    ap.add_argument("--hold-groups", default="0,1,2", help="groups whose model scores the holdout (their mean is kept)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -77,16 +86,30 @@ def main() -> int:
     tgt_logit = np.full(len(te), np.nan, np.float32)
     done = []
     ck = f"{out}/checkpoint.npz"
+    if args.merge:  # the three fold-parallel runs each hold one group's rows and one third of the sums
+        zs = [np.load(f"{out}/checkpoint_g{g}.npz") for g in range(3)]
+        for z in zs:
+            k = ~np.isnan(z["logit"])
+            logit[k] = z["logit"][k]
+            k = ~np.isnan(z["tgt_logit"])
+            tgt_logit[k] = z["tgt_logit"][k]
+        np.savez(ck, logit=logit, hold_sum=sum(z["hold_sum"] for z in zs), test_sum=sum(z["test_sum"] for z in zs),
+                 tgt_logit=tgt_logit, done=np.array([0, 1, 2]))
+    if args.only_group >= 0:
+        ck = f"{out}/checkpoint_g{args.only_group}.npz"
     if os.path.exists(ck):  # resume after a crash: groups already scored are kept
         z = np.load(ck)
         logit, hold_sum, test_sum, done = z["logit"], z["hold_sum"], z["test_sum"], list(z["done"])
         if "tgt_logit" in z:
             tgt_logit = z["tgt_logit"]
         log.info("resuming: groups done %s", done)
-    for g in range(3):
+    hold_groups = [int(x) for x in args.hold_groups.split(",")]
+    for g in range(3) if args.only_group < 0 else [args.only_group]:
         if g in done:
             continue
         fit = np.flatnonzero(train_rows & (grp != g))
+        if args.us_in_frac < 1:
+            fit = np.sort(np.random.default_rng(args.seed + g).choice(fit, int(fit.size * args.us_in_frac), replace=False))
         if tgt.size:
             pl = (tgt_g != g) & (tgt_y >= 0)
             model = ce.train_one(args.model, [enc[i] for i in fit] + [enc_t[i] for i in tgt[pl]],
@@ -95,8 +118,10 @@ def main() -> int:
             model = ce.train_one(args.model, [enc[i] for i in fit], lens[fit], y[fit], pad)
         own = np.flatnonzero(train_rows & (grp == g))
         logit[own] = ce.predict(model, [enc[i] for i in own], lens[own], pad)
-        hold_sum += ce.predict(model, [enc[i] for i in hold], lens[hold], pad)
-        test_sum[rest_t] += ce.predict(model, [enc_t[i] for i in rest_t], lens_t[rest_t], pad)
+        if g in hold_groups:
+            hold_sum += ce.predict(model, [enc[i] for i in hold], lens[hold], pad)
+        if not args.target_only_test:
+            test_sum[rest_t] += ce.predict(model, [enc_t[i] for i in rest_t], lens_t[rest_t], pad)
         if tgt.size:
             mine = tgt[tgt_g == g]
             tgt_logit[mine] = ce.predict(model, [enc_t[i] for i in mine], lens_t[mine], pad)
@@ -106,7 +131,10 @@ def main() -> int:
         np.savez(ck, logit=logit, hold_sum=hold_sum, test_sum=test_sum, tgt_logit=tgt_logit, done=np.array(done))
         log.info("group %d: trained on %d pairs; OOF AUC %.4f (%.0fs)", g, fit.size,
                  roc_auc_score(y[own], logit[own]), time.perf_counter() - t0)
-    logit[hold] = hold_sum / 3
+    if args.only_group >= 0:
+        log.info("group %d done; run --merge once all three groups are", args.only_group)
+        return 0
+    logit[hold] = hold_sum / len(hold_groups)
     auc = {"oof": float(roc_auc_score(y[train_rows], logit[train_rows])),
            "holdout": float(roc_auc_score(y[hold], logit[hold]))}
     if "p1" in tr:
@@ -114,6 +142,8 @@ def main() -> int:
     log.info("AUC in the band: %s", auc)
     pd.DataFrame({"row": tr["row"].to_numpy(), "ce__logit": logit}).to_parquet(f"{out}/ce_train.parquet", index=False)
     test_logit = test_sum / 3
+    if args.target_only_test:
+        test_logit[rest_t] = np.nan
     test_logit[tgt] = tgt_logit[tgt]  # target pairs: the cross-fitted model's logit
     pd.DataFrame({"row": te["row"].to_numpy(), "ce__logit": test_logit}).to_parquet(f"{out}/ce_test.parquet", index=False)
     json.dump({"model": args.model, "pseudo": args.pseudo, "lr": args.lr, "batch": args.batch, "epochs": args.epochs, "max_len": args.max_len,

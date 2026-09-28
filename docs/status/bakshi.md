@@ -1,5 +1,25 @@
 # Status: bakshi
 
+- **Last updated (IST):** 2026-09-27 20:10
+- **Current focus:** Final push done. The team's single upload `mixf2` (#64, predicted ~0.99091) uses Bakshi's g1w
+  India (7B cross-encoder ×2 in stage 2) and Bakshi's 7B drop rule in all countries. Bakshi confirmed it on #64.
+- **Branch(es):** `bakshi/final-push` (PR #62, last commit b3e3400); `bakshi/opus-exec` (PR #56, package tooling).
+- **ETA:** Done. Remaining: upload by the captain; the final package includes the 7B components.
+- **Blocked on / need:** nothing.
+- **Latest handover:** `docs/handover/2026-09-27_2006_bakshi_final-push.md`.
+- **Next up:** after the deadline, close the Vast boxes, revoke today's GitHub token, and remove the `grenuke-vast` key.
+- **Verified this session (measured):**
+  - the rebuild reproduces v7sq-dpc (holdout 0.991261; band coverage 99.9999%);
+  - q7st holdout AUC 0.9436;
+  - g1w holdout 0.991323 (+0.000062 over g0);
+  - the 7B drop rule is +0.000033 on the labelled holdout, both halves positive;
+  - Composites A/B/B′ pass the validator and strict audit.
+  - Closed leads (US/India recall rules, empty-S1 rescue, 7B weight ×3) are listed in `FINAL_PUSH_RESULTS.md` §6.
+
+---
+
+Previous status (27 Sep 01:30), kept for the record:
+
 - **Last updated (IST):** 2026-09-27 01:30
 - **Current focus:** Final packaging of the submitted model **v7nst** (public 0.990179), and preparing
   Tracks A/B so they can run the moment their inputs arrive.
