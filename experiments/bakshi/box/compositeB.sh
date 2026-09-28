@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Composite B (public leaderboard 0.990879), end to end from the raw challenge TSVs.
 #
-#   From the unzipped package root:   VARIANT=compositeB bash code/business_entity_resolution/reproduce.sh
+#   From the unzipped package root:   VARIANT=compositeB bash code/business_entity_resolution/src/reproduce.sh
 #   (reproduce.sh hands over to this script; it can also be run directly from the package root.)
 #
 # Composite B = US/India of g1w  (the v7sq recipe with the Qwen2.5-7B cross-encoder q7st counted twice in stage 2)
@@ -25,8 +25,8 @@ set -euo pipefail
 
 ROOT="$(pwd)"
 BOX="${BOX_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-if [ -f "$BOX/../../reproduce.sh" ]; then                  # inside the package: code/business_entity_resolution/src/box
-  PKG="$(cd "$BOX/../.." && pwd)"; REPRO="$PKG/reproduce.sh"; M="${MODEL_DIR:-$PKG/src/model_v1}"
+if [ -f "$BOX/../reproduce.sh" ]; then                     # inside the package: code/business_entity_resolution/src/box
+  PKG="$(cd "$BOX/../.." && pwd)"; REPRO="$PKG/src/reproduce.sh"; M="${MODEL_DIR:-$PKG/src/model_v1}"
 else                                                        # in the repository: experiments/bakshi/box
   PKG="$ROOT/code/business_entity_resolution"; REPRO="$BOX/../final-package/reproduce.sh"
   M="${MODEL_DIR:-$ROOT/experiments/ameya/model-v1}"

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Reproduce the submitted model, from the raw challenge TSVs to output/*.tsv.
 #
-# In the submission zip this is code/business_entity_resolution/reproduce.sh and the model scripts are
+# In the submission zip this is code/business_entity_resolution/src/reproduce.sh and the model scripts are
 # code/business_entity_resolution/src/model_v1/, so run it as:
 #
 #     MODEL_DIR="$PWD/code/business_entity_resolution/src/model_v1" \
-#       bash code/business_entity_resolution/reproduce.sh
+#       bash code/business_entity_resolution/src/reproduce.sh
 #
 # THE SUBMITTED MODEL IS Composite B, the default: VARIANT=compositeB (public 0.990879; driver src/box/compositeB.sh).
 # The single-chain variants below remain available and are what Composite B builds on.
@@ -59,6 +59,7 @@ VARIANT="${VARIANT:-compositeB}"
 # with VARIANT=v7sq for the shared chain.
 if [ "$VARIANT" = compositeB ]; then
   HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -f "$HERE/box/compositeB.sh" ]; then exec bash "$HERE/box/compositeB.sh"; fi          # package: src/reproduce.sh
   if [ -f "$HERE/src/box/compositeB.sh" ]; then exec bash "$HERE/src/box/compositeB.sh"; fi
   exec bash "$HERE/../box/compositeB.sh"
 fi

@@ -20,14 +20,13 @@ These are the uploaded bytes, shipped verbatim; the run below never writes over 
 | path | what |
 |---|---|
 | `output/` | the submitted TSVs, verbatim |
-| `code/business_entity_resolution/reproduce.sh` | entry point. `VARIANT=compositeB` (the default) runs `src/box/compositeB.sh`; the other variants run one chain |
+| `src/reproduce.sh` | entry point. `VARIANT=compositeB` (the default) runs `src/box/compositeB.sh`; the other variants run one chain |
 | `src/ber/` | the team package, one CLI: `python -m ber.pipeline --stage <stage> --split <train\|test> --tag <tag>`. Stages: records, blocking (multi-view retrieval, Indic transliteration, domain/OCR repairs, French address normalisation), context features, write (organiser TSV format), evaluate |
 | `src/model_v1/` | the model chain: pair features (`feats*.py`, `lo_mix.py`), stages 0+1 (`s1.py`), cross-encoders (`ce.py`, `ce_box.py`, `ce_llm_st.py`, `ce_llm.py`, `zmean_ce.py`, `ce_import.py`), stage 2 (`s2.py`, `cluster.py`), stage 3 (`stage3.py`), decision (`decide.py`), candidate set (`cands_final.py`), France rules (`post_ops.py`), acronym join (`acr_join.py`), self-training labels (`pseudo_labels.py`), stacked rules (`stack/`), France block (`pipeline/`) |
 | `src/box/` | Composite B's driver (`compositeB.sh`); the 7B cross-encoder (`llm_group.py` one out-of-fold group per GPU, `llm_merge.py`); the 7B re-check (`rescore_export.py`, `score_pairs.py`, `analysis/export_usin.py`, `rescore_eval.py`); the per-country composition (`compose_tsv.py`); `analysis/` holds the scripts behind the documentation's numbers |
 | `src/model_v1/audit_matching.py` | strict output audit (see "Checking the result") |
+| `src/tests/`, `src/pyproject.toml` | unit tests, and the package definition for `pip install -e` |
 | `requirements.txt` | pinned versions, with the machine each pin comes from |
-| `tests/` | unit tests (`pytest -q`) |
-| `MANIFEST.sha256` | sha256 of every file in this archive |
 
 ## Setup
 
@@ -35,8 +34,8 @@ These are the uploaded bytes, shipped verbatim; the run below never writes over 
 python3.13 -m venv .venv && source .venv/bin/activate   # Python >= 3.11
 pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128   # cu126 below NVIDIA driver 570
 pip install -r code/business_entity_resolution/requirements.txt
-pip install -e code/business_entity_resolution
-pytest -q code/business_entity_resolution/tests
+pip install -e code/business_entity_resolution/src
+pytest -q code/business_entity_resolution/src/tests
 ```
 
 Data: the organiser folder `student_resource/dataset/{train,test}/*.tsv` (set `BER_DATA_DIR` if it lives elsewhere).
@@ -58,7 +57,7 @@ From the unzipped package root:
 MODEL_DIR="$PWD/code/business_entity_resolution/src/model_v1" \
   BER_OUTPUT_DIR="$PWD/output_rerun" \
   VARIANT=compositeB \
-  bash code/business_entity_resolution/reproduce.sh
+  bash code/business_entity_resolution/src/reproduce.sh
 ```
 
 Every step skips work that already exists, so a rerun after an interruption resumes. Options (environment): `Q7_MODEL`, `Q7_GPUS`, `SCORE_BATCH`, `FR_DIR`, `CHECK_7B=1`. See the header of `src/box/compositeB.sh`.
