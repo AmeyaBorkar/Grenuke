@@ -23,11 +23,14 @@ CSS = """
 html { font-size: 11.5pt; }
 body { font-family: "Times New Roman", Times, serif; line-height: 1.38; color: #111; margin: 0;
        text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
-h1 { font-size: 17pt; font-weight: 700; text-align: center; margin: 0 0 10pt; line-height: 1.25; }
+h1 { font-size: 18pt; font-weight: 700; text-align: center; margin: 0 0 10pt; line-height: 1.25; }
 p.meta { text-align: center; margin: 0 0 18pt; line-height: 1.6; }
-h2 { font-size: 14pt; font-weight: 700; margin: 24pt 0 9pt; break-after: avoid; page-break-after: avoid; }
-h3 { font-size: 12pt; font-weight: 700; margin: 16pt 0 7pt; break-after: avoid; page-break-after: avoid; }
-p { margin: 0 0 7.5pt; orphans: 3; widows: 3; }
+h2 { font-size: 15pt; font-weight: 700; margin: 18pt 0 7pt; break-after: avoid; page-break-after: avoid; }
+h3 { font-size: 13pt; font-weight: 700; margin: 14pt 0 6pt; break-after: avoid; page-break-after: avoid; }
+strong.label { font-size: 12.5pt; }
+p:has(> strong.label) { margin-top: 5pt; }
+em.runin { font-weight: 700; font-size: 12pt; }
+p { margin: 0 0 7pt; orphans: 3; widows: 3; }
 strong { font-weight: 700; color: #111; }
 ul, ol { margin: 0 0 10pt; padding-left: 20pt; }
 li { margin: 0 0 3pt; }
@@ -66,6 +69,8 @@ def to_html(md_text: str) -> str:
             tok.attrSet("id", gh_slug(tokens[i + 1].content))
     body = md.renderer.render(tokens, md.options, {})
     body = re.sub(r"(</h1>\s*)<p>", r'\1<p class="meta">', body, count=1)
+    body = re.sub(r"<p><strong>([^<]{2,80}?:)</strong>", r'<p><strong class="label">\1</strong>', body)
+    body = re.sub(r"<p><em>([^<]+)</em>", r'<p><em class="runin">\1</em>', body)
     body = re.sub(r"<p><img ", '<p class="figure"><img ', body)
     body = re.sub(r"<p><strong>Figure", '<p class="caption fig"><strong>Figure', body)
     body = re.sub(r"<p><strong>Table", '<p class="caption tab"><strong>Table', body)
