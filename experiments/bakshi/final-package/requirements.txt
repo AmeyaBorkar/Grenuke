@@ -1,67 +1,46 @@
-# Pinned environment for code/business_entity_resolution (submitted model v7nst).
+# Pinned environment for code/business_entity_resolution: Composite B (public leaderboard 0.990879).
 #
-# The CPU stack below is pinned to the versions actually installed in the team's scientific environment
-# (verified 2026-09-27 on Bakshi's checkout: .venv/Scripts/python.exe, CPython 3.13.2, Windows 11).
-# The same pins are what docs/package/requirements.txt already carried, so they agree with the integration
-# machine's stack as recorded there.
+# Python >= 3.11 (the code uses `X | None` and `from __future__ import annotations`). The pins below were read from
+# CPython 3.13 (team machines) and 3.12 (the GPU boxes); both satisfy every pin.
 #
-# Python: >= 3.11 required (the code uses `X | None` annotations and `from __future__ import annotations`).
-#         Team default and the version these pins were read from: 3.13. CPython 3.12 also satisfies every pin.
-#
-# lightgbm was listed in the earlier draft and has been REMOVED: no module in src/ber, src/model_v1 or the
-# tests imports it (checked by grep over every .py in the repository). Shipping it would misdescribe the
-# solution's dependencies.
+# Only what src/ imports is listed: numpy, pandas, pyarrow, scikit-learn (and scipy under it), numba, rapidfuzz,
+# xgboost, torch, transformers, peft (checked by grep over every .py that ships, 29 Sep). huggingface_hub, tokenizers
+# and safetensors come with transformers and are pinned because their versions are on record; accelerate comes with
+# peft. sentencepiece, protobuf and sentence-transformers are NOT needed: every tokenizer in the chain ships a
+# tokenizer.json, and nothing imports them. lightgbm was removed earlier for the same reason.
 
+# ---- CPU stack: every stage except the cross-encoders (records, blocking, features, XGBoost stages 0-3, rules) ----
 numpy==2.4.3
 pandas==2.3.3
 pyarrow==23.0.1
 scipy==1.17.0
 scikit-learn==1.8.0
-xgboost==3.2.0
+xgboost==3.2.0            # stages 0-3; s1.py / s2.py use device "cuda" when a GPU is present
 rapidfuzz==3.14.6
 numba==0.64.0
-pytest==8.3.4
+pytest==8.3.4             # tests/ only
 
-# ---------------------------------------------------------------------------------------------------------
-# Cross-encoder feature (src/model_v1/ce.py and ce_box.py). Needs a CUDA GPU.
-#
-# RESOLVED 27 Sep (ameya, issue #45 and PR #54): all three machines are now on record. They do NOT share
-# one torch/transformers version, so no single pin describes the whole chain. The pins below are the
-# INTEGRATION MACHINE's, because that is where everything except the large cross-encoders ran -- records,
-# blocking, features, stages 1-3, the decision, the rules, the acronym join, the write stage, and ce.py.
-#
-#   Integration machine (Windows 11, Python 3.13.12, RTX 5070 Ti Laptop, driver 610.88)
-#     ce.py -> multilingual-e5-small, feature group `ce`; plus all of stages 1-3 and the rules.
-#     torch 2.11.0+cu128 (CUDA 12.8), transformers 5.2.0, tokenizers 0.22.2,
-#     safetensors 0.7.0, huggingface_hub 1.7.2, sentence-transformers 5.3.0
-#     Caveat: these are the versions installed on that machine *now*. It is the same machine that produced
-#     the run, but we cannot prove nothing was upgraded in between.
-#
-#   First rented H100 (destroyed 26 Sep 21:40, non-persistent disk; versions from its setup log)
-#     ce_box.py -> multilingual-e5-large 1 epoch seed 26 and 2 epochs seed 7, i.e. feature `cem2`, which is
-#     what the submitted v7nst actually uses; plus e5-base for the v7ce3 teacher.
-#     torch 2.14.0+cu126, transformers 5.17.0, xgboost 3.4.1, H100 80 GB HBM3
-#
-#   Replacement on-demand H100 (Ubuntu 24.04)
-#     ce_box.py -> bge-reranker-v2-m3; ce_llm_st.py -> Qwen2.5-1.5B. Neither is in the submitted model.
-#     torch 2.11.0+cu128, transformers 5.17.0, peft 0.21.0, H100 80 GB
-#     On torch 2.11 the non-finite-step guard in ce.train_one is MANDATORY: without it a single bad
-#     gradient step turns every weight into NaN. torch 2.14 never hit that path.
-#
-# So transformers is 5.17.0 on both boxes and 5.2.0 on the integration machine; torch 2.14 produced `cem2`
-# and 2.11 everything else. Reproducing the METHOD needs only a recent CUDA-enabled torch/transformers.
-# Reproducing the logits bit-for-bit is impossible on different hardware regardless, so the reference check
-# is the holdout macro F0.5, never a file hash.
-#
-# Superseded note, kept so the reasoning is auditable: this section previously recorded the first box's
-# transformers version as unrecoverable, inferring only torch 2.14 from PR #51's NaN report. Its setup log
-# had it.
-#
-torch==2.11.0+cu128          # integration machine; --extra-index-url https://download.pytorch.org/whl/cu128
-transformers==5.2.0          # integration machine. Both GPU boxes used 5.17.0 for ce_box.py / ce_llm_st.py
+# ---- Cross-encoders (need CUDA) ------------------------------------------------------------------------------------
+# One pin per package; where the machines that produced Composite B differed, the machine is named.
+#   integration machine (Windows 11, RTX 5070 Ti)   ce.py (e5-small), all XGBoost stages and rules; transformers 5.2.0
+#   first rented H100 (26 Sep, destroyed)            e5-large x2, e5-base (teacher); torch 2.14.0+cu126, transformers 5.17.0
+#   replacement H100 (26-27 Sep)                    bge-reranker-v2-m3, Qwen2.5-1.5B (qst), e5ls; torch 2.11.0+cu128,
+#                                                     transformers 5.17.0, peft 0.21.0
+#   Bakshi's pipeline box (2x RTX 4090, 27 Sep)      the g0 / g1w rebuild; torch 2.11.0+cu128, transformers 5.17.0
+#   Bakshi's training boxes (4x H100, 27 Sep)        Qwen2.5-7B (q7st) and the 7B re-check; torch 2.11.0 (cu126 on the
+#                                                     first box, driver 560.35; cu128 on the second, driver 595.71),
+#                                                     transformers 5.17.0, peft 0.21.0
+# On torch 2.11 the non-finite-step guard in ce.train_one / ce_llm_st.train_one is MANDATORY (one bad step otherwise
+# turns every weight into NaN); it is in the code. Use the cu126 build of torch below driver 570 and cu128 from 570 up.
+torch==2.11.0             # --index-url https://download.pytorch.org/whl/cu128 (or cu126, see above)
+transformers==5.17.0      # both GPU boxes; the integration machine's 5.2.0 also runs ce.py
+peft==0.21.0              # the Qwen LoRA cross-encoders qst (1.5B) and q7st (7B), both in Composite B
 tokenizers==0.22.2
 safetensors==0.7.0
 huggingface_hub==1.7.2
-# sentence-transformers 5.3.0 is installed on the integration machine but no module under src/ imports it,
-# so it is not required and is left out.
-# peft==0.21.0 is needed only by the Qwen LoRA cross-encoder, which is NOT in the submitted model.
+
+# ---- Models (Hugging Face; all MIT or Apache-2.0, all <= 8B parameters) ---------------------------------------------
+#   intfloat/multilingual-e5-small / -base / -large   MIT           118M / 278M / 560M
+#   BAAI/bge-reranker-v2-m3                            Apache-2.0    568M
+#   Qwen/Qwen2.5-1.5B                                  Apache-2.0    1.5B
+#   Qwen/Qwen2.5-7B  revision d149729398750b98c0af14eb82c78cfe92750796   Apache-2.0   7.6B   (pinned in compositeB.sh)

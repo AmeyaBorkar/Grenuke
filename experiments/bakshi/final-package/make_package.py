@@ -9,6 +9,7 @@ The archive layout the competition asks for::
       code/business_entity_resolution/
         src/ber/...                        <- the team package
         src/model_v1/...                   <- the model chain, copied (not referenced)
+        src/box/...                        <- the Qwen2.5-7B cross-encoder, the 7B re-check, Composite B's driver
         README.md  requirements.txt  reproduce.sh  pyproject.toml  tests/...
       Documentation_template.md
       MANIFEST.sha256                      <- extra, so the archive self-verifies
@@ -26,11 +27,14 @@ What this does beyond copying files:
 * extracts the finished archive to a scratch directory and re-hashes every member against the
   manifest, byte-compiles the Python, and checks the required paths are present.
 
-Usage::
+Usage (Composite B, the team's best submission, public 0.990879)::
 
-    python make_package.py --repo-root . --matching M.tsv --candidate C.tsv \
-        --expect-matching-sha 659f...533 --expect-candidate-sha 510a...58a \
-        --out dist/ [--audit --test-dir .../dataset/test]
+    python experiments/bakshi/final-package/make_package.py --repo-root . \
+        --matching final_zip/output/matching_results.tsv --candidate final_zip/output/candidate_pairs.tsv \
+        --expect-matching-sha df4bccd785b3fa785b7edcf0532288bcddc0010e2e31ce6f358064529ecb62e8 \
+        --expect-candidate-sha 58c824a3f61c184fe7da1a448a4ac94284f288feff9c351abfe16a3dfc0520e5 \
+        --variant compositeB --doc <the filled Documentation_template.md> \
+        --out dist/ --audit --test-dir student_resource/dataset/test
 """
 
 from __future__ import annotations
@@ -77,6 +81,23 @@ REQUIRED = [
     "code/business_entity_resolution/tests/test_metric.py",
     "Documentation_template.md",
     "MANIFEST.sha256",
+]
+
+# What Composite B's reproduction needs on top of REQUIRED (checked when --variant compositeB).
+REQUIRED_COMPOSITE_B = [
+    "code/business_entity_resolution/src/box/compositeB.sh",
+    "code/business_entity_resolution/src/box/compose_tsv.py",
+    "code/business_entity_resolution/src/box/llm_group.py",
+    "code/business_entity_resolution/src/box/llm_merge.py",
+    "code/business_entity_resolution/src/box/score_pairs.py",
+    "code/business_entity_resolution/src/box/rescore_export.py",
+    "code/business_entity_resolution/src/box/rescore_eval.py",
+    "code/business_entity_resolution/src/box/analysis/export_usin.py",
+    "code/business_entity_resolution/src/model_v1/ce_llm_st.py",
+    "code/business_entity_resolution/src/model_v1/ce_llm.py",
+    "code/business_entity_resolution/src/model_v1/stack/stack.sh",
+    "code/business_entity_resolution/src/model_v1/stack/apply_swapsim.py",
+    "code/business_entity_resolution/src/model_v1/stack/dp_france.py",
 ]
 
 # Never copy these, wherever they appear.
@@ -210,12 +231,23 @@ def build(args: argparse.Namespace) -> int:
     copy_tree(root / "experiments/ameya/model-v1", pkg / "src/model_v1")
     here = Path(__file__).parent
     shutil.copy2(here / "audit_matching.py", pkg / "src/model_v1/audit_matching.py")
+    # ce_llm_st.py imports Sachi's LoRA module `ce_llm` from experiments/sachi/ in the repository; in the package it
+    # sits beside ce_llm_st.py, which is on PYTHONPATH (src/model_v1), so the import resolves without a sachi/ folder.
+    shutil.copy2(root / "experiments/sachi/ce_llm.py", pkg / "src/model_v1/ce_llm.py")
+    # Bakshi's 7B code and Composite B's driver: the top-level scripts of experiments/bakshi/box and the analysis
+    # scripts the documentation cites. ops/ is left out: one-off orchestration of the rented boxes (fixed paths).
+    box = root / "experiments/bakshi/box"
+    (pkg / "src/box/analysis").mkdir(parents=True, exist_ok=True)
+    for f in sorted(box.glob("*.py")) + sorted(box.glob("*.sh")):
+        shutil.copy2(f, pkg / "src/box" / f.name)
+    for f in sorted((box / "analysis").glob("*.py")):
+        shutil.copy2(f, pkg / "src/box/analysis" / f.name)
 
     # the package's own docs: mine, not the v6 drafts
     shutil.copy2(here / "reproduce.sh", pkg / "reproduce.sh")
     shutil.copy2(here / "requirements.txt", pkg / "requirements.txt")
     shutil.copy2(here / "PACKAGE_README.md", pkg / "README.md")
-    shutil.copy2(here / "Documentation_template.md", stage / "Documentation_template.md")
+    shutil.copy2(args.doc or (here / "Documentation_template.md"), stage / "Documentation_template.md")
 
     # organiser validator, so the archive can check itself
     (stage / "student_resource/utils").mkdir(parents=True)
@@ -276,7 +308,8 @@ def build(args: argparse.Namespace) -> int:
             return 1
         print(f"  manifest: {len(manifest)} entries, all extracted hashes match")
 
-        missing = [r for r in REQUIRED if not (ex / r).is_file()]
+        required = REQUIRED + (REQUIRED_COMPOSITE_B if args.variant == "compositeB" else [])
+        missing = [r for r in required if not (ex / r).is_file()]
         # Every 27 Sep final candidate is a "-dpc" package, i.e. it runs the stacked-rules pass after
         # acr_join. If the shipped model needs that pass, its scripts have to be IN the archive or the
         # reproduction is incomplete — so this is a hard check, not a warning.
@@ -286,7 +319,7 @@ def build(args: argparse.Namespace) -> int:
         if missing:
             print(f"FAIL: required path(s) missing from the archive: {missing}")
             return 1
-        print(f"  required paths: all {len(REQUIRED)} present"
+        print(f"  required paths: all {len(required)} present"
               + (f"; stacked-rules pass shipped ({sum(1 for _ in stack.parent.glob('*.py'))} scripts)"
                  if args.stacked else ""))
 
@@ -391,12 +424,19 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("dist"))
     ap.add_argument("--audit", action="store_true", help="run audit_matching.py before packaging")
     ap.add_argument("--test-dir", type=Path, default=None, help="dataset/test, for --audit and the validator")
-    ap.add_argument("--variant", default="v7nst",
+    ap.add_argument("--doc", type=Path, default=None,
+                    help="the filled Documentation_template.md for the zip root (default: the one in this folder)")
+    ap.add_argument("--variant", default="compositeB",
                     help="which model these outputs came from, recorded in package_manifest.json so the "
                          "archive says what it ships (default: %(default)s)")
     ap.add_argument("--stacked", action="store_true",
                     help="the shipped model uses the stacked-rules ('-dpc') pass; requires stack/ in the archive")
-    return build(ap.parse_args())
+    args = ap.parse_args()
+    if args.variant == "compositeB":
+        args.stacked = True   # both of Composite B's chains end in the stacked-rules pass
+    if args.doc is not None and not args.doc.is_file():
+        ap.error(f"--doc {args.doc} not found")
+    return build(args)
 
 
 if __name__ == "__main__":
