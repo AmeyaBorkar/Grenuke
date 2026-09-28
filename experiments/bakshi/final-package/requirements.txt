@@ -35,9 +35,9 @@ pytest==8.3.4             # tests/ only
 torch==2.11.0             # --index-url https://download.pytorch.org/whl/cu128 (or cu126, see above)
 transformers==5.17.0      # both GPU boxes; the integration machine's 5.2.0 also runs ce.py
 peft==0.21.0              # the Qwen LoRA cross-encoders qst (1.5B) and q7st (7B), both in Composite B
-tokenizers==0.22.2
-safetensors==0.7.0
-huggingface_hub==1.7.2
+tokenizers==0.23.2        # transformers 5.17.0 needs >=0.23.1,<0.24 (resolved by pip; the boxes' patch version wasn't recorded)
+safetensors==0.8.0        # transformers 5.17.0 needs >=0.8.0 (same)
+huggingface_hub==1.7.2    # satisfies transformers 5.17.0 (>=1.5.0,<2.0)
 
 # ---- Models (Hugging Face; all MIT or Apache-2.0, all <= 8B parameters) ---------------------------------------------
 #   intfloat/multilingual-e5-small / -base / -large   MIT           118M / 278M / 560M
