@@ -7,6 +7,7 @@ These files were run from a session scratchpad and are kept here as-is, so the e
 | `env6.sh` | environment (PYTHONPATH, work dirs) for the laptop chain |
 | `run_local_full.sh`, `run_local_full_w.sh` | the laptop chain after a box stage 2: decide → stage 3 → decide → post_ops → acr_join → package. The `_w` variant runs stage 2 with `s2w.py` |
 | `s2w.py` | stage 2 with **weighted** French pseudo-labels (`--pseudo-weight 3`); built the round-2 France model v7sq7wg |
+| `france_mixmdp.sh` | **the package's France block**: Composite B's French rows (mixmdp) from the v7sq chain, called by `src/box/compositeB.sh` step 7 with `FR_DIR` |
 | `make_pseudo.py` | round-1 French pseudo-labels for the cross-encoders (`ce_box.py --pseudo`) |
 | `stack_model.sh`, `stack_pkg.sh` | the stack: h2pc + the US/India combo DP (`asrun/agents/decide/apply_combo.py`), merged by `asrun/stack/merge_dpc.py` |
 | `build_pkg.sh` | compose labelled-countries from one model and France from another (`asrun/novel/compose.py`), optional change list (`apply_changes.py`), package |
