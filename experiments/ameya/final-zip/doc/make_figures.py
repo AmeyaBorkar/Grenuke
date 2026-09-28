@@ -70,7 +70,7 @@ def fig2():
              ("+ round 2\nFrance", 0.990699), ("+ Qwen 7B\n+ re-check", 0.990879)]
     xs = list(range(1, len(steps) + 1))
     ys = [v for _, v in steps]
-    fig, ax = plt.subplots(figsize=(6.4, 2.2))
+    fig, ax = plt.subplots(figsize=(6.4, 2.0))
     ax.plot(xs, ys, color="#8fb3dc", lw=2, zorder=1)
     ax.scatter(xs[:-1], ys[:-1], s=34, color="#5b8fc7", zorder=2)
     ax.scatter(xs[-1:], ys[-1:], s=60, color=ACC, zorder=3)
