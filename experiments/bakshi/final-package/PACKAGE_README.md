@@ -73,7 +73,7 @@ Every step skips work that already exists, so a rerun after an interruption resu
 | 4 | v7sq-dpc → `-dpcsf` (look-alike word-swap drop, then the France expected-F0.5 decision) | ~3 min | US/India unchanged |
 | 5 | `g1w`: z-mean of e5l, qst, e5ls, bge, q7st, q7st → stage 2 → stage 3 → decision → rules → acronym join → stacked rules | ~40 min | holdout macro F0.5 (`ameya-model-g1w-s3.json`) **≈0.99132** (0.991323; US 0.991114, India 0.991635 on 27 Sep) |
 | 6 | 7B re-check: `rescore_export.py`, `analysis/export_usin.py`, `score_pairs.py` (adapter_0) on the confident final pairs | France 2 × 15 min, US/India 4 × 46 min on H100 | 870,019 French and ~4.74M US/India pairs scored. With `CHECK_7B=1`: drop at q7 < −6 gives **+0.000033** holdout macro F0.5, positive in both halves |
-| 7 | France block (`src/model_v1/pipeline/france_mixmdp.sh`) → `$FR_DIR` | <!-- TODO(ameya): France block time --> | <!-- TODO(ameya): France block checks --> |
+| 7 | France block (`src/model_v1/pipeline/france_mixmdp.sh`) → `$FR_DIR` | ~4.5 h: e5ls2 ~2.0 h, bges ~1.3 h, e5fr ~20 min on one H100; stage 2 ~33 min; the rest ~25 min on 24 cores | band AUC e5ls2 0.9440, bges 0.9424, e5fr ≈ 0.918 (gate ≥ 0.90); 1,377,803 labelled French stage-2 rows at weight 3; −454 look-alikes; the French expected-F0.5 decision keeps 357 additions and drops 224; 871,147 French pairs on 244,531 S1 (870,307 after the 840 7B drops) |
 | 8 | `compose_tsv.py` (labelled countries from g1w, France from the France block, minus q7 < −6 and p1 > 0.99), validator, strict audit, sha256 | ~5 min | ~1,150 drops (about 840 French, 310 US/India); 1,732,544 rows; ~5.85M pairs; audit PASS |
 
 ## Checking the result
