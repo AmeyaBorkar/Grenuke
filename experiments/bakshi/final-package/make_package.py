@@ -10,9 +10,12 @@ The archive layout the competition asks for::
         src/ber/...                        <- the team package
         src/model_v1/...                   <- the model chain, copied (not referenced)
         src/box/...                        <- the Qwen2.5-7B cross-encoder, the 7B re-check, Composite B's driver
-        README.md  requirements.txt  reproduce.sh  pyproject.toml  tests/...
-      Documentation_template.md
-      MANIFEST.sha256                      <- extra, so the archive self-verifies
+        src/reproduce.sh  src/pyproject.toml  src/tests/...
+        README.md  requirements.txt
+      Documentation_template.md            <- figures embedded, so the file is self-contained
+      Documentation_template.pdf           <- its PDF export (the organisers accept one)
+
+Nothing else goes at the root or beside src/; MANIFEST.sha256 is written next to the zip, not into it.
 
 What this does beyond copying files:
 
@@ -40,6 +43,7 @@ Usage (Composite B, the team's best submission, public 0.990879)::
 from __future__ import annotations
 
 import argparse
+import base64
 import compileall
 import hashlib
 import json
@@ -70,18 +74,21 @@ REQUIRED = [
     "output/candidate_pairs.tsv",
     "code/business_entity_resolution/README.md",
     "code/business_entity_resolution/requirements.txt",
-    "code/business_entity_resolution/reproduce.sh",
-    "code/business_entity_resolution/pyproject.toml",
+    "code/business_entity_resolution/src/reproduce.sh",
+    "code/business_entity_resolution/src/pyproject.toml",
     "code/business_entity_resolution/src/ber/__init__.py",
     "code/business_entity_resolution/src/ber/pipeline.py",
     "code/business_entity_resolution/src/model_v1/RECIPE.md",
     "code/business_entity_resolution/src/model_v1/s2.py",
     "code/business_entity_resolution/src/model_v1/pseudo_labels.py",
     "code/business_entity_resolution/src/model_v1/acr_join.py",
-    "code/business_entity_resolution/tests/test_metric.py",
+    "code/business_entity_resolution/src/tests/test_metric.py",
     "Documentation_template.md",
-    "MANIFEST.sha256",
 ]
+# The organisers' structure: output/, code/business_entity_resolution/{src/, README.md, requirements.txt} and
+# Documentation_template.md (a PDF export of it is also accepted). Nothing else goes at these two levels.
+ALLOWED_ROOT = {"output", "code", "Documentation_template.md", "Documentation_template.pdf"}
+ALLOWED_PKG = {"src", "README.md", "requirements.txt"}
 
 # What Composite B's reproduction needs on top of REQUIRED (checked when --variant compositeB).
 REQUIRED_COMPOSITE_B = [
@@ -224,8 +231,16 @@ def build(args: argparse.Namespace) -> int:
 
     src_pkg = root / "code/business_entity_resolution"
     copy_tree(src_pkg / "src/ber", pkg / "src/ber")
-    copy_tree(src_pkg / "tests", pkg / "tests")
-    shutil.copy2(src_pkg / "pyproject.toml", pkg / "pyproject.toml")
+    # All source goes under src/ (the organisers' structure), tests and the package definition included; the
+    # pyproject's paths are made relative to src/ so `pip install -e src` and `pytest src/tests` work.
+    copy_tree(src_pkg / "tests", pkg / "src/tests")
+    pp = (src_pkg / "pyproject.toml").read_text(encoding="utf-8")
+    for old, new in (('where = ["src"]', 'where = ["."]\ninclude = ["ber*"]'), ('pythonpath = ["src"]', 'pythonpath = ["."]')):
+        if old not in pp:
+            print(f"FAIL: pyproject.toml no longer contains {old!r}; update make_package.py")
+            return 1
+        pp = pp.replace(old, new)
+    (pkg / "src/pyproject.toml").write_text(pp, encoding="utf-8")
 
     # the model chain: copied into the package, so the zip does not reference a developer path. Left out: the
     # research notes (*.md other than RECIPE.md) and pipeline/, the as-run records of the rented boxes and laptop
@@ -255,16 +270,28 @@ def build(args: argparse.Namespace) -> int:
         shutil.copy2(f, pkg / "src/box/analysis" / f.name)
 
     # the package's own docs: mine, not the v6 drafts
-    shutil.copy2(here / "reproduce.sh", pkg / "reproduce.sh")
+    shutil.copy2(here / "reproduce.sh", pkg / "src/reproduce.sh")
     shutil.copy2(here / "requirements.txt", pkg / "requirements.txt")
     shutil.copy2(here / "PACKAGE_README.md", pkg / "README.md")
     doc = args.doc or (here / "Documentation_template.md")
-    shutil.copy2(doc, stage / "Documentation_template.md")
-    # its typeset PDF and the figures the .md links to, when they sit beside it
+    # The structure has no figures/ folder, so the figures the .md links to are embedded in it as reference-style
+    # images whose data sits at the end of the file; the text above stays readable in a plain editor.
+    text, refs = doc.read_text(encoding="utf-8"), []
+
+    def _embed(m: re.Match) -> str:
+        f = doc.parent / m.group(2)
+        if not f.is_file():
+            return m.group(0)
+        refs.append(f"[fig-{len(refs) + 1}]: data:image/png;base64,{base64.b64encode(f.read_bytes()).decode()}")
+        return f"![{m.group(1)}][fig-{len(refs)}]"
+
+    text = re.sub(r"!\[([^\]]*)\]\(([^)\s]+\.png)\)", _embed, text)
+    if refs:
+        text = text.rstrip("\n") + "\n\n<!-- Figure data, embedded so this file is self-contained. -->\n" + "\n".join(refs) + "\n"
+    (stage / "Documentation_template.md").write_text(text, encoding="utf-8", newline="\n")
+    # its typeset PDF export, when it sits beside it (the organisers accept a PDF export too)
     if (doc.parent / "Documentation_template.pdf").is_file():
         shutil.copy2(doc.parent / "Documentation_template.pdf", stage / "Documentation_template.pdf")
-    if (doc.parent / "figures").is_dir():
-        copy_tree(doc.parent / "figures", stage / "figures")
 
     # The organisers' validator is not ours to ship; the checks below run the repository's copy on the extracted outputs.
     validator = root / "student_resource/utils/validate_submission.py"
@@ -281,10 +308,17 @@ def build(args: argparse.Namespace) -> int:
     print("  secret scan: clean")
 
     # ---- 4. manifest --------------------------------------------------
+    top = {p.name for p in stage.iterdir()}
+    top_pkg = {p.name for p in pkg.iterdir()}
+    if not top <= ALLOWED_ROOT or not top_pkg <= ALLOWED_PKG:
+        print(f"FAIL: outside the organisers' structure: root {sorted(top - ALLOWED_ROOT)}, "
+              f"code/business_entity_resolution {sorted(top_pkg - ALLOWED_PKG)}")
+        return 1
     members = sorted(p for p in stage.rglob("*") if p.is_file())
     lines = [f"{sha256(p)}  {p.relative_to(stage).as_posix()}" for p in members]
-    (stage / "MANIFEST.sha256").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    members = sorted(p for p in stage.rglob("*") if p.is_file())  # now includes the manifest
+    # the manifest sits next to the zip, not in it (the structure has no place for it)
+    manifest_path = out_dir / "MANIFEST.sha256"
+    manifest_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     # ---- 5. zip (sorted entries, fixed timestamp -> stable bytes) ------
     zip_path = out_dir / "Grenuke_submission.zip"
@@ -312,16 +346,17 @@ def build(args: argparse.Namespace) -> int:
                 return 1
             z.extractall(ex)
         manifest = {}
-        for line in (ex / "MANIFEST.sha256").read_text(encoding="utf-8").splitlines():
+        for line in manifest_path.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 digest, rel = line.split("  ", 1)
                 manifest[rel] = digest
-        mism = [rel for rel, d in manifest.items()
-                if rel != "MANIFEST.sha256" and sha256(ex / rel) != d]
-        if mism:
-            print(f"FAIL: {len(mism)} extracted file(s) do not match the manifest: {mism[:5]}")
+        mism = [rel for rel, d in manifest.items() if sha256(ex / rel) != d]
+        extracted = {p.relative_to(ex).as_posix() for p in ex.rglob("*") if p.is_file()}
+        extra = sorted(extracted - set(manifest))
+        if mism or extra:
+            print(f"FAIL: extracted files differ from the manifest: changed {mism[:5]}, unlisted {extra[:5]}")
             return 1
-        print(f"  manifest: {len(manifest)} entries, all extracted hashes match")
+        print(f"  manifest ({manifest_path.name}, beside the zip): {len(manifest)} files, all extracted hashes match")
 
         required = REQUIRED + (REQUIRED_COMPOSITE_B if args.variant == "compositeB" else [])
         missing = [r for r in required if not (ex / r).is_file()]
@@ -380,7 +415,7 @@ def build(args: argparse.Namespace) -> int:
             return 1
 
         print("  shipped tests against shipped src:")
-        rc = run([sys.executable, "-m", "pytest", str(ex / "code/business_entity_resolution/tests"),
+        rc = run([sys.executable, "-m", "pytest", str(ex / "code/business_entity_resolution/src/tests"),
                   "-q", "--basetemp", str(ex / "_ptmp")], env=env)
         if rc != 0:
             print("FAIL: the archived tests do not pass against the archived source.")
@@ -441,7 +476,7 @@ def main() -> int:
     ap.add_argument("--test-dir", type=Path, default=None, help="dataset/test, for --audit and the validator")
     ap.add_argument("--doc", type=Path, default=None,
                     help="the filled Documentation_template.md for the zip root (default: the one in this folder); "
-                         "a Documentation_template.pdf and a figures/ folder beside it are shipped too")
+                         "the figures it links to are embedded in it, and a Documentation_template.pdf beside it is shipped too")
     ap.add_argument("--variant", default="compositeB",
                     help="which model these outputs came from, recorded in package_manifest.json so the "
                          "archive says what it ships (default: %(default)s)")

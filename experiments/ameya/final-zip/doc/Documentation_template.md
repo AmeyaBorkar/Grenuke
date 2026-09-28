@@ -161,7 +161,7 @@ Two lessons stay with us. Self-training helped for **two rounds**, and a third d
 
 `code/business_entity_resolution/` **regenerates both output files** from the raw train and test TSVs. Its `README.md` gives the exact commands, the run time of each step, and what each step should print.
 
-`reproduce.sh` is the **entry point**; with `VARIANT=compositeB` (the default) it runs `src/box/compositeB.sh`. The team package is in `src/ber`, the model chain in `src/model_v1`, and the Qwen2.5-7B training, the 7B re-check and the per-country composition in `src/box`. The XGBoost stages need **24 or more CPU cores and 32 GB of RAM**, the cross-encoders ran on **one 80 GB H100**, and Qwen2.5-7B needs **three 80 GB GPUs** for about two hours. Exact versions are pinned in `requirements.txt`.
+`src/reproduce.sh` is the **entry point**; with `VARIANT=compositeB` (the default) it runs `src/box/compositeB.sh`. The team package is in `src/ber`, the model chain in `src/model_v1`, and the Qwen2.5-7B training, the 7B re-check and the per-country composition in `src/box`. The XGBoost stages need **24 or more CPU cores and 32 GB of RAM**, the cross-encoders ran on **one 80 GB H100**, and Qwen2.5-7B needs **three 80 GB GPUs** for about two hours. Exact versions are pinned in `requirements.txt`.
 
 The pipeline uses **only the provided data**, and every model is **MIT or Apache-2.0 with at most 8B parameters** (Table 3). **Seeds are fixed**, and every artifact records the command and git commit that made it. GPU training is not bit-identical across machines (an earlier model rebuilt on other hardware moved from 0.991246 to 0.991261 on the holdout), so a rerun should land **within about 0.0001**. The `output/` folder holds the **exact bytes we submitted**.
 
