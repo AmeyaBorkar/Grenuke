@@ -70,9 +70,23 @@ jobs:
                 echo "::error file=$f::data path must not be committed"; fail=1 ;;
               *.parquet|*.npy|*.npz|*.pkl|*.pickle|*.joblib|*.pt|*.pth|*.ckpt|*.safetensors|*.onnx|*.h5|*.feather|*.arrow|*.zip|*.7z|*.tar|*.gz)
                 echo "::error file=$f::data/binary artifact must not be committed"; fail=1 ;;
+              *.jsonl|*kb_digest/*)
+                echo "::error file=$f::chat transcripts and digests stay local (knowledge/CAPTURE.md)"; fail=1 ;;
             esac
           done < <(git ls-files)
           exit $fail
+
+      - name: No IPs, e-mails or SSH details in knowledge/ and finale/
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(com|in|org|net|io|edu|ai)\b|ssh +(-[A-Za-z] +[^ ]+ +)*-p +[0-9]+'
+          files=$(git ls-files knowledge finale)
+          if [ -n "$files" ] && grep -InE "$pattern" $files; then
+            echo "::error::Redact the lines above (knowledge/STANDARD.md section 6)."
+            exit 1
+          fi
+          echo "OK"
 
   tests:
     name: unit tests
