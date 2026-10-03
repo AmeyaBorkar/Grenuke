@@ -1,7 +1,20 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-09-27 23:55
-- **Current focus:** done. **Team best: Composite B, public LB 0.990879.** The last slot went to Bakshi's B7 (0.990875, a tie). Other measured uploads: mixf7 0.990833, mixf2 0.990819. B+ was prepared but not uploaded. Artefacts: Bakshi's `SOLUTION_DOC_compositeB.md` (PR #62), with my edits on #64.
+- **Last updated (IST):** 2026-10-03 23:50
+- **Current focus:** the Grand Finale (7 Oct). Setting up knowledge capture:
+  - `knowledge/`: the standard, the capture kit, templates;
+  - `finale/`: logistics and the plan;
+  - the digest script; rules in AGENTS.md and CONTRIBUTING.md; hooks and CI.
+  - Agents are mining my three Claude Code sessions, 26 sub-agent logs, and the repo's records, PRs, issues and code into the curated knowledge base and the theory guide.
+- **Branch(es):** `ameya/finale`.
+- **Blocked on / need from others:** Bakshi and Sachi's captures (`knowledge/CAPTURE.md`) by Sun 4 Oct 12:00 IST. The organisers must confirm the deck deadline: the e-mail says "Monday, 6 October", and 6 Oct is a Tuesday.
+- **Next up:**
+  - curated knowledge base v1;
+  - the Q&A bank;
+  - the deck outline for the team call (Sun 4 Oct 15:00).
+
+## State at the close of the competition (27 Sep 23:55)
+
 - **Branch(es):** `ameya/final-stack`, commits ad84d66 to ea2067b:
   - `ce_box.py` options;
   - `stack/dp_france.py`;

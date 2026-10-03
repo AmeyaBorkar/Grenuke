@@ -7,9 +7,46 @@
   - **A** = Ameya (coordinator, captain, blocking, pipeline; the integration machine);
   - **S** = Sachi (model, decision, gates);
   - **B** = Bakshi, @trustdemons05 (normalization, string features).
-- **Last updated:** Sat 26 Sep 16:40. Every Friday issue is closed; the remaining work is listed in phases 3 and 4.
-- **Window:** Fri 25 Sep 00:00 → Sun 27 Sep. The submission-round page gives **27 Sep 15:30 UTC = 21:00 IST**, and the private leaderboard uses the **final** submission. The captain confirms both in the portal.
-- **Leaderboard budget:** 5 uploads per day per team (15 in total).
+- **Last updated:** Sat 3 Oct 23:45.
+  - The competition is over: the leaderboard closed on 27 Sep and the ZIP went in on 29 Sep.
+  - We are in the Top 10 (2nd). **Phase 6 (the Grand Finale) is the current work.** Phases 0–5 are kept as the record.
+- **Competition window (past):**
+  - Fri 25 Sep 00:00 → Sun 27 Sep, 21:00 IST;
+  - 5 leaderboard uploads per day per team.
+
+## Phase 6: Grand Finale (3–7 Oct): current
+
+- **Plan, logistics and judging criteria:** `finale/README.md`. **Knowledge base:** `knowledge/README.md`.
+- **Owners are proposed.** Confirm them in the team call (6.10).
+- **The deck deadline** is written as "Monday, 6 October" (a Tuesday), so we work to Mon 5 Oct 14:00 until the organisers confirm.
+
+| # | task | owner | due (IST) | status |
+|---|---|---|---|---|
+| 6.1 | Confirm participation; join the organisers' WhatsApp group; ask which day the deck is due | A | Sun 4 Oct, morning | todo |
+| 6.2 | Rules and structure for knowledge capture: `knowledge/` (standard, capture kit, templates), `finale/`, digest script, hooks and CI | A (agent) | Sat 3 Oct | doing |
+| 6.3 | Ameya's capture: three Claude Code sessions, 26 sub-agent logs, and the repo's records (handovers, decisions, plans, research, PRs, issues, code) | A (agents) | Sun 4 Oct, 06:00 | doing |
+| 6.4 | Bakshi's capture into `knowledge/people/bakshi/` (`knowledge/CAPTURE.md`) | B | **Sun 4 Oct, 12:00** | todo |
+| 6.5 | Sachi's capture into `knowledge/people/sachi/` | S | **Sun 4 Oct, 12:00** | todo |
+| 6.6 | Curated knowledge base v1: story, timeline, decisions, experiments, numbers, components, failures, lessons, conflicts | A (agents) | Sun 4 Oct, 10:00 | doing |
+| 6.7 | Curated knowledge base v2: merge Bakshi's and Sachi's captures; each member reviews the pages about their work | A; B and S review | Sun 4 Oct, 20:00 | todo |
+| 6.8 | Theory study guide: 11 pages and a glossary, each page with jury questions and a self-test | A (agents); all study | Sun 4 Oct | doing |
+| 6.9 | Q&A bank v1: at least 60 likely questions, each with a short spoken answer and the evidence | A (agents); owners check | Sun 4 Oct, 20:00 | todo |
+| 6.10 | Team call: storyline, `finale/deck-outline.md`, who presents what | all | Sun 4 Oct, 15:00 | todo |
+| 6.11 | Deck v1 on the organisers' template, with speaker notes | A (agents); owners review | Sun 4 Oct, 23:59 | todo |
+| 6.12 | Rehearsal 1 (timed to 10:00), then fixes | all | Mon 5 Oct, 10:00 | todo |
+| 6.13 | **Submit the deck** through the organisers' survey | A | **Mon 5 Oct, 14:00** (Tue 6 Oct only if confirmed) | todo |
+| 6.14 | Theory self-tests in pairs; Q&A drills; rehearsals 2 and 3 | all | Mon 5 – Tue 6 Oct | todo |
+| 6.15 | Optional evidence for likely questions (needs the go-ahead): blocking recall and pairs per S1 with city/state keys versus ours on the holdout; the recall-versus-candidates-per-S1 curve | A | Mon 5 Oct | proposed |
+| 6.16 | Finale: technical check 30 minutes before our slot, then present | all | Wed 7 Oct | todo |
+
+## Phase 5: package and methodology (27 Sep 21:00 → 29 Sep 10:00): done
+
+| # | task | owner | status |
+|---|---|---|---|
+| 5.1 | Final model: Composite B (public LB 0.990879), chosen over mixf7 / mixf2 / B7 | A, B | done (`CHANGELOG.md`, Submissions) |
+| 5.2 | Runnable package: the Composite B driver, the France block, pinned requirements, tests | B, A | done (#70, #72, #73, #74) |
+| 5.3 | Methodology document (7 pages) and the ZIP in the organisers' exact structure | A | done (#73, #76, #77) |
+| 5.4 | Independent ZIP check before upload | B | done (#71, #75) |
 
 ## Phase 0: set up and decide (Fri): done
 

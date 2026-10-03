@@ -40,6 +40,29 @@ This is a shared file owned by the coordinator. Change it through a small PR.
   - decides everything inside their area and reviews PRs that touch it;
   - runs the gates (`plans/FINAL_PLAN.md` §9) for their area and records the results (`docs/CONTRACTS.md` C10).
 
+## Finale roles (from 3 Oct; proposed, confirm in the team call)
+
+| role | who | what |
+|---|---|---|
+| curator | Ameya | merges every capture into `knowledge/`, keeps `knowledge/numbers.md` as the single source of quoted numbers, owns `finale/` |
+| capture | each member | their own chats and notes → `knowledge/people/<member>/` (`knowledge/CAPTURE.md`), by Sun 4 Oct 12:00 |
+| reviewer | each member | checks the pages about their own work (credit, numbers, reasons) |
+| presenter | to decide (6.10) | who speaks which slides; everyone answers questions on any part |
+
+**Proposed Q&A leads**, by who built or studied each part (`knowledge/people/*/contributions.md` will confirm):
+
+| topic | lead | backup |
+|---|---|---|
+| problem framing, data analysis, overall strategy | Ameya | Sachi |
+| blocking and candidate generation; the candidates-per-entity ratio; scale | Ameya | Bakshi |
+| normalisation, lexicons, string features | Bakshi | Ameya |
+| XGBoost stages, calibration, gates and bootstrap, ablations | Sachi | Ameya |
+| cross-encoders: e5, bge, Qwen2.5-1.5B LoRA | Sachi (Qwen 1.5B), Ameya (e5, bge) | Bakshi |
+| Qwen2.5-7B: the cross-encoder in the mix and the re-check of confident predictions; Composite B | Bakshi | Ameya |
+| France: self-training, rules, probes, synthetic French | Ameya (self-training, rules), Sachi (synthetic French, diagnostics) | Bakshi |
+| decision layer: expected-F0.5 set selection, ownership | Ameya | Sachi |
+| reproducibility, the package, compliance (licences, no external data) | Bakshi | Ameya |
+
 ## Area ownership
 
 | area | paths | owner | backup |

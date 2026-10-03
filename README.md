@@ -1,6 +1,14 @@
 # Grenuke: Amazon ML Challenge 2026, Business Entity Resolution
 
-Private team repository. Deadline: **Sun 27 Sep 2026, 23:59 IST**. Leaderboard uploads are limited to **5 per day** across the whole team.
+Private team repository.
+
+**Status (3 Oct 2026):**
+- The competition closed on 27 Sep. Our final submission, Composite B, scored **0.990879 on the public leaderboard**.
+- We are in the **Top 10 (2nd)** and present at the **Grand Finale on Wed 7 Oct**.
+- What we do now:
+  - capture everything we know into [`knowledge/`](knowledge/README.md);
+  - learn the theory;
+  - build and rehearse the talk in [`finale/`](finale/README.md).
 
 **The task:** for every Source-1 business record, find all Source-2/3 records that describe the same business.
 - Only the name and address are available.
@@ -11,6 +19,7 @@ Private team repository. Deadline: **Sun 27 Sep 2026, 23:59 IST**. Leaderboard u
 
 | you are | read |
 |---|---|
+| preparing the finale | **`finale/README.md`** (logistics, deadlines, plan), **`knowledge/README.md`** (everything we know), `knowledge/CAPTURE.md` (add what you know) |
 | a teammate | `CONTRIBUTING.md` (rules), `docs/TEAM.md` (owners), `docs/ROADMAP.md` (what's next) |
 | an AI coding agent | **`AGENTS.md`** (mandatory; `CLAUDE.md`, `GEMINI.md`, Copilot and Cursor files point there) |
 | looking for the plan | **`plans/FINAL_PLAN.md`** (why this plan: `plans/DECISION.md`) |
@@ -49,6 +58,9 @@ docs/DEVELOPMENT.md                    developer guide: run, extend and gate pip
 docs/status/  handover/  decisions/    one-writer coordination docs (+ TEMPLATE.md each)
 submissions/                           leaderboard protocol + one record per upload
 experiments/<member>/                  personal scratch space (notebooks, prototypes)
+knowledge/                             the knowledge base: story, timeline, decisions, experiments, numbers, theory, Q&A
+knowledge/people/<member>/             each member's own capture (one writer each)
+finale/                                Grand Finale: logistics, template, deck, script
 code/business_entity_resolution/       the deliverable package (src/ber, README, requirements)
 student_resource/                      organizer bundle: problem README, validator, doc template
 scripts/                               setup + document scaffolding
