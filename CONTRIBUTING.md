@@ -1,6 +1,8 @@
 # Contributing: how we work together without stepping on each other
 
-Three people (and their AI agents) work in parallel for 72 hours. These rules keep `main` runnable, prevent merge conflicts, and make every result reproducible.
+Three people (and their AI agents) work in parallel. These rules were written for the 72-hour competition. They keep `main` runnable, prevent merge conflicts, and make every result reproducible.
+
+**Now (from 3 Oct 2026):** we prepare the Grand Finale on 7 Oct. The work is capturing everything we know into `knowledge/`, learning the theory, and building and rehearsing the deck in `finale/`. Section 12 has the rules for this phase.
 AI agents follow the same rules through `AGENTS.md`.
 
 ## 1. Principles
@@ -92,6 +94,9 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 | changelog | `CHANGELOG.md` | fixed | the coordinator, plus the captain for uploads. Feature PRs put a one-line `Changelog:` note in the PR description instead |
 | the plan we build | `plans/FINAL_PLAN.md` | fixed | the coordinator. Changes come from `docs/decisions/` records |
 | candidate plans | `plans/<member>/` | `PLAN.md` (+ `.pdf`) | that member |
+| my knowledge capture (journal, decisions, experiments, contributions, numbers, sources, open questions) | `knowledge/people/<member>/` | fixed names (`knowledge/templates/person/`) | that member only |
+| the shared knowledge base (story, timeline, decisions, experiments, numbers, components, theory, Q&A) | `knowledge/` | see `knowledge/README.md` | the curator (Ameya), reviewed in PRs |
+| finale deck, script, rehearsal notes | `finale/` | see `finale/README.md` | the curator, reviewed by all |
 
 `python scripts/new_doc.py {handover|status|decision|submission} ...` creates any of these from the templates with the correct name and IST timestamp.
 
@@ -133,3 +138,23 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 - Technical disagreements: the area owner decides for their area. For anything cross-cutting, the coordinator decides after a timeboxed (15 min) discussion, and it is recorded in `docs/decisions/`.
 - Choosing a plan: follow the process in `plans/README.md`.
 - If you break `main`: revert first (`git revert` in a PR), then fix. Never rewrite `main`'s history.
+
+## 12. The finale phase: knowledge capture, theory, deck
+
+The jury values **why** over **what**. Every member must be able to explain any part of the pipeline: the choice, the alternatives, the evidence and the limits. So we write it all down once, in one format, and study from it.
+
+1. **Capture.**
+   - **What:** your chats with AI agents, notes, memory and scripts, turned into `knowledge/people/<you>/`.
+   - **How:** [`knowledge/CAPTURE.md`](knowledge/CAPTURE.md) has the steps and a ready-to-paste agent prompt. `scripts/kb/digest_transcripts.py` turns Claude Code or Codex logs into short, redacted digests in `work/kb_digest/` (git-ignored).
+   - **Due:** Sun 4 Oct, 12:00 IST.
+2. **Standard.**
+   - **Where:** [`knowledge/STANDARD.md`](knowledge/STANDARD.md) defines the formats: decisions `D-<AREA>-NN`, experiments `EXP-NNN`, timeline rows, the fact sheet, component and theory pages, Q&A entries.
+   - **Rule:** every number carries a scope, an evidence level (M measured / E estimated / R reported / U uncertain) and a source.
+3. **Curation.** The curator (Ameya, with agents) merges all captures and repo records into the shared pages. Disagreements go to `knowledge/conflicts.md`; they are never smoothed over.
+4. **Review.** Check the pages about your own work. Fix them through PR comments or a small PR.
+5. **Study.**
+   - **Where:** [`knowledge/theory/`](knowledge/theory/README.md) has a page per technique, each with jury questions and a self-test.
+   - **How:** test each other in pairs.
+6. **Deck and talk.** The deck and the script live in `finale/` and quote only numbers from `knowledge/numbers.md`.
+
+**Never commit** transcripts, chat exports or digests (`*.jsonl`, `work/kb_digest/`). **Never put** secrets or personal data in `knowledge/`: IPs, ports, host names, SSH details, tokens, e-mails, phone numbers or personal paths. The hooks and CI block `*.jsonl`.
