@@ -6,6 +6,7 @@ Usage:
     python scripts/new_doc.py status     --member ameya            # add --force to reset your own status file
     python scripts/new_doc.py decision   --member ameya --topic plan-selection
     python scripts/new_doc.py submission --member ameya --num 1
+    python scripts/new_doc.py person     --member bakshi           # knowledge/people/bakshi/ from the templates
 
 It prints the created path. It never overwrites an existing file, except `status` with --force.
 """
@@ -27,7 +28,23 @@ KINDS = {
     "status": ("docs/status/TEMPLATE.md", "docs/status/{member}.md"),
     "decision": ("docs/decisions/TEMPLATE.md", "docs/decisions/{date}_{hm}_{topic}.md"),
     "submission": ("submissions/records/TEMPLATE.md", "submissions/records/{date}_sub{num}.md"),
+    "person": ("knowledge/templates/person", "knowledge/people/{member}"),  # a folder: knowledge/CAPTURE.md
 }
+
+
+def new_person(member: str) -> int:
+    """Create knowledge/people/<member>/ from the person templates; never overwrite an existing file."""
+    src, dst = ROOT / "knowledge/templates/person", ROOT / "knowledge/people" / member
+    dst.mkdir(parents=True, exist_ok=True)
+    for tpl in sorted(src.glob("*.md")):
+        out = dst / tpl.name
+        if out.exists():
+            print(f"exists, kept: {out.relative_to(ROOT).as_posix()}")
+            continue
+        with open(out, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(tpl.read_text(encoding="utf-8").replace("{{MEMBER}}", member))
+        print(out.relative_to(ROOT).as_posix())
+    return 0
 
 
 def main() -> int:
@@ -42,6 +59,8 @@ def main() -> int:
     member = args.member.strip().lower()
     if not SLUG.match(member):
         parser.error("--member must be lowercase letters/digits/hyphens, e.g. 'ameya'")
+    if args.kind == "person":
+        return new_person(member)
     topic = (args.topic or "").strip().lower()
     if args.kind in ("handover", "decision"):
         if not topic or not SLUG.match(topic):
