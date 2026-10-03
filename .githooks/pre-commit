@@ -21,6 +21,8 @@ while IFS= read -r f; do
   case "$f" in
     *.parquet|*.npy|*.npz|*.pkl|*.pickle|*.joblib|*.pt|*.pth|*.ckpt|*.safetensors|*.onnx|*.h5|*.feather|*.arrow|*.zip|*.7z|*.tar|*.gz)
       echo "ERROR (pre-commit): data/binary artifact must not be committed: $f" >&2; fail=1 ;;
+    *.jsonl|*kb_digest/*)
+      echo "ERROR (pre-commit): chat transcripts and digests stay local (knowledge/CAPTURE.md): $f" >&2; fail=1 ;;
   esac
   size=$(git cat-file -s ":$f" 2>/dev/null || echo 0)
   if [ "$size" -gt "$max_bytes" ]; then
@@ -33,6 +35,13 @@ EOF
 secret_re='(gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}|AKIA[0-9A-Z]{16}|hf_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{32,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)'
 if git diff --cached -U0 --diff-filter=ACM | grep -E '^\+' | grep -Eq "$secret_re"; then
   echo "ERROR (pre-commit): the staged diff looks like it contains a secret/token. Remove it." >&2
+  fail=1
+fi
+
+# knowledge/ and finale/ are shared write-ups: no IPs, e-mails or SSH details (knowledge/STANDARD.md section 6)
+private_re='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(com|in|org|net|io|edu|ai)\b|ssh +(-[A-Za-z] +[^ ]+ +)*-p +[0-9]+'
+if git diff --cached -U0 --diff-filter=ACM -- knowledge finale | grep -E '^\+[^+]' | grep -Eq "$private_re"; then
+  echo "ERROR (pre-commit): knowledge/ or finale/ gains an IP address, e-mail or SSH detail. Redact it (knowledge/STANDARD.md section 6)." >&2
   fail=1
 fi
 

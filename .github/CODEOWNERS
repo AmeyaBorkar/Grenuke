@@ -14,6 +14,12 @@
 /.github/                                                @AmeyaBorkar
 /.githooks/                                              @AmeyaBorkar
 
+# Finale phase: the curated knowledge base and the finale deck (curator); each member owns their capture
+/knowledge/                                              @AmeyaBorkar
+/finale/                                                 @AmeyaBorkar
+/knowledge/people/bakshi/                                @trustdemons05
+/knowledge/people/sachi/                                 @ssdhoka06
+
 # Areas
 /code/business_entity_resolution/src/ber/block/          @AmeyaBorkar
 /code/business_entity_resolution/src/ber/normalize/      @trustdemons05

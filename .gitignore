@@ -23,6 +23,10 @@ submissions/**/*.tsv
 submissions/**/*.zip
 *_submission.zip
 
+# --- AI chat transcripts and digests: never commit (knowledge/CAPTURE.md) ---
+*.jsonl
+kb_digest/
+
 # --- personal / local config ---
 .claude/settings.local.json
 .claude/worktrees/
