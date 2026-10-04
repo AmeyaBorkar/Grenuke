@@ -14,6 +14,28 @@ Notable changes to the pipeline, the plan, the contracts and the team process. N
 
 ## [Unreleased]
 
+### Finale phase (3–4 Oct 2026)
+- **#78** Rules and structure for knowledge capture.
+  - `AGENTS.md` §10 and `CONTRIBUTING.md` §12.
+  - `knowledge/STANDARD.md` and `knowledge/CAPTURE.md`.
+  - `scripts/kb/digest_transcripts.py` and `new_doc.py person`.
+  - Hooks and CI that block transcripts and private details.
+  - `finale/` with the organisers' template and the plan.
+- **#79–#81** Team plan, and capture tasks for Bakshi and Sachi. The deck is due Tue 6 Oct 14:00 IST.
+- **#82** Sachi's knowledge capture (`knowledge/people/sachi/`).
+- **#84** Knowledge base v1:
+  - the story;
+  - 247 decisions;
+  - the fact sheet (245 numbers);
+  - 68 conflicts, 68 failures, 37 lessons;
+  - theory: 11 advanced pages, a glossary and 18 foundations pages.
+  - Corrected figures: 3.70 candidates per S1 keep 98.35% of true holdout pairs (99.1% is before the cut); the private leaderboard publishes rankings only.
+- **This PR** Merges Bakshi's five open PRs (#37, #42, #49, #59, #60), with his authorship kept:
+  - the commits were cherry-picked onto `main`, and `docs/status/bakshi.md` keeps its current version;
+  - `bakshi/v7-france`'s one unmerged commit is byte-identical to #37's first commit;
+  - also adds `knowledge/qa.md` (100 jury questions).
+
+
 ### Added
 - `plans/FINAL_PLAN.md` v1.0, the plan we build. It combines:
   - Plan A as the base;

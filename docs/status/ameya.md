@@ -1,17 +1,15 @@
 # Status: ameya
 
-- **Last updated (IST):** 2026-10-04 05:40
-- **Current focus:** the Grand Finale (7 Oct). Setting up knowledge capture:
-  - `knowledge/`: the standard, the capture kit, templates;
-  - `finale/`: logistics and the plan;
-  - the digest script; rules in AGENTS.md and CONTRIBUTING.md; hooks and CI.
-  - Agents are mining my three Claude Code sessions, 26 sub-agent logs, and the repo's records, PRs, issues and code into the curated knowledge base and the theory guide.
-- **Branch(es):** `ameya/kb-v1`. `ameya/finale` was merged as #78.
-- **Blocked on / need from others:** Bakshi and Sachi's captures (`knowledge/CAPTURE.md`) by Sun 4 Oct 12:00 IST. The deck is due Tue 6 Oct, 14:00 IST, and is built on Monday; knowledge capture comes first.
+- **Last updated (IST):** 2026-10-04 18:00
+- **Current focus:** the Grand Finale (Wed 7 Oct). The deck is due Tue 6 Oct 14:00 IST and will be built on Mon 5 Oct.
+  - Knowledge base v1 is on `main` (#84): story, 247 decisions, fact sheet, conflicts, failures, lessons, Q&A, and 29 theory pages.
+  - Bakshi's open PRs are merged through the integration PR.
+- **Branch(es):** `ameya/merge-bakshi`.
+- **Blocked on / need from others:** Bakshi's capture (#80).
 - **Next up:**
-  - curated knowledge base v1;
-  - the Q&A bank;
-  - the deck outline for the team call (Sun 4 Oct 15:00).
+  - the deck outline and deck v1 (Mon 5 Oct);
+  - rehearsals;
+  - optionally the paused pages: timeline, experiment ledger, components.
 
 ## State at the close of the competition (27 Sep 23:55)
 
