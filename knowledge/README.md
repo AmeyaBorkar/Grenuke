@@ -25,7 +25,7 @@ It serves the Grand Finale (7 Oct 2026; [`finale/`](../finale/README.md)) and re
 | `components/` | one page per pipeline part: how it works, why, the alternatives, its limits and its scale | to come |
 | [`failures.md`](failures.md) | dead ends, bugs and surprises, and what each taught us | done: 68 entries |
 | [`lessons.md`](lessons.md) | what worked, what didn't, what we would do differently | done: 37 lessons |
-| `qa.md` | the jury question bank: short spoken answers, evidence, follow-ups | next PR |
+| [`qa.md`](qa.md) | the jury question bank: short spoken answers, evidence, follow-ups | done: 100 questions, top 15 first |
 | [`theory/`](theory/README.md) | the study guide: the theory behind every technique we used, with self-tests | done: 11 advanced pages, glossary, and 18 foundations pages from scratch ([`theory/foundations/`](theory/foundations/README.md)) |
 | [`conflicts.md`](conflicts.md) | facts on which our sources disagree, and open questions | done: 68 entries |
 | [`sources.md`](sources.md) | every source mined (chats, PRs, issues, documents), with coverage | done |
