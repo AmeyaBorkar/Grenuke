@@ -18,11 +18,11 @@
 
 - **Plan, logistics and judging criteria:** `finale/README.md`. **Knowledge base:** `knowledge/README.md`.
 - **Owners are proposed.** Confirm them in the team call (6.10).
-- **The deck deadline** is written as "Monday, 6 October" (a Tuesday), so we work to Mon 5 Oct 14:00 until the organisers confirm.
+- **The deck is due Tue 6 Oct, 14:00 IST.** Knowledge capture comes first; the deck is built on Monday.
 
 | # | task | owner | due (IST) | status |
 |---|---|---|---|---|
-| 6.1 | Confirm participation; join the organisers' WhatsApp group; ask which day the deck is due | A | Sun 4 Oct, morning | todo |
+| 6.1 | Confirm participation; join the organisers' WhatsApp group | A | Sun 4 Oct, morning | todo |
 | 6.2 | Rules and structure for knowledge capture: `knowledge/` (standard, capture kit, templates), `finale/`, digest script, hooks and CI | A (agent) | Sat 3 Oct | doing |
 | 6.3 | Ameya's capture: three Claude Code sessions, 26 sub-agent logs, and the repo's records (handovers, decisions, plans, research, PRs, issues, code) | A (agents) | Sun 4 Oct, 06:00 | doing |
 | 6.4 | Bakshi's capture into `knowledge/people/bakshi/` (`knowledge/CAPTURE.md`) | B | **Sun 4 Oct, 12:00** | todo |
@@ -31,11 +31,11 @@
 | 6.7 | Curated knowledge base v2: merge Bakshi's and Sachi's captures; each member reviews the pages about their work | A; B and S review | Sun 4 Oct, 20:00 | todo |
 | 6.8 | Theory study guide: 11 pages and a glossary, each page with jury questions and a self-test | A (agents); all study | Sun 4 Oct | doing |
 | 6.9 | Q&A bank v1: at least 60 likely questions, each with a short spoken answer and the evidence | A (agents); owners check | Sun 4 Oct, 20:00 | todo |
-| 6.10 | Team call: storyline, `finale/deck-outline.md`, who presents what | all | Sun 4 Oct, 15:00 | todo |
-| 6.11 | Deck v1 on the organisers' template, with speaker notes | A (agents); owners review | Sun 4 Oct, 23:59 | todo |
-| 6.12 | Rehearsal 1 (timed to 10:00), then fixes | all | Mon 5 Oct, 10:00 | todo |
-| 6.13 | **Submit the deck** through the organisers' survey | A | **Mon 5 Oct, 14:00** (Tue 6 Oct only if confirmed) | todo |
-| 6.14 | Theory self-tests in pairs; Q&A drills; rehearsals 2 and 3 | all | Mon 5 – Tue 6 Oct | todo |
+| 6.10 | Team call: capture status, Q&A leads, who reviews which pages | all | Sun 4 Oct, 15:00 | todo |
+| 6.11 | The storyline and `finale/deck-outline.md`; who presents what; deck v1 on the organisers' template, with speaker notes | all; A (agents) builds | Mon 5 Oct | todo |
+| 6.12 | Rehearsal 1 (timed to 10:00), then fixes | all | Tue 6 Oct, morning | todo |
+| 6.13 | **Submit the deck** through the organisers' survey | A | **Tue 6 Oct, 14:00** | todo |
+| 6.14 | Theory self-tests in pairs; Q&A drills; rehearsals 2 and 3 | all | Sun 4 – Tue 6 Oct | todo |
 | 6.15 | Optional evidence for likely questions (needs the go-ahead): blocking recall and pairs per S1 with city/state keys versus ours on the holdout; the recall-versus-candidates-per-S1 curve | A | Mon 5 Oct | proposed |
 | 6.16 | Finale: technical check 30 minutes before our slot, then present | all | Wed 7 Oct | todo |
 
