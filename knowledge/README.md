@@ -10,7 +10,7 @@ It serves the Grand Finale (7 Oct 2026; [`finale/`](../finale/README.md)) and re
 | if you have | read |
 |---|---|
 | 15 minutes | [`story.md`](story.md), the whole project as one narrative, then the "10 things" list in [`theory/README.md`](theory/README.md) and the ★ rows of [`numbers.md`](numbers.md) |
-| 1 hour | add the decision records for the parts you will present ([`decisions.md`](decisions.md)), [`lessons.md`](lessons.md) and [`conflicts.md`](conflicts.md) |
+| 1 hour | add the component pages for the parts you will present ([`components/`](components/README.md)), [`qa.md`](qa.md), [`lessons.md`](lessons.md) and [`conflicts.md`](conflicts.md) |
 | more | the theory: start at [`theory/foundations/README.md`](theory/foundations/README.md) (the curriculum, from scratch), then the advanced pages in [`theory/`](theory/README.md); test each other with the self-tests |
 
 ## Contents
@@ -18,11 +18,11 @@ It serves the Grand Finale (7 Oct 2026; [`finale/`](../finale/README.md)) and re
 | page | what it holds | status |
 |---|---|---|
 | [`story.md`](story.md) | the narrative: problem → insights → strategy → evolution → result → lessons; the backbone of the deck | done |
-| `timeline.md` | every event, in time order (IST), with its source | to come |
+| [`timeline.md`](timeline.md) | every event, in time order (IST), with its source | done |
 | [`decisions.md`](decisions.md) and [`decisions/`](decisions/) | every decision `D-<AREA>-NN`: the options, the reason, the evidence, the outcome, and hindsight | done: 247 decisions in 14 areas |
-| `experiments.md` | the ledger of every measured attempt `EXP-NNN`, kept or dropped | to come |
+| [`experiments.md`](experiments.md) | the ledger of every measured attempt `EXP-NNN`, kept or dropped | done: 329 experiments |
 | [`numbers.md`](numbers.md) | the fact sheet: every number we may quote, with scope, evidence level and source | done: 245 numbers, ★ = quote these |
-| `components/` | one page per pipeline part: how it works, why, the alternatives, its limits and its scale | to come |
+| [`components/`](components/README.md) | one page per pipeline part: how it works, why, the alternatives, its limits and its scale | done: 15 pages |
 | [`failures.md`](failures.md) | dead ends, bugs and surprises, and what each taught us | done: 68 entries |
 | [`lessons.md`](lessons.md) | what worked, what didn't, what we would do differently | done: 37 lessons |
 | [`qa.md`](qa.md) | the jury question bank: short spoken answers, evidence, follow-ups | done: 100 questions, top 15 first |
