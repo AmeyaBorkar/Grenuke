@@ -1,5 +1,7 @@
 # Jury Q&A bank
 
+Deeper answers: the component pages in [`components/`](components/README.md) explain each part of the pipeline (how, why, alternatives, limits, scale).
+
 The question bank for the 5-minute Q&A at the Grand Finale (Wed 7 Oct 2026, after the 10-minute talk): 100 questions in eight groups that follow the organisers' talk sections. Each entry has a spoken answer of at most three sentences, the evidence (numbers with their evidence level, and links) and likely follow-ups.
 Numbers come from [`numbers.md`](numbers.md). Where our submitted methodology document is looser than the record, the answer follows the record ([`conflicts.md`](conflicts.md)) and the entry says so. Format: [`STANDARD.md`](STANDARD.md) §2.8.
 

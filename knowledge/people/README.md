@@ -4,9 +4,9 @@ One folder per member, written **only by that member and their agents** (one wri
 
 | member | folder | status |
 |---|---|---|
-| Ameya | [`ameya/`](ameya/) | mined from Ameya's three Claude Code sessions and 26 sub-agent logs (25 Sep – 3 Oct) |
+| Ameya | [`ameya/`](ameya/) | done: journal (25 Sep – 4 Oct), contributions; decisions, experiments and numbers live in the curated pages |
 | Bakshi | `bakshi/` | to do: Bakshi runs `knowledge/CAPTURE.md` |
-| Sachi | `sachi/` | to do: Sachi runs `knowledge/CAPTURE.md` |
+| Sachi | [`sachi/`](sachi/) | done (#82) |
 
 - **Start a folder:** `python scripts/new_doc.py person --member <you>`, then follow [`../CAPTURE.md`](../CAPTURE.md).
 - **Files in each folder:**
