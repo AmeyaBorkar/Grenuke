@@ -771,6 +771,74 @@ DIVIDERS = [("01", "Understanding the problem", "What the data told us, and the 
              "(5 seconds) And this is where it could go next.")]
 
 
+
+# Final spoken script (about 8-8.5 minutes); None keeps the slide's own note (the dividers).
+SCRIPT = [
+    "(15 s) Hi, we are team Grenuke: Ameya, Aarush and Sachi. Three students, about 72 hours, one laptop and a few "
+    "rented GPUs. This is how we turned 24 million records into a solution that finished second among more than "
+    "32,000 teams.",
+    None,
+    "(25 s) We began where every ML project should: with the data. 24.2 million records from three sources. Training "
+    "covers only the US and India. The test adds France, 15 percent, with no labels at all. And the US part of the "
+    "test is half the size, which quietly shifts any count-based feature.",
+    "(25 s) An entity has about three and a half copies on average, and up to eleven. But 5.6 percent have none, and "
+    "for them an empty answer is right and scores full marks. Across 7.6 million true pairs, no record belongs to two "
+    "entities, so we gave every record one owner.",
+    "(25 s) True copies are noisy: 16 percent have a weak name, mostly transliterated Indian names, and 5 percent a "
+    "weak or empty address. But both weak at once is under a tenth of a percent, so name and address rescue each "
+    "other. House numbers agree 83 percent of the time, and there are almost no postcodes.",
+    "(25 s) Then we found the decoys. The test has 23 percent more records per entity but the same true matches, so "
+    "the extras are look-alikes. They leave fingerprints: a true copy keeps the house number 85 percent of the time, a "
+    "look-alike only 12, and look-alikes add a business word three times as often.",
+    "(25 s) So we set two rules. Decide like the metric: one wrong merge costs as much as four missed copies, and it "
+    "hurts a real customer, so precision comes first. And spend compute where the model is unsure: a cheap model reads "
+    "every pair, and only 2.6 percent reach our expensive models.",
+    None,
+    "(30 s) Comparing everything would mean 17 trillion pairs. So we search each country separately, by name and "
+    "address words, with a name-only search when the address is empty, after repairing spellings. That keeps 99.1 "
+    "percent of true matches, and a learned cut leaves 3.7 candidates per entity while keeping 98.4. We avoided hard "
+    "city keys because many true copies have no usable address.",
+    "(30 s) Our architecture has seven steps. Blue is data, navy our models, orange our decisions. We clean records and "
+    "retrieve candidates. XGBoost scores every pair on name, address, number and rival features. Transformers, e5, bge "
+    "and Qwen, re-read the unsure pairs. A second XGBoost turns their votes into a calibrated probability. We decide "
+    "per entity, and finally rules and a 7B model check for decoys.",
+    "(25 s) Here is one decision. Each candidate gets a probability. We keep adding matches while the expected F0.5 "
+    "goes up: the two real copies stay; the look-alike name and the bakery at the same address go. And each record has "
+    "one owner, so two entities can never share it.",
+    "(25 s) We kept performance in mind throughout. Each stage shrinks the next: 34 candidates per entity, under 5 "
+    "after a cheap filter, 3.7 into the main models. The core pipeline ran on one 12 gigabyte GPU with 31 gigabytes of "
+    "memory, blocking in about 13 minutes. Only the transformers needed rented GPUs, and they read under 3 percent of "
+    "pairs.",
+    None,
+    "(25 s) Our first scores were humbling: 0.989 on our validation, 0.980 on the leaderboard. We treated the gap like "
+    "a bug report. Splitting it by country showed the US and India were fine; the whole gap was France, at about 0.93. "
+    "Reading the French errors by hand showed us the decoys we were accepting.",
+    "(30 s) France had no labels, so we let the data teach us. We learned which French words mark a look-alike, without "
+    "labels. The model learned from its own confident answers, cross-checked so no pair grades itself; honestly, that "
+    "failed twice before it worked. And different models vote, with a 7B re-check. France rose from about 0.93 to "
+    "0.98, an estimate, since it was never measured directly.",
+    None,
+    "(25 s) As three people, we tried everything: 329 experiments, 177 kept, 126 dropped, each upload testing one "
+    "change. Ameya led the data, blocking and France; Aarush the 7B model and the final submission; Sachi our testing "
+    "gates, a Qwen model and synthetic French. Our rule: when two ideas tie, keep the simpler one.",
+    "(20 s) This is our climb, from 0.976 to 0.991, one understood change per upload. Behind it are long nights, a "
+    "laptop that froze at 3:35 in the morning, and a GPU lost mid-run. We finished at 0.990879, second of the top ten "
+    "among more than 32,000 teams.",
+    "(15 s) Three lessons. Data first: every good decision traced back to it. Doubt your estimates: ours shared our "
+    "model's blind spots. Diversity wins: different models together beat one strong model, especially in the unknown.",
+    None,
+    "(30 s) At billions of records, we would shard by country and region, so new records only search their own shard. "
+    "We would distil the transformers into one small, quantised model and cache scores. At sign-up, XGBoost and a "
+    "small model can check for duplicates instantly on a CPU, with the 7B in the cloud for batch checks. Cost follows "
+    "candidates per entity, so we keep it at 3.7.",
+    "(25 s) Next, we would add a few hundred labels per new country, use city and state as soft keys, match empty "
+    "addresses better, and send unsure pairs to people for review. And this applies widely: business sign-ups, seller "
+    "and supplier records, fake accounts, and launching new marketplaces, which is exactly our France problem.",
+    "(10 s) Thank you for listening. Read the data, decide like the metric, and spend compute where it matters. We are "
+    "happy to take your questions.",
+]
+
+
 def main() -> int:
     work = OUT.with_suffix(".tmp.pptx")
     shutil.copy(TEMPLATE, work)
@@ -796,6 +864,9 @@ def main() -> int:
     for slide, step in zip(sl, plan):
         divider(slide, *step) if isinstance(step, tuple) else step(slide)
         transition(slide)
+    for slide, script in zip(sl, SCRIPT):
+        if script:
+            notes(slide, script)
     prs.save(OUT)
     work.unlink()
     print(f"{OUT.name}: {len(sl)} slides")
