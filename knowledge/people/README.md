@@ -6,7 +6,7 @@ One folder per member, written **only by that member and their agents** (one wri
 |---|---|---|
 | Ameya | [`ameya/`](ameya/) | done: journal (25 Sep – 4 Oct), contributions; decisions, experiments and numbers live in the curated pages |
 | Bakshi | `bakshi/` | to do: Bakshi runs `knowledge/CAPTURE.md` |
-| Sachi | [`sachi/`](sachi/) | done (#82) |
+| Sachi | [`sachi/`](sachi/) | done (#82, corrections in #83) |
 
 - **Start a folder:** `python scripts/new_doc.py person --member <you>`, then follow [`../CAPTURE.md`](../CAPTURE.md).
 - **Files in each folder:**
