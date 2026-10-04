@@ -27,6 +27,9 @@ Times on rented machines are in UTC on the machine clock. Where a time below com
 | issue #64 (final upload, 27 Sep) | leaderboard results, the estimator bias, the final choice |
 | issue #66 (final ZIP, 28 to 29 Sep) | what each member had to put on git |
 | issue #79, #81 (Grand Finale, 4 Oct) | this capture |
+| PR #16, PR #17 | my v0 baseline: authorship, file counts and numbers (read 4 Oct) |
+| PR #27, #30, #39, #46, #61, #67, #68, #82 | my PRs (titles read from the repository's PR list, 4 Oct) |
+| `docs/decisions/` G6, G4 and name-uniqueness records | my gate numbers, including the 18:00 and 20:55 updates to G6 (read 4 Oct) |
 | PR #58, PR #62, PR #65, PR #67 | stacked rules, Bakshi's package, final-day record, my empty merge |
 | docs/decisions, docs/handover, submissions/records | team records, cited where I used them |
 

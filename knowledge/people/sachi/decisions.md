@@ -7,44 +7,46 @@ on its own line.
 ---
 
 ### S-D-01 · Keep the threshold decision in the v0 baseline
-- **When (IST):** 2026-09-25 17:31, numbers updated 17:52 · **Phase:** P1 · **Area:** DEC
+- **When (IST):** 2026-09-25 17:31, numbers updated 17:52, pipeline-stage update 18:00, re-run on model v2 probabilities 20:55 · **Phase:** P1 · **Area:** DEC
 - **Decided by:** Sachi
-- **Status:** adopted for v0, then superseded (see Hindsight)
-- **Problem:** gate G6 asks whether the exact expected-F0.5 set per S1 beats one tuned global threshold.
+- **Status:** adopted for v0; the later re-runs kept it too
+- **Problem:** gate G6 asks whether the exact expected-F0.5 set per S1 beats one tuned global threshold. The keep rule in `plans/FINAL_PLAN.md` §5.4 is a gain of at least +0.002 with the 95% CI above 0, and ties go to the threshold. (On 26 Sep my [PR #27] description called delta above 0 with the CI lower bound above 0 the plan's actual rule and +0.002 my earlier loose heuristic; see Q-25.)
 - **Options considered:**
-  1. Expected-F0.5 dynamic program per S1 with one global logit shift: follows the metric, but needed calibrated probabilities.
-  2. One global threshold tuned on the holdout: simple, and the plan's tie-break rule favours it.
-- **Choice and why:** kept the threshold. On the dev sample the paired bootstrap gave a difference of -0.0004 with CI [-0.0011, +0.0002], so the DP did not win and ties go to the simpler option.
-- **Evidence:** dev kit v0, fold 0, 27,651 S1: macro F0.5 0.9652, precision 0.988, recall 0.929 [M, dev sample] [chat:sachi/web-1 2026-09-25 17:52]. G6 delta -0.0004, CI [-0.0011, +0.0002] [M, dev sample] same source.
-- **Outcome:** the baseline shipped with the threshold. Ameya's later gate on calibrated stage-2 probabilities gave the DP a win of +0.00018 [R, local holdout] (see `knowledge/` curated pages for the source).
-- **Hindsight:** the verdict depended on calibration. My test used stage-1 probabilities only, and Ameya's also lost on stage 1 (-0.00029 [R]). I would state in the record that G6 was valid only for stage-1 scores.
-- **Links:** `docs/decisions/` G6 record · `ber.model` · [PR #16] [PR #17]
+  1. Exact expected-F0.5 per S1: a dynamic program over the Poisson-binomial distribution of true copies, with one global logit shift. Follows the metric, but needs calibrated probabilities. Checked against brute-force enumeration on 40 random cases.
+  2. One global threshold tuned on the holdout: simple, and the keep rule favours it on a tie.
+- **Choice and why:** kept the threshold. With the dev runner, threshold 0.70 gave 0.9649 and the DP (shift -0.25) gave 0.9647: delta -0.00024, CI [-0.00091, +0.00049], p_better 0.234. The DP was not better.
+- **Evidence** (dev kit, fold 0, 27,651 S1, [M]): the dev runner as above, and the official evaluator reproduced 0.96492 (precision 0.988, recall 0.929, singleton F0.5 0.953, 3.26 predicted per S1, India 0.952, US 0.974) [[G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md)]. Through the pipeline stages at 18:00 (threshold 0.71): 0.96517, DP 0.96473, delta -0.00044, CI [-0.00107, +0.00022], p_better 0.101 (same record). On model v2 calibrated pc at 20:55 (dev kit v2): threshold 0.67 gave 0.98438, DP 0.98447, delta +0.00010, CI [-0.00023, +0.00045], p_better 0.714 (same record; S-X-15). [PR #16] reports 0.9648 and a delta of -0.0002; [PR #17] reports 0.9652 and -0.0004.
+- **Outcome:** the baseline shipped with the threshold. Ameya's later gate on the full holdout with calibrated stage-2 probabilities gave the DP +0.00018, CI above 0 [R].
+- **Hindsight:** DP minus threshold went from -0.00044 (stage-1 probabilities) to +0.00010 (model v2, dev fold 0) to +0.00018 (Ameya, full holdout): the verdict depended on the probabilities, as the record itself warned. No run of mine met the +0.002 bar. The record also noted a test shift: the threshold was tuned at 4.68 S2/S3 records per S1 on train, and test has 5.75; any adjustment was left to gate G8.
+- **Links:** [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md) · `ber.model` · [PR #16] (opened by me) · [PR #17] (opened by Ameya, carrying my follow-up commit)
 
 ### S-D-02 · Compute ownership over every S1 of a record
 - **When (IST):** 2026-09-25 about 17:50 · **Phase:** P1 · **Area:** DEC
 - **Decided by:** Sachi
 - **Status:** adopted
-- **Problem:** my first ownership step took the argmax over holdout S1s only, so a record whose best S1 was in training folds looked owned by a holdout S1.
+- **Problem:** my first ownership step ([PR #16]) took the argmax over holdout S1s only, so a record whose best S1 sat in a training fold looked owned by a holdout S1. [PR #17] calls this "the holdout-only ownership bug from #16".
 - **Options considered:**
   1. Argmax over holdout S1s only: quick, but wrong, because test has no hidden S1s to leave out.
   2. Argmax over all S1 candidates of each record, training folds included: matches how test behaves.
 - **Choice and why:** option 2, so the holdout score reflects the test setting.
-- **Evidence:** the G6 record notes the fix was made before the final numbers were produced [R] [chat:sachi/web-1 2026-09-25 17:52]. The size of the effect was not recorded: unknown.
-- **Outcome:** `ber.model.decide` uses it. The final chain has its own ownership code.
-- **Hindsight:** I should have recorded the before and after numbers.
-- **Links:** `ber.model` · [PR #17]
+- **Evidence:** the [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md) says its numbers were updated at 17:52 after the fix: "An earlier run took the argmax over holdout S1s only; it was fixed before these numbers were produced." The size of the effect is **not isolated** [U]. [PR #16] reports 0.9648 and delta -0.0002, the record 0.9649 and -0.00024, which are almost the same. [PR #17]'s table shows 0.9648 then 0.9652 and credits the fix, but 0.9652 is the 18:00 pipeline-stage run (threshold 0.71) and the dev runner used 0.70. [PR #16] says 0.9648 where the record's evaluator says 0.96492.
+- **Outcome:** `ber.model` uses it, and Ameya carried it into main through [PR #17]. The final chain has its own ownership code.
+- **Hindsight:** I should have run the same script before and after the fix. The G6 record was updated in place, so no clean before and after pair exists.
+- **Links:** `ber.model` · [PR #16] · [PR #17]
 
 ### S-D-03 · Reject the name-uniqueness features
-- **When (IST):** 2026-09-25 evening, exact time unknown · **Phase:** P1 · **Area:** FEA
-- **Decided by:** Sachi (gate run), with Ameya's agent asking for the record
+- **When (IST):** 2026-09-25 21:15 (the record's Date field; its file name says 2111) · **Phase:** P1 · **Area:** FEA
+- **Decided by:** Sachi
 - **Status:** rejected
-- **Problem:** idea that how rare a name is should help separate a true copy from a look-alike.
-- **Options considered:** add the features to stage 2 (`add_name_uniqueness.py`), or leave them out.
-- **Choice and why:** left out. The gain was +0.0005, below the gate bar in `plans/FINAL_PLAN.md` §9. I do not remember the bar value; see the plan.
-- **Evidence:** +0.0005 [R, local holdout] [chat:sachi/web-1 2026-09-25 18:03]. The decision record exists in `docs/decisions/`; its file name is unknown to me.
-- **Outcome:** not used in any later version.
-- **Hindsight:** unknown whether a larger name-collision feature set (Ameya's `rival` counts) already covered this signal.
-- **Links:** `experiments/sachi/add_name_uniqueness.py`, `check_name_uniqueness.py`
+- **Problem:** error analysis of model v2 (dev fold 0) showed that 61% of below-threshold misses and 98% of records taken by another S1 have an empty address. Hypothesis: an exact name that no other S1 in the country shares is trustworthy even without an address.
+- **Options considered:**
+  1. Stage 1 on the 79 v2 features (`sachi-s1-fx2-dev`): macro F0.5 0.97745.
+  2. The same plus five name-uniqueness columns (`ctx__s1_core_n`, `ctx__r_core_n`, `name__core_eq`, `name__core_eq_unique`, `addr__r_empty`; the counts use S1 only, so they could be built on test): 0.97800.
+- **Choice and why:** not kept. Delta +0.00054, CI [+0.00001, +0.00107], p_better 0.975, n 27,651: real, but far below the +0.002 bar.
+- **Evidence** (dev kit v2, fold 0, [M], [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md)): among the 3,779 true candidate pairs with an empty record address (4.0%): exact and unique name, 1,439 pairs, found 95.8% before and 98.5% after, so little headroom; exact name shared by two or more S1, 1,126 pairs, found 2.8% before and 1.6% after, ambiguous by construction (abstaining is correct under F0.5); name not exact, 1,214 pairs, 52.6% before and 52.1% after, the only part with headroom (about 0.6% of true pairs).
+- **Outcome:** not used in any later version. The record concluded that empty-address losses are mostly a data limit, and that gate G5 (softmax ownership) has low expected value because "taken by another S1" is only 0.26% of true pairs. It added that the five columns could be offered if stage 2 were retrained anyway; they were not.
+- **Hindsight:** two days later the copy-count test (S-X-09) reached the same conclusion for the shared-name empty-address group: coin flips, so abstaining is right. Whether Ameya's rival counts already covered the unique-name signal: unknown. Under the CI-only rule my [PR #27] description later used (delta above 0, CI lower bound above 0), this result (CI lower bound +0.00001) would just have passed; the record judged it against the +0.002 bar (Q-25).
+- **Links:** [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md) · `experiments/sachi/add_name_uniqueness.py`, `check_name_uniqueness.py`
 
 ### S-D-04 · Study why an unseen country is worse, one feature group at a time
 - **When (IST):** 2026-09-26 10:00 to about 13:00 · **Phase:** P2 · **Area:** FRA
@@ -195,3 +197,30 @@ on its own line.
 - **Outcome:** no run on that machine. Cost: a short rental, amount unknown.
 - **Hindsight:** I should have pulled main before renting. The pull that showed the overlap came after the rental.
 - **Links:** S-X-06
+
+### S-D-16 · Keep the stage-2 collective model (gate G4)
+- **When (IST):** 2026-09-25 21:03 · **Phase:** P1 · **Area:** MDL
+- **Decided by:** Sachi (the gate). Ameya built model v2 and its stage 2.
+- **Status:** adopted
+- **Problem:** does the stage-2 collective model beat stage 1 alone (plan §9, gate G4)?
+- **Options considered:** 1. stage 1 only (`sachi-s1-fx2-dev`, threshold 0.68): macro F0.5 0.97745. 2. stage 1 plus stage 2 (`ameya-s2-v2-dev` pc, threshold 0.67): 0.98438.
+- **Choice and why:** keep stage 2. Same 79 features (`ameya-fx2-dev`), dev fold 0, 27,651 S1, paired bootstrap with 1,000 resamples.
+- **Evidence** ([M], dev kit v2, fold 0, [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md)): delta +0.00692, CI [+0.00622, +0.00772], p_better 1.000 (bar +0.002 with CI above 0). Stage 2 lifts singleton F0.5 from 0.968 to 0.985 and recall from 0.949 to 0.963. Of v2's gain over v0 (0.9652 to 0.9844), about two thirds came from the 79 features and one third from stage 2.
+- **Outcome:** stage 2 stayed in every later version. The record left a full-holdout re-check to the integration run; I do not have one of my own: unknown.
+- **Hindsight:** the comparison is between a stage 1 I trained and a stage 2 Ameya trained, on the same features. That tests the architecture fairly, but either side could have been tuned differently.
+- **Links:** [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md) · S-X-16
+
+### S-D-17 · Port Ameya's v3 chain into `ber.model`
+- **When (IST):** 2026-09-25 23:36 to 2026-09-26 10:09 (draft description at 10:09) · **Phase:** P2 · **Area:** MDL
+- **Decided by:** Sachi, after Ameya's agent asked on 2026-09-25 23:29 (its first priority for me)
+- **Status:** adopted; merged as [PR #27]
+- **Problem:** the real model lived only in `experiments/ameya/model-v1`; the final ZIP needs `code/` that reproduces the result, and the pipeline's train, predict and decide stages ran stage 1 only.
+- **Options considered:**
+  1. Port the files line by line into `ber.model`, changing only input and output.
+  2. Leave the chain in `experiments/` and document it.
+  3. Rewrite it inside `ber.model`.
+- **Choice and why:** option 1, so numbers stay comparable with Ameya's reference. Per the draft description: explicit feature groups instead of a module global, so it no longer needs about 19 GB in memory; train, predict and decide default to v3 (`--set model=v0` keeps the old path); the decide stage applies gate G6 with delta above 0 and CI lower bound above 0, ties to the threshold, and saves the rule for test [R].
+- **Evidence:** 74 tests pass (43 existing plus one new: `expected_f_select` against brute force, 30 random cases, n at most 6); tested end to end on synthetic data in the C8, C5 and C9 formats; "not yet run on real data" when written [R] [chat:sachi/web-2 2026-09-26 10:09].
+- **Outcome:** merged as [PR #27]. Composite B did not use it: its drivers call only the records, block and write stages ([issue #66] check B). Whether the ported chain was ever run on full features: unknown.
+- **Hindsight:** the port made the repo's own pipeline stages run the full v3 chain, but the submission came from Ameya's original chain. I have no evidence that the port reproduced his numbers.
+- **Links:** [PR #27] · S-D-01 · Q-25

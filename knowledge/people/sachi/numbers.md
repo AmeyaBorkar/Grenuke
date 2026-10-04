@@ -4,21 +4,36 @@ Summary: the numbers from Sachi's work worth quoting, plus the few team numbers 
 an evidence level (M measured, E estimated, R reported, U uncertain) and a source. Never quote a row without its scope.
 Times are IST. "France kit v1" came from an older model.
 
-## 1. Baseline model (dev kit)
+## 1. Baseline model and the early gates (dev kit)
+
+All rows: dev kit, fold 0, 27,651 S1. Sources: [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md), [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md), [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md), [PR #16], [PR #17].
 
 | fact | value | scope | level | source |
 |---|---|---|---|---|
-| macro F0.5, v0 baseline | 0.9652 | dev kit v0, dev-sample fold 0, 27,651 S1, threshold decision | M | [chat:sachi/web-1 2026-09-25 17:52] |
-| precision / recall, v0 | 0.988 / 0.929 | same | M | same |
-| training pairs / evaluation pairs | 2,393,231 / 819,316 | same | M | same |
-| G6: DP minus threshold | -0.0004, CI [-0.0011, +0.0002] | same, stage-1 probabilities | M | same |
-| tests passing | 92 | `ber` test suite at that commit | R | same |
+| macro F0.5, v0, dev runner (threshold 0.70) | 0.9649 (PR #16 says 0.9648); DP 0.9647 | dev kit v0 | M | G6 record, [PR #16] |
+| official evaluator on the same run | 0.96492; precision 0.988, recall 0.929, singleton 0.953, 3.26 predicted per S1, US 0.974, India 0.952 | dev kit v0 | M | G6 record |
+| G6, dev runner | delta -0.00024, CI [-0.00091, +0.00049], p_better 0.234 | dev kit v0 | M | G6 record |
+| macro F0.5, v0, pipeline stages (threshold 0.71) | 0.96517; DP 0.96473 | dev kit v0 | M | G6 record update 18:00, [PR #17] |
+| G6, pipeline stages | delta -0.00044, CI [-0.00107, +0.00022], p_better 0.101 | dev kit v0 | M | same |
+| G6 on model v2 pc | threshold 0.67 gives 0.98438, DP 0.98447, delta +0.00010, CI [-0.00023, +0.00045], p_better 0.714 | dev kit v2 | M | G6 record update 20:55 |
+| training / evaluation pairs, v0 | 2,393,231 / 819,316 | dev kit v0 | M | G6 record |
+| tests passing | 43 at PR #16, 92 at PR #17 | `ber` test suite | R | [PR #16], [PR #17] |
+| tests passing, v3 port draft | 74 (43 existing plus one new test) | PR #27 draft description, synthetic data only | R | [PR #27] |
+| keep rule for gates | gain of at least +0.002 with the 95% CI above 0 | plan §5.4 | R | G6 record |
+| train vs test density | 4.68 vs 5.75 S2/S3 records per S1 | whole data | R | G6 record |
 
-## 2. Gates and studies
+## 2. Gates G4 and name-uniqueness, and studies
 
 | fact | value | scope | level | source |
 |---|---|---|---|---|
-| name-uniqueness features | +0.0005 (below bar) | local holdout, stage 2 | R | [chat:sachi/web-1 2026-09-25 18:03] |
+| G4: stage 2 against stage 1 | 0.97745 to 0.98438; delta +0.00692, CI [+0.00622, +0.00772], p_better 1.000 | dev kit v2 | M | G4 record |
+| stage 2 effect on singletons and recall | singleton F0.5 0.968 to 0.985; recall 0.949 to 0.963 | dev kit v2 | M | G4 record |
+| origin of v2's gain over v0 (0.9652 to 0.9844) | about two thirds features, one third stage 2 | dev kit v2 | M | G4 record |
+| name-uniqueness features | 0.97745 to 0.97800; delta +0.00054, CI [+0.00001, +0.00107], p_better 0.975 (bar +0.002) | dev kit v2 | M | name-uniqueness record |
+| true pairs with an empty record address | 3,779 (4.0%): unique exact name 1,439; shared exact name 1,126; non-exact 1,214 | dev kit v2 | M | same |
+| found before to after, by those groups | 95.8% to 98.5%; 2.8% to 1.6%; 52.6% to 52.1% | dev kit v2 | M | same |
+| misses with an empty address | 61% of below-threshold misses; 98% of records taken by another S1 | dev kit v2, model v2 | M | G4 / name-uniqueness record |
+| "taken by another S1" | 0.26% of true pairs | dev kit v2 | M | name-uniqueness record |
 | unseen-country gap | about 0.028 (Ameya quoted 0.024) | dev kit v2, US to India | M / U | [chat:sachi/web-2 2026-09-26 12:50] |
 | edit-profile features | +0.0005 against a +0.003 bar | dev kit v2, US to India | M | same |
 

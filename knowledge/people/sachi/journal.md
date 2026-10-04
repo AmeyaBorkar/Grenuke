@@ -17,25 +17,25 @@ next. Times are IST. Chat aliases are defined in `sources.md`. Decision and expe
 
 ## 2026-09-25 16:19 to 18:00 · Model v0 and gate G6
 - **Goal:** build the baseline model stages (issues #8, #9) and run gate G6.
-- **Done:** set up `experiments/sachi/` (dev-feature builder, dev and real runners, tests); ran on the dev kit; wrote the G6 record; fixed the ownership step; moved the code into `ber.model` so the pipeline stages train, predict, decide run; pushed ([PR #16], [PR #17]).
-- **Results:** dev-sample macro F0.5 0.9652; G6 delta -0.0004, CI [-0.0011, +0.0002] (S-X-01).
+- **Done:** set up `experiments/sachi/` (dev-feature builder, dev and real runners, tests); ran on the dev kit; wrote the G6 record; fixed the ownership step; opened [PR #16] (merged by Ameya). My follow-up commit moved the code into `ber.model` so the pipeline stages train, predict, decide run; Ameya rebased it and opened it as [PR #17].
+- **Results:** dev kit fold 0 macro F0.5 0.9649 with the dev runner and 0.9652 through the pipeline stages; G6 delta -0.00024, then -0.00044 (S-X-01).
 - **Decisions:** S-D-01, S-D-02.
-- **Problems:** issues #8 and #9 stayed open after the first PR; the test file for `decide` shadowed the stage name and was removed.
+- **Problems:** issues #8 and #9 stayed open after the first PR; the test file for `decide` shadowed the stage name and was removed. [PR #17]'s checklist records that the model-v0 handover was not included.
 - **Next:** wait for Ameya's full features.
 - **Source:** [chat:sachi/web-1 2026-09-25 16:19 to 18:00]
 
-## 2026-09-25 20:54 to 23:37 · Features v2, a sync, and gate follow-up
-- **Goal:** use Ameya's v2 features, run follow-up gates, answer his agent's questions.
-- **Done:** ran the name-uniqueness gate (S-X-02); read his notes on legal-form features and blocking recall (98.99 percent); at 23:29 his agent asked what I had run and noted nothing from me was on GitHub after 18:00.
-- **Results:** name-uniqueness +0.0005, rejected (S-D-03).
-- **Decisions:** S-D-03.
-- **Problems:** I had no status file or handover on the repo yet. The agent asked me to port stage 2 and the expected-F0.5 decision into `ber.model`, build the France-emptied probe, and recalibrate the "no match" probability. I did not finish the port.
+## 2026-09-25 20:54 to 23:37 · Features v2, three gates, and a sync
+- **Goal:** use Ameya's v2 features, run the follow-up gates, answer his agent's questions.
+- **Done:** got Ameya's v2 features at 20:54. At 20:55 re-ran G6 on model v2 probabilities (S-X-15); at 21:03 ran gate G4, stage 2 against stage 1 (S-X-16); ran an error analysis of model v2 (S-X-17); at 21:15 ran the name-uniqueness gate (S-X-02). At 23:29 his agent asked what I had run and noted nothing from me was on GitHub after 18:00.
+- **Results:** G4 +0.00692, kept (S-D-16); name-uniqueness +0.00054, rejected (S-D-03); G6 on v2: DP +0.00010 over the threshold, threshold kept.
+- **Decisions:** S-D-01 (update), S-D-03, S-D-16.
+- **Problems:** I had no status file or handover on the repo yet. The agent asked me to port stage 2 and the expected-F0.5 decision into `ber.model`, build the France-emptied probe, and recalibrate the "no match" probability. The port was not started yet at 23:33; it followed overnight and became [PR #27] (next entries).
 - **Next:** port v3, the probe script, status and handover.
-- **Source:** [chat:sachi/web-1 2026-09-25 20:54 to 23:37]
+- **Source:** [chat:sachi/web-1 2026-09-25 20:54 to 23:37], [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md), [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md), [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md)
 
 ## 2026-09-26 10:09 to 13:04 · LOCO studies, France kit v1
 - **Goal:** find out whether a feature group causes the unseen-country drop; look for French patterns.
-- **Done:** committed package drafts (reproduce scripts, README, requirements); ran `loco_groups.py` (it stalled on the laptop for a long time); ran the France kit analyses.
+- **Done:** at 10:09 drafted the summary for porting Ameya's v3 chain into `ber.model` ([PR #27], merged; synthetic-data tests only, S-D-17); committed package drafts ([PR #30]: reproduce scripts, README, requirements); ran `loco_groups.py` (it stalled on the laptop for a long time); ran the France kit analyses.
 - **Results:** no feature group explains the gap; edit-profile features +0.0005 (S-X-03, S-X-04); no new French rule (S-X-05).
 - **Decisions:** S-D-04, S-D-05.
 - **Problems:** the laptop is slow on large runs; the chat's 20-file upload limit made it hard to show the assistant all of Ameya's files, so I used a one-file dump script.
