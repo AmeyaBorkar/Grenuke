@@ -1,5 +1,7 @@
 # Theory study guide
 
+**New to a topic? Start with the foundations track:** [`foundations/README.md`](foundations/README.md) has 18 pages from scratch (data, statistics, ML, metrics, trees, text and retrieval, neural networks and LLMs, scale, experiments, domain shift, decision theory, interpreting our results, linear algebra, information theory, clustering and graphs, limited labels, production ML, tuning and interpretability), a curriculum and a self-assessment checklist. The pages below are the advanced layer.
+
 **Summary.** The theory behind every technique team Grenuke used in the Amazon ML Challenge 2026 (business entity resolution), written so that each of us can defend any part of the pipeline before senior Amazon scientists on 7 Oct 2026 (10-minute talk, 5 minutes of Q&A). Eleven pages and a glossary, each tied to our own numbers, plus a two-day study plan, a pair self-test drill and the ten things every member must be able to explain in one minute.
 
 The jury values reasoning over results and probes scale and the candidate-pairs-per-entity ratio; finalists were ranked on the private leaderboard, blocking strategy and novelty (finer keys and compute-efficient methods scored higher) and candidate efficiency ([finale README][finale]). The guide is built for exactly those questions.
