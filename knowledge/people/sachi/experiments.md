@@ -7,7 +7,7 @@ France-side numbers from it show whether an effect exists and its rough size, no
 | ID | when (IST) | area |
 |---|---|---|
 | S-X-01 | 2026-09-25 17:07 to 18:00 | MDL, DEC |
-| S-X-02 | 2026-09-25 evening | FEA |
+| S-X-02 | 2026-09-25 21:15 | FEA |
 | S-X-03 | 2026-09-26 10:00 to 13:00 | FRA |
 | S-X-04 | same | FRA |
 | S-X-05 | 2026-09-26 about 12:52 to 13:04 | RUL |
@@ -20,21 +20,25 @@ France-side numbers from it show whether an effect exists and its rough size, no
 | S-X-12 | 2026-09-27 18:30 | FRA |
 | S-X-13 | 2026-09-27 18:48 | LLM |
 | S-X-14 | 2026-10-03 night | PKG |
+| S-X-15 | 2026-09-25 20:55 | DEC |
+| S-X-16 | 2026-09-25 21:03 | MDL |
+| S-X-17 | 2026-09-25 about 21:00 | PRB, EVL |
 
 ---
 
 ### S-X-01 · v0 baseline on the dev sample, gate G6
 - **Hypothesis:** an exact expected-F0.5 set per S1 beats a tuned global threshold.
-- **Setup:** dev kit v0, features `ameya-baseline-v0-dev` (37 features), stage-1 XGBoost, 3 out-of-fold groups, isotonic calibration cross-fitted. Trained on dev-sample folds 5, 10, 15 (2,393,231 pairs). Evaluated on dev-sample fold 0 (27,651 S1, 819,316 pairs). Ownership over all S1 candidates. pytest: 92 passed.
-- **Result:** macro F0.5 0.9652, precision 0.988, recall 0.929 [M, dev sample, fold 0]. G6 delta -0.0004, CI [-0.0011, +0.0002] [M, same].
-- **Verdict:** threshold kept (D: S-D-01). Superseded by Ameya's calibrated stage 2.
-- **Source:** [chat:sachi/web-1 2026-09-25 17:52]
+- **Setup:** dev kit v0, features `ameya-baseline-v0-dev` (37 features), stage-1 XGBoost, 3 out-of-fold groups, isotonic calibration cross-fitted. Trained on dev-sample folds 5, 10 and 15 (2,393,231 pairs). Evaluated on dev-sample fold 0 (27,651 S1, 819,316 pairs). Ownership over all S1 candidates. Tests: 43 passed at [PR #16] (the DP checked against brute force), 92 at [PR #17].
+- **Result** ([M], dev kit v0, fold 0, [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md)). Dev runner (threshold 0.70, the run in [PR #16]): macro F0.5 0.9649 (the PR says 0.9648), ECE 0.0004; DP (shift -0.25) 0.9647; delta -0.00024, CI [-0.00091, +0.00049], p_better 0.234. The official evaluator reproduced 0.96492 with precision 0.988, recall 0.929, singleton F0.5 0.953, 3.26 predicted per S1, US 0.974, India 0.952. Through the pipeline stages (threshold 0.71, the run in [PR #17]): 0.96517, DP 0.96473, delta -0.00044, CI [-0.00107, +0.00022], p_better 0.101.
+- **Verdict:** threshold kept (S-D-01). Superseded by Ameya's calibrated stage 2.
+- **Source:** [chat:sachi/web-1 2026-09-25 17:52], [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md)
 
 ### S-X-02 · Name-uniqueness features
-- **Hypothesis:** rarer names make a match more trustworthy.
-- **Setup:** `add_name_uniqueness.py` into stage 2, paired gate against the model without it. Exact tag and commit unknown.
-- **Result:** +0.0005 [R, local holdout] [chat:sachi/web-1 2026-09-25 18:03].
-- **Verdict:** dropped: below the gate bar (S-D-03).
+- **Hypothesis:** an exact name that no other S1 in the country shares is trustworthy even without an address.
+- **Setup:** `add_name_uniqueness.py` added five columns to `ameya-fx2-dev` (giving `sachi-fx2-name-dev`); stage 1 retrained (`sachi-s1-name-dev`); `check_name_uniqueness.py` for the breakdown. Dev fold 0, 27,651 S1, paired bootstrap.
+- **Result** ([M], dev kit v2, fold 0, [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md)): 0.97745 to 0.97800, delta +0.00054, CI [+0.00001, +0.00107], p_better 0.975. Among 3,779 true pairs with an empty record address: unique exact name 95.8% to 98.5% found; shared exact name 2.8% to 1.6%; non-exact name 52.6% to 52.1%.
+- **Verdict:** dropped: far below the +0.002 bar (S-D-03).
+- **Source:** [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md)
 
 ### S-X-03 · Leave-one-country-out by feature group
 - **Hypothesis:** one feature group causes the unseen-country drop.
@@ -110,3 +114,21 @@ France-side numbers from it show whether an effect exists and its rough size, no
 - **Setup:** `shasum -a 256` on the downloaded folder.
 - **Result:** matching_results.tsv `df4bccd785b3fa785b7edcf0532288bcddc0010e2e31ce6f358064529ecb62e8`; candidate_pairs.tsv `58c824a3f61c184fe7da1a448a4ac94284f288feff9c351abfe16a3dfc0520e5`. Both equal the Composite B hashes [M] [chat:sachi/web-3 2026-10-03 night]. The folder also holds the three q7st LoRA adapters (about 154 MB each).
 - **Verdict:** confirmed. I did not open the submission ZIP (88,353,544 bytes on Drive); its contents are unverified by me.
+
+### S-X-15 · Gate G6 again, on model v2 probabilities
+- **Hypothesis:** with better-calibrated probabilities the exact expected-F0.5 decision should beat the tuned threshold.
+- **Setup:** decide stage on Ameya's `ameya-s2-v2-dev` calibrated `pc` (tag `sachi-decide-v2`), dev kit v2, dev fold 0, 27,651 S1.
+- **Result** ([M], dev kit v2, fold 0, [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md), update 20:55): threshold 0.67 gave 0.98438 (the evaluate stage agrees; it matches Ameya's reported 0.9845). DP gave 0.98447. Delta +0.00010, CI [-0.00023, +0.00045], p_better 0.714.
+- **Verdict:** threshold kept, below the +0.002 bar. The DP moved from slightly worse (-0.00044 on stage-1 probabilities) to slightly better. Ameya's later full-holdout gate found +0.00018, CI above 0 [R]. Fed S-D-01.
+
+### S-X-16 · Gate G4: stage 2 against stage 1
+- **Hypothesis:** the collective stage 2 adds real accuracy over stage 1 alone.
+- **Setup:** same 79 features (`ameya-fx2-dev`), dev fold 0, 27,651 S1; stage 1 only (`sachi-s1-fx2-dev`, threshold 0.68) against model v2 stage 2 (`ameya-s2-v2-dev` pc, threshold 0.67); paired bootstrap, 1,000 resamples.
+- **Result** ([M], dev kit v2, fold 0, [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md)): 0.97745 to 0.98438, delta +0.00692, CI [+0.00622, +0.00772], p_better 1.000. Singleton F0.5 0.968 to 0.985; recall 0.949 to 0.963.
+- **Verdict:** kept (S-D-16).
+
+### S-X-17 · Error analysis of model v2
+- **Hypothesis:** the biggest remaining loss in model v2 has one identifiable cause.
+- **Setup:** `experiments/sachi/error_analysis_v2.py` on dev fold 0 of model v2.
+- **Result** ([M], dev kit v2, fold 0, cited in the [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md) and the [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md)): the remaining loss is mainly recall on records with an empty address: 61% of below-threshold misses, and 98% of the records taken by another S1. Of v2's gain over v0, about two thirds came from the 79 features and one third from stage 2.
+- **Verdict:** led to the name-uniqueness gate (S-X-02), which found no headroom there. The later copy-count test (S-X-09) closed the shared-name part.

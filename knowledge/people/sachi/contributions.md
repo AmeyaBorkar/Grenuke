@@ -11,11 +11,14 @@ chain), **unmerged or unknown** (state not confirmed).
 
 | piece | what it is | state | source |
 |---|---|---|---|
-| `ber.model` train, predict, decide stages and the ownership fix | v0 baseline: stage-1 XGBoost, isotonic calibration, argmax ownership, threshold decision | **on main, not in B**. Merged 2026-09-25 ([commit fd7bf67]). Not imported by the final chain. | [issue #66], [chat:sachi/web-3 2026-09-29 00:40] |
+| `ber.model` train, predict, decide stages and the ownership fix | v0 baseline: stage-1 XGBoost, isotonic calibration, argmax ownership, threshold decision | **on main, not in B**. Merged 2026-09-25 in two PRs: [PR #16] (opened by me, merged by Ameya; branch `sachi/model-v0`; 9 files, +776; the model in `experiments/sachi/`) and [PR #17] (opened by Ameya with my follow-up commit [commit fd7bf67] rebased onto main; 7 files, +544 -33; moves the model into `ber.model`, adds the ownership fix, closes #8 and #9). Not imported by the final chain. | [PR #16], [PR #17], [issue #66] |
+| v3 port into `ber.model` ([PR #27], opened by me, merged) | ports Ameya's v3 chain (`v3.py`: stage 0 filter, stage 1, stage 2 with rivalry and optional cluster-support features, isotonic calibration; `legal.py` `build_group()`; `cluster.py`, `recs.py`; `decision.py` `expected_f_select`; `__init__.py` makes train, predict and decide default to v3, with `--set model=v0` keeping the old path; `split_devkit_groups.py`; `test_model_decision.py`). The draft description says: only I/O changed, 74 tests pass (43 existing plus one new), tested end to end on synthetic data, not yet run on real data | **on main, not in B**: Composite B drivers call only the records, block and write stages ([issue #66] check B). Whether the ported chain was ever run on real data: unknown | [PR #27], [chat:sachi/web-2 2026-09-26 10:09] |
 | `experiments/sachi/model/` (`stage1.py`, `calibrate.py`, `decide.py`) | the early scripts behind `ber.model` | **on main, not in B**. Nothing in `experiments/ameya/model-v1` or `experiments/bakshi/box` imports it. | [chat:sachi/web-3 2026-09-29 00:45] |
 | `make_dev_features.py`, `run_dev.py`, `run_real.py` | dev-kit feature builder and the dev-sample runners for v0 | **on main, not in B** (file names seen on the box listing) | [chat:sachi/web-1 2026-09-25 17:07] |
-| Gate records G4, G6 on v2, name-uniqueness rejection | paired-bootstrap gate records in `docs/decisions/` | on main (file names unknown to me) | [chat:sachi/web-1 2026-09-25 18:03] |
-| `france_probe.py` | script that empties every French S1 in a matching file, for the France-emptied upload | state unknown (said to be "in my commit") | [chat:sachi/web-1 2026-09-25 18:03] |
+| Three gate records in `docs/decisions/` | `2026-09-25_1731_gate-g6-dp-vs-threshold.md` (holds my 18:00 pipeline-stage update and my 20:55 re-run on model v2 probabilities), `2026-09-25_2103_gate-g4-stage2.md`, `2026-09-25_2111_gate-name-uniqueness.md` | on main (commits `1537167`, `fd7bf67`, `222fbad`) | [G6 record](../../../docs/decisions/2026-09-25_1731_gate-g6-dp-vs-threshold.md), [G4 record](../../../docs/decisions/2026-09-25_2103_gate-g4-stage2.md), [name-uniqueness record](../../../docs/decisions/2026-09-25_2111_gate-name-uniqueness.md) |
+| `error_analysis_v2.py`, `add_name_uniqueness.py`, `check_name_uniqueness.py` | error analysis of model v2 and the name-uniqueness gate's scripts | **on main, not in B** (cited by the G4 and name-uniqueness records) | G4 record |
+| `france_probe.py` | script that empties every French S1 in a matching file, for the France-emptied upload | **not in git**: not on main and in no commit on any branch (checked 4 Oct). The assistant in my 25 Sep chat said it was in my commit; git does not support that. Who built the France-emptied upload: see Ameya's records. | [chat:sachi/web-1 2026-09-25 23:33] |
+| Handover `docs/handover/2026-09-26_1800_sachi_llm-cross-encoder.md` | handover for the Qwen cross-encoder | on main. **No model-v0 handover and no `docs/status/sachi.md` exist on main** (checked 4 Oct); [PR #17]'s checklist says the v0 handover was "not included" | `git ls-tree`, [PR #17] |
 | `loco_groups.py`, `loco_profile.py` | leave-one-country-out studies of feature groups and edit-profile features | **on main, not in B** | [chat:sachi/web-3 2026-09-26 22:00] |
 | `france_discover.py`, `france_hypotheses.py`, `france_hyp_split.py` | label-free pattern discovery on France kit v1 | **on main, not in B** | same |
 | `ce_compare.py` | compares e5-small and e5-base as the cross-encoder | **on main, not in B** | same |
@@ -48,8 +51,8 @@ chain), **unmerged or unknown** (state not confirmed).
 
 - Did not write the final pipeline stages (Ameya's `experiments/ameya/model-v1`) or the 7B training, re-check and
   composition code (Bakshi's `experiments/bakshi/box`).
-- Did not port stage 2 or the expected-F0.5 decision into `ber.model`, though Ameya's agent asked on 2026-09-25 23:29.
-  The final chain stayed in `experiments/ameya/model-v1` ([chat:sachi/web-1 2026-09-25 23:29]).
+- Did not run the ported v3 chain on real data before the final chain was settled (the [PR #27] draft says synthetic data only), and the submission used Ameya's own `experiments/ameya/model-v1` chain. Whether the port was ever validated on full features: unknown.
+- Did not write a model-v0 handover or a status file (see the table above).
 - Did not finish the Qwen2.5-1.5B run (see S-X-07) or any 7B training that reached a result.
 
 ## 5. Mistakes that cost something
@@ -62,3 +65,22 @@ Recorded plainly because the jury asks about limits.
   The scripts sat in a local commit on my own `main` and never reached GitHub. A second PR fixed it.
 - **A tie-audit artefact.** My first `tie_audit.py` run counted rule-added pairs as model predictions. It showed false
   shares of 0.64 to 0.87 that were not real. See S-X-11.
+
+## 6. My pull requests
+
+Read from the repository's PR list on 4 Oct. All were merged ("merged last week") except the capture. Titles are as listed; which file came in which PR is known only where the title says so.
+
+| PR | title | note |
+|---|---|---|
+| [PR #16] | feat(model): v0 stage-1 model + threshold decision (#8 #9) | opened by me, merged by Ameya |
+| [PR #17] | feat(model): ber.model train/predict/decide stages + ownership fix | opened by Ameya, carries my follow-up commit |
+| [PR #27] | feat(model): port v3 (stage 2, legal features, cluster support, all-candidate decision) into ber.model | opened by me |
+| [PR #30] | docs(package): reproduce scripts, README, requirements, methodology draft | opened by me |
+| [PR #39] | exp(model): LOCO gates (feature groups, edit-profile features), France-kit pattern discovery, e5-base vs e5-small comparison script | opened by me |
+| [PR #46] | exp(model): LLM cross-encoder (Qwen2.5-1.5B LoRA), running independently | opened by me; one comment |
+| [PR #61] | exp(sachi): synthetic French cross-encoder with correct labels (synth_fr.py + ce_synth.py) | opened by me |
+| [PR #67] | exp(sachi): synthetic-French generator/trainer and three France diagnostics (ties, copy counts, street swap) | opened by me; merged with no file changes (see section 5) |
+| [PR #68] | exp(sachi): France diagnostics cited in the documentation (three scripts) | opened by me; carried the three audit scripts |
+| [PR #82] | docs(kb): Sachi knowledge capture | opened by me; merged on 4 Oct about 12:42, before my later corrections |
+
+The list showed 10 closed PRs of mine and I could see 9 of them (the tenth is below the fold): unknown.
