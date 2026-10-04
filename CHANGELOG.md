@@ -34,6 +34,13 @@ Notable changes to the pipeline, the plan, the contracts and the team process. N
   - the commits were cherry-picked onto `main`, and `docs/status/bakshi.md` keeps its current version;
   - `bakshi/v7-france`'s one unmerged commit is byte-identical to #37's first commit;
   - also adds `knowledge/qa.md` (100 jury questions).
+- **#86** The timeline, the experiment ledger (329 entries), 15 component pages, and Ameya's journal and contributions.
+- **#87** `scripts/build_book.py`: compiles the knowledge base into a 439-page study-book PDF (`work/book/`, not committed).
+- **#88** Bakshi's knowledge capture (`knowledge/people/bakshi/`): 40 decisions, 50 experiments, a journal and contributions. Closes #80.
+- **This PR** Folds Bakshi's capture into the curated pages:
+  - conflicts CF-54 to CF-66;
+  - credit fixes: the 7B re-check idea came from Bakshi's watcher agent; the LOCO ladder was run by Ameya's agent, with round 3 by Bakshi's;
+  - `decisions/members.md` indexes the members' own decisions.
 
 
 ### Added

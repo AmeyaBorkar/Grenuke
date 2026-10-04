@@ -260,7 +260,7 @@ Bonus: "A control upload split a jump of +0.000366 into the decision layer, +0.0
 | number | derived in | credit |
 |---|---|---|
 | holdout, bootstrap, controls | [F09][f09] | Ameya (`ber.eval`), Sachi (gate discipline) |
-| self-training thresholds, rounds, France levels | [F10][f10] | Ameya (guards, rounds), Sachi (LOCO ladder) |
+| self-training thresholds, rounds, France levels | [F10][f10] | Ameya (guards, rounds; LOCO ladder rounds 1–2), Bakshi (LOCO round 3) |
 | break-even 0.5 to 0.8, expected-F0.5 set | [F11][f11] | Ameya (plan), Sachi (G6) |
 | 7B re-check, g1w, Composite B | [10][adv10] | Bakshi (q7st, g1w, `compose_tsv.py`); Ameya (decoy analysis, captain of every upload) |
 | Qwen2.5-1.5B cross-encoder | [08][adv08] | Sachi |

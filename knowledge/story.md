@@ -153,7 +153,7 @@ Where an agent for Ameya relayed, ported or verified a teammate's work, the cred
 **Bakshi.**
 - Normalisation (PR #20) and string features (PR #21), with a Codex agent. France diagnostics (PR #34): every proposed rule failed its evidence check and stayed off.
 - With Claude Code on 27 Sep: the strict output auditor, the hash-gated ZIP builder, the variant-driven `reproduce.sh`, the fix for the packaging bug that made earlier ZIPs unrunnable, the labelled gate for the cross-encoder mix, and measured negative results.
-- The final push (PR #62): rebuilt the pipeline on rented GPUs (holdout 0.991261 against our 0.991246 [M]), trained the Qwen2.5-7B q7st (band AUC 0.9436 [M]), built g1w (best US/India, 0.991323; India +66.1e-6, P 0.998 [M]), originated and validated the 7B re-check, built Composite B and B7.
+- The final push (PR #62): rebuilt the pipeline on rented GPUs (holdout 0.991261 against our 0.991246 [M]), trained the Qwen2.5-7B q7st (band AUC 0.9436 [M]), built g1w (best US/India, 0.991323; India +66.1e-6, P 0.998 [M]), proposed and validated the 7B re-check (the idea came from his Codex watcher at 17:32; his Claude agent built and checked the rule; CF-55), built Composite B and B7.
 - On 29 Sep: the runnable `compositeB.sh` driver (PR #72) and, through his agent, the 8-item ZIP check (issue #75). Composite B is half his: its US/India model, its 7B member and the rule that removed 840 French decoys.
 
 **Agents.**

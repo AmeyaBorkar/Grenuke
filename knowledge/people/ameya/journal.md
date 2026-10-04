@@ -274,3 +274,16 @@ No work is recorded between 29 Sep 04:09 and 3 Oct 22:40.
   - the curator deleted this timeline and journal by mistake while clearing stale files; both were restored byte-for-byte from the agent's saved parts.
 - **Next:** the experiment ledger and component pages; Bakshi's capture (#80); the deck on Mon 5 Oct.
 - **Sources:** PRs #84 and #85; this session.
+
+## 2026-10-04 21:30–23:30 · Study book, Bakshi's capture, curation
+
+- **Goal:** compile the knowledge base into a book; merge and fold in Bakshi's capture.
+- **What was done:**
+  - built `scripts/build_book.py` (#87): a 439-page PDF with KaTeX maths, answer boxes, a contents list with page numbers, running heads and bookmarks; checked visually;
+  - confirmed Sachi's files are intact on `main` (identical to her final PR #83);
+  - merged Bakshi's capture (#88);
+  - added conflicts CF-54 to CF-66 and fixed the 7B re-check and LOCO credit;
+  - indexed the members' decisions in `decisions/members.md`.
+- **Decisions:** the PDF stays out of git (11.5 MB, over the 5 MB limit); the ledgers stay out of the book.
+- **Next:** the deck on Mon 5 Oct, due Tue 6 Oct 14:00.
+- **Sources:** PRs #87 and #88, and the curation PR.

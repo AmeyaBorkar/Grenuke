@@ -125,3 +125,25 @@ None of these changes a number. They are listed so that nobody is surprised by t
 [d-cut]: ../docs/decisions/2026-09-26_0532_candidate-set-cut.md
 [d-rules3]: ../docs/decisions/2026-09-26_1557_rules-v3-and-stage3.md
 [d-stack]: ../docs/decisions/2026-09-27_0636_stacked-rules.md
+
+---
+
+## D. Added from Bakshi's capture (PR #88)
+
+Items from [`people/bakshi/open-questions.md`](people/bakshi/open-questions.md) that the earlier sources did not settle.
+
+| # | topic | source A says | source B says | most likely truth | what to say at the finale | status |
+|---|---|---|---|---|---|---|
+| CF-54 | Who uploaded Composite B and B7 | Records [sub04](../submissions/records/2026-09-27_sub04.md), [sub07](../submissions/records/2026-09-27_sub07.md): "Uploaded by (captain): ameya" | Bakshi's chat: "give me the tsx file for composite B i will upload it now" (20:49) and "we are uploading this as our final" for B7 (23:36) [chat:bakshi/b0c6934d 2026-09-27 20:49, 23:36]; his draft record names him for B7 | unknown; one team account | "Composite B and B7 were uploaded from the team account on the evening of 27 Sep"; don't name a person | open |
+| CF-55 | Credit for the 7B re-check idea | [story](story.md): Bakshi "originated and validated the 7B re-check" | [Bakshi's capture](people/bakshi/contributions.md): the idea came from his Codex watcher at 17:32 ("investigate high-confidence French mistakes outside the band"), relayed by Bakshi at 17:33; his Claude agent built and validated the rule (−6, out of band, labelled check) | Bakshi's work end to end: his monitoring agent found it, his build agent made and checked the rule | "Bakshi's side found it: his monitoring agent flagged confident French mistakes, and his team turned that into the re-check and validated it on labelled data" | resolved: story updated |
+| CF-56 | Credit for the LOCO self-training ladder | Theory pages F10, F12: "Sachi's LOCO ladder"; D-FRA-24, D-SUB-22: "Bakshi's LOCO ladder" | Rounds 1–2 by the agent for Ameya (EXP-063, 26 Sep); round 3 by Bakshi's agent running Ameya's `loco.py --self-train 3` (27 Sep 12:58–13:04: 0.96498 / 0.82307) [chat:bakshi/b0c6934d 2026-09-27 13:04]. Sachi's LOCO work is the feature-group gates (PR #39) | as source B | "The leave-one-country-out self-training test was run by Ameya's agent, with a third round by Bakshi; Sachi's leave-one-country-out work measured feature groups" | resolved: F10, F12 corrected |
+| CF-57 | Who proposed the two-sided Qwen gate (band AUC ≥ 0.93, correlation ≤ 0.975) | [D-CE-15](decisions/CE.md): Bakshi, in his PR #49 review | Bakshi's Claude chat: "Ameya gated Qwen properly" | unknown | don't attribute | open |
+| CF-58 | Authors of documents Bakshi pasted (26 Sep 15:26 → 27 Sep 22:13) | authors not named in his chats | the 27 Sep 10:01 recovery audit matches his own Codex session (PR #59) | partly known | — | open (Bakshi) |
+| CF-59 | Who merged PR #21 (string features v0) | [timeline](timeline.md) implies Ameya | GitHub: merged by Sachi (ssdhoka06), 26 Sep 10:12 IST | Sachi | — | resolved |
+| CF-60 | Rented-GPU spend | estimates: about $45–60 for the box split; H100s at about $6–9/h for about 3 h; a 4090 at about $1/h for about 10 h | no total recorded | unknown | "a small rented-GPU budget; the exact total was not recorded" | open (Bakshi: Vast total) |
+| CF-61 | When the leaderboard closed (extends CF-04) | Bakshi's chat: "uploads stay open till tomorrow 5am" (17:43), then "only till midnight … 1hour 15mins left" (22:32) | AGENTS.md 23:59; Ameya's status 21:00 | unknown; uploads were accepted at about 21:55 and 23:40 | — | open |
+| CF-62 | Labels used by v7sq4 | "old labels" | "Ameya's round-2 file" (both said by the agent on 27 Sep) | unknown | — | open (minor) |
+| CF-63 | g1w and g0 holdout values | g1w 0.991323, g0 0.991261 (stage-3 reports) | 0.991348 and 0.991280 (Ameya's per-entity validation file) | different stages (with or without post-rules) | quote the report values | open (minor) |
+| CF-64 | `CONFIDENT_SUBSTITUTIONS.md` still states the retracted "invariant French gap" | retracted in chat and on issue #45 (27 Sep 10:02) | the file was never updated (F-SUB-07) | the claim is retracted | don't use the invariance argument | to do (Bakshi's folder) |
+| CF-65 | Open-set breach in two of Bakshi's box scripts | `box/fr_drop_ladder.py` and `box/rescore_export.py` select France by name (CF-26) | acknowledged in his capture | true; `rescore_export.py` is part of the 7B re-check driver | "the analysis scripts named France; the method itself keys on unlabelled countries"; be ready for it | open |
+| CF-66 | Bakshi's Codex deck draft (4 Oct) | an 11-slide local draft built from a pasted handover | not built from `knowledge/numbers.md` | — | use the curated `finale/` deck; check any number against [numbers](numbers.md) | note |
