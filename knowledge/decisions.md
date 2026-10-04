@@ -1,6 +1,6 @@
 # Decisions: index
 
-All 247 decisions, by area. Each links to its full record (problem, options, reason, evidence, outcome, hindsight) in [`decisions/`](decisions/). Format: [`STANDARD.md`](STANDARD.md) §2.1.
+All 247 decisions, by area. Each links to its full record (problem, options, reason, evidence, outcome, hindsight) in [`decisions/`](decisions/). Decisions in the member captures (Bakshi's and Sachi's) are indexed in [`decisions/members.md`](decisions/members.md). Format: [`STANDARD.md`](STANDARD.md) §2.1.
 
 | area | decisions |
 |---|---|

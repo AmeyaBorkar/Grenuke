@@ -93,7 +93,7 @@ It can work for two reasons. The student sees the target domain's inputs, such a
 
 **Intuition.** If a student learns its teacher's mistakes as facts, and the next teacher is that student, mistakes grow. Random errors average out. Systematic errors, tied to a feature such as an unseen word, are learned as rules.
 
-**Worked example (measured).** Sachi's LOCO ladder repeated self-training rounds on the India stand-in, with pseudo-labels at p of at least 0.97 and at most 0.03 [M] ([09 section 4][adv09]):
+**Worked example (measured).** The LOCO self-training ladder (rounds 1–2 by the agent for Ameya, round 3 by Bakshi's agent; CF-56) repeated self-training rounds on the India stand-in, with pseudo-labels at p of at least 0.97 and at most 0.03 [M] ([09 section 4][adv09]):
 
 | India's words | no rounds | round 1 | round 2 | round 3 |
 |---|---|---|---|---|
