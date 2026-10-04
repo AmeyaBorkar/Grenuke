@@ -99,6 +99,17 @@ Fixed sections:
 
 **Question** → **say this** (at most three sentences, the way you would say it aloud) → **evidence** (numbers and links) → **likely follow-ups**.
 
+### 2.9 Foundations page (`knowledge/theory/foundations/`)
+
+These are theory pages written from scratch. They lead up to the advanced theory pages. Fixed sections:
+1. Summary and "What you need first"
+2. The concepts from zero, each with intuition, a definition and a worked example from our project
+3. How it shows up in our project
+4. How to read the numbers
+5. Common misconceptions
+6. Check yourself: exercises, with answers in `<details>`
+7. Where next
+
 ---
 
 ## 3. Sources and evidence
