@@ -10,8 +10,8 @@ This folder holds everything for the talk: logistics, the deck, the script and t
 | finale | **Wed 7 Oct 2026, 09:00–14:00 IST**, virtual (the organisers send the joining link and our slot separately) |
 | format | **10-minute presentation + 5-minute Q&A**; the talk is stopped at 10 minutes |
 | deck | built on the organisers' template [`MLC_Presentation_template.pptx`](MLC_Presentation_template.pptx), submitted through the organisers' survey |
-| deck deadline | the e-mail says **"Monday, 6 October 2026 – 2:00 PM IST"**, but **6 Oct 2026 is a Tuesday**. Until the organisers confirm, we treat **Mon 5 Oct 14:00 IST** as the deadline |
-| to do now | confirm participation, join the organisers' WhatsApp group, and ask there which date is meant |
+| deck deadline | **Tue 6 Oct 2026, 14:00 IST**. The e-mail says "Monday, 6 October"; 6 Oct 2026 is a Tuesday, and the date is what counts |
+| to do now | confirm participation, and join the organisers' WhatsApp group |
 
 ## How finalists were ranked (from the organisers' e-mail)
 
@@ -70,11 +70,12 @@ Times are IST. Owners are **proposed**; confirm them in the team call. The live 
 |---|---|---|
 | Sat 3 Oct night | repo rules and structure for the knowledge base; Ameya's chats and the repo mined into `knowledge/` | Ameya (agent) |
 | **Sun 4 Oct 12:00** | Bakshi and Sachi each mine their own chats and notes into `knowledge/people/<member>/` ([`CAPTURE.md`](../knowledge/CAPTURE.md)) and open a PR | Bakshi, Sachi |
-| Sun 4 Oct 15:00 | team call: agree the storyline, `deck-outline.md`, and who presents which part | all |
-| Sun 4 Oct night | deck v1 on the template; speaker notes; Q&A bank v1 | Ameya + agents; owners review their parts |
-| Mon 5 Oct 10:00 | rehearsal 1 (timed), fixes | all |
-| **Mon 5 Oct 14:00** | **submit the deck** (unless the organisers confirm Tuesday) | Ameya |
-| Mon 5 – Tue 6 Oct | theory self-tests in pairs; Q&A drills; rehearsals 2–3 | all |
+| Sun 4 Oct 15:00 | team call: capture status, Q&A leads, who reviews which pages | all |
+| Sun 4 Oct evening | knowledge base v2 (the captures merged); each member reviews the pages on their own work; Q&A bank v1 | Ameya + agents; all review |
+| Mon 5 Oct | the storyline and `deck-outline.md`; who presents which part; deck v1 on the template, with speaker notes | all; Ameya + agents build |
+| Tue 6 Oct morning | rehearsal 1 (timed), fixes | all |
+| **Tue 6 Oct 14:00** | **submit the deck** | Ameya |
+| Sun 4 – Tue 6 Oct | theory self-tests in pairs; Q&A drills; rehearsals 2 and 3 (Tuesday evening) | all |
 | Wed 7 Oct | the finale: test the call setup 30 minutes before our slot | all |
 
 ## Files

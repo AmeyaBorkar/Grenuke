@@ -23,7 +23,7 @@ If it conflicts with an explicit instruction from the human member you work for,
 ### Current phase: Grand Finale preparation (from 3 Oct 2026)
 
 - We are in the **Top 10 (2nd)**. The finale is **Wed 7 Oct 2026**: a 10-minute talk and 5 minutes of Q&A before senior Amazon scientists.
-- **Deck deadline:** "Monday, 6 October 2026, 2:00 PM IST" per the organisers. 6 Oct is a Tuesday, so we plan for **Mon 5 Oct 14:00 IST** until they confirm. Details are in `finale/README.md`.
+- **Deck deadline:** **Tue 6 Oct 2026, 14:00 IST**, through the organisers' survey. Details are in `finale/README.md`.
 - **The work now is knowledge capture, the theory, the deck and rehearsal, not new models.**
   - Every decision, step and detail of how we built the solution goes into **`knowledge/`**, following **`knowledge/STANDARD.md`**.
   - Each member captures their own chats and notes with **`knowledge/CAPTURE.md`**. See §10.
