@@ -25,7 +25,7 @@ This folder holds everything for the talk: logistics, the deck, the script and t
 | blocking | per-country multi-view retrieval; repairs (domain names, OCR digits, a learned Indic→Latin dictionary); a learned cut | "Why not city/state blocking keys?" ([Q&A](../knowledge/qa.md)) |
 | novelty | self-training for an unlabelled country; per-S1 expected-F0.5 set selection; a 7B re-check of confident predictions | "How do you know self-training did not reinforce its own mistakes?" |
 | compute | XGBoost on all pairs, cross-encoders only on the 1.49M uncertain pairs, the 7B only where a second opinion pays | "What would this cost on a billion records?" |
-| candidates | retrieval finds **58.4M pairs (about 34 per S1, 99.1% of true holdout pairs)**; the learned cut keeps **6,410,308 = 3.70 per S1, about 98.2–98.4% of true holdout pairs** (exact figure and source: `knowledge/numbers.md`) | "What recall do you lose at 2 candidates per S1?" |
+| candidates | retrieval finds **58.4M pairs (about 34 per S1, 99.1% of true holdout pairs)**; the learned cut keeps **6,410,308 = 3.70 per S1, 98.35% of true holdout pairs** (`knowledge/numbers.md`) | "What recall do you lose at 2 candidates per S1?" |
 
 ## What the organisers asked the talk to cover
 
@@ -54,7 +54,7 @@ This is a starting point. `deck-outline.md` replaces it once agreed.
 | 1 | Team (template title slide) | 0:15 | who we are |
 | 2 | The problem and what makes it hard | 1:00 | look-alike decoys, France never seen in training, F0.5 punishes false merges and singletons |
 | 3 | Strategy at a glance | 1:00 | spend compute where the uncertainty is; decide the way the metric scores |
-| 4 | Blocking | 1:30 | multi-view, per country, repairs, learned cut: 58.4M → 6.4M pairs, 3.70 per S1 (recall 99.1% before the cut, about 98.3% after) |
+| 4 | Blocking | 1:30 | multi-view, per country, repairs, learned cut: 58.4M → 6.4M pairs, 3.70 per S1 (recall 99.1% before the cut, 98.35% after) |
 | 5 | Matching model and features | 1:30 | XGBoost cascade, context features, cross-encoders on the uncertain band |
 | 6 | Edge cases | 1:30 | singletons (per-S1 set selection), France (guarded self-training), noise (repairs, transliteration) |
 | 7 | Results and evaluation | 1:00 | holdout design, paired bootstrap, the leaderboard step chart |
