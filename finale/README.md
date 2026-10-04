@@ -83,7 +83,7 @@ Times are IST. Owners are **proposed**; confirm them in the team call. The live 
 | file | what |
 |---|---|
 | [`MLC_Presentation_template.pptx`](MLC_Presentation_template.pptx) | the organisers' template (16:9; a title slide with photo slots, a light content slide, a dark framed slide) |
-| [`Grenuke_Finale_Deck.pptx`](Grenuke_Finale_Deck.pptx) | **the deck**: 23 slides on the template in five sections (Understanding, Building, Feedback, Results, Looking ahead), about 8–9 minutes; charts and diagrams in one colour system, simple animations; the spoken script is in the speaker notes |
+| [`Grenuke_Finale_Deck.pptx`](Grenuke_Finale_Deck.pptx) | **the deck**: 26 slides on the template in five sections, covering every topic in the organisers' guidelines (Understanding, Building, Feedback, Results, Looking ahead), about 8–9 minutes; charts and diagrams in one colour system, simple animations; the spoken script is in the speaker notes |
 | [`build_deck.py`](build_deck.py) | rebuilds the deck from the template (`python finale/build_deck.py`); every number comes from `knowledge/numbers.md` |
 | `deck-outline.md` | slide-by-slide content and the numbers behind each slide (to come) |
 | `script.md` | the spoken script with timings, and who says what (to come) |

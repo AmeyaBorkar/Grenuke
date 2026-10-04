@@ -333,14 +333,14 @@ def divider(s, num, title, line, script):
 
 
 def glance_slide(s):
-    frame(s, "The Data at a", "Glance", "24.2 million records, three sources, and one country we had never seen.",
+    frame(s, "The Data at a", "Glance", "24.2 million records in three sources, and one country we had never seen.",
           "Understanding", "Dive Deep")
     gf = grouped(s, 0.45, 1.4, 5.8, 3.4, ["Training set", "Test set"],
                  [("US", (1.324, 0.663), NAVY, ["1.32M", "0.66M"], WHITE),
                   ("India", (0.883, 0.810), DATA, ["0.88M", "0.81M"], NAVY),
                   ("France", (0, 0.259), ORANGE, [None, "0.26M"], WHITE)], 2.3, stacked=True, gap=55)
     cap = text(s, 0.55, 4.72, 5.6, 0.25, "entities (Source 1) by country", size=10.5, color=MUTED)
-    pts = points(s, ["Training has only the US and India",
+    pts = points(s, ["Source 1 is a clean reference; Sources 2 and 3 are noisy copies",
                      "The test adds France: 15%, with no labels",
                      "The US half of the test is half the size, so counts shift"])
     animate(s, [[(gf, "fade"), (cap, "fade")]] + pts)
@@ -351,7 +351,7 @@ def glance_slide(s):
 
 
 def matches_slide(s):
-    frame(s, "What a Match", "Looks Like", "Most entities have two to five copies, and some have none.",
+    frame(s, "What a Match", "Looks Like", "We framed it as picking the right set of copies for each entity, sometimes none.",
           "Understanding", "Learn and Be Curious")
     cats = ["0", "1", "2", "3", "4", "5", "6", "7+"]
     vals = (5.6, 5.4, 17, 24, 22, 14.6, 7.5, 4.0)
@@ -535,6 +535,61 @@ def decide_slide(s):
              "illustrative.")
 
 
+def features_slide(s):
+    frame(s, "Features for Noisy", "Records", "Each kind of noise we found got a feature built to see through it.",
+          "Building", "Invent and Simplify")
+    h1 = text(s, 0.55, 1.42, 3.6, 0.3, "NOISE WE SAW", size=10, color=ORANGE, bold=True)
+    h2 = text(s, 4.65, 1.42, 4.8, 0.3, "WHAT WE BUILT", size=10, color=ORANGE, bold=True)
+    rows = [("Typos, abbreviations, word order", "fuzzy name scores and word overlap"),
+            ("Inc vs Incorporated, legal forms", "a legal-form agreement check"),
+            ("A moved house number", "number match and small-nudge features"),
+            ("A swapped business word", "look-alike word odds, learned from data"),
+            ("Names shared by many entities", "rival and rank features"),
+            ("Empty or landmark addresses", "name-only signals and empty flags")]
+    built = [[(h1, "fade"), (h2, "fade")]]
+    for i, (noise, feat) in enumerate(rows):
+        y = 1.78 + i * 0.52
+        chip = box(s, 0.55, y, 3.6, 0.42, DATA, radius=0.21, label=noise, size=12, bold=False)
+        arr = chevron(s, 4.27, y + 0.13, size=0.16)
+        ft = text(s, 4.65, y, 4.8, 0.42, feat, size=13, bold=True, anchor=MSO_ANCHOR.MIDDLE)
+        built.append([(chip, "wipe"), (arr, "fade"), (ft, "fade")])
+    animate(s, built)
+    notes(s, "features")
+
+
+def edge_slide(s):
+    frame(s, "Handling Edge", "Cases", "Singletons, noisy names and addresses, and a country we had never seen.",
+          "Building", "Customer Obsession")
+    cards = [("Singletons", WARM, NAVY, "5.6%", "of entities have no match. The decision may return an empty set."),
+             ("Noisy names and addresses", WARM, NAVY, "Repair",
+              "spellings before search; fuzzy features; name-only search if the address is empty."),
+             ("An unseen country", NAVY, WHITE, "France",
+              "no labels: learned word odds, guarded self-training, diverse models. Next section.")]
+    built = []
+    for i, (h, fill, col, big, body) in enumerate(cards):
+        x = 0.55 + i * 3.025
+        bx = box(s, x, 1.5, 2.85, 3.25, fill)
+        hh = text(s, x + 0.25, 1.7, 2.4, 0.5, h, size=15, color=col, bold=True)
+        bg = text(s, x + 0.25, 2.3, 2.4, 0.6, big, size=26, color=ORANGE, bold=True)
+        bb = text(s, x + 0.25, 3.0, 2.4, 1.6, body, size=13, color=col if fill == WARM else DATA)
+        built.append([(bx, "fade"), (hh, "fade"), (bg, "fade"), (bb, "fade")])
+    animate(s, built)
+    notes(s, "edge")
+
+
+def measured_slide(s):
+    frame(s, "How We", "Measured", "One fixed holdout, careful statistics, and precision first.", "Results",
+          "Insist on the Highest Standards")
+    gf = bars(s, 0.45, 1.4, 5.8, 3.1, ["Precision", "Recall"], (99.9, 97.5), (ORANGE, DATA), 95, 100.4,
+              ["99.9%", "97.5%"], size=13, gap=90)
+    cap = text(s, 0.55, 4.55, 5.6, 0.3, "local holdout: US and India, 549,699 entities  ·  scale starts at 95%", size=10.5, color=MUTED)
+    pts = points(s, ["A fixed quarter of entities held out for every decision",
+                     "Every change tested with a paired bootstrap",
+                     "Add a match only if it is about 75% likely"])
+    animate(s, [[(gf, "wipe"), (cap, "fade")]] + pts)
+    notes(s, "measured")
+
+
 def performance_slide(s):
     frame(s, "Built for", "Performance", "Every step only touches what it must, on laptop-sized hardware.", "Building",
           "Frugality")
@@ -555,11 +610,11 @@ def performance_slide(s):
 
 def leaderboard_slide(s):
     frame(s, "The Leaderboard", "Talked Back", "Our first scores showed a gap our validation could not see.", "Feedback",
-          "Insist on the Highest Standards")
-    t1 = text(s, 0.55, 1.45, 4.2, 0.3, "Our first scores", size=12.5, color=MUTED, bold=True)
+          "Dive Deep")
+    t1 = text(s, 0.55, 1.45, 4.2, 0.3, "Our first scores (zoomed scale)", size=12.5, color=MUTED, bold=True)
     c1 = bars(s, 0.45, 1.7, 4.3, 2.55, ["Our validation", "Leaderboard"], (0.9888, 0.9796), (DATA, ORANGE),
               0.965, 0.993, ["0.9888", "0.9796"], size=12)
-    t2 = text(s, 5.15, 1.45, 4.3, 0.3, "By country (estimated)", size=12.5, color=MUTED, bold=True)
+    t2 = text(s, 5.15, 1.45, 4.3, 0.3, "By country (estimated, zoomed)", size=12.5, color=MUTED, bold=True)
     c2 = bars(s, 5.05, 1.7, 4.4, 2.55, ["US", "India", "France"], (0.99, 0.99, 0.93), (NAVY, NAVY, PEACH),
               0.88, 1.005, ["≈ 0.99", "≈ 0.99", "≈ 0.93"], size=12)
     line = text(s, 0.55, 4.42, 8.9, 0.35, [[("We ruled out bugs, split the gap by country, then ", {}),
@@ -584,7 +639,7 @@ def france_slide(s):
                       (text(s, 1.2, y - 0.02, 4.4, 0.85, [[(h, {"bold": True, "size": 16})], b], size=13), "fade")])
     honest = text(s, 0.55, 4.45, 5.3, 0.3, [[("Honestly: ", {"bold": True}), ("self-training failed twice before it worked.", {})]],
                   size=12.5, color=MUTED)
-    t = text(s, 6.15, 1.45, 3.3, 0.3, "France (estimated)", size=12.5, color=MUTED, bold=True)
+    t = text(s, 6.15, 1.45, 3.3, 0.3, "France (estimated, zoomed)", size=12.5, color=MUTED, bold=True)
     c = bars(s, 6.05, 1.7, 3.4, 2.65, ["Before", "After"], (0.93, 0.98), (PEACH, ORANGE), 0.88, 1.0,
              ["≈ 0.93", "≈ 0.98"], size=12, gap=60)
     cap = text(s, 6.15, 4.42, 3.3, 0.35, "never measured directly", size=10.5, color=MUTED, align=PP_ALIGN.CENTER)
@@ -666,24 +721,22 @@ def climb_slide(s):
 
 
 def lessons_slide(s):
-    frame(s, "What We", "Learned", "Three lessons we will carry forward.", "Results", "Are Right, A Lot")
-    cards = [("Data first", "Every good decision traced back to reading the data."),
-             ("Doubt estimates", "Ours shared our model's blind spots; the leaderboard corrected us."),
-             ("Diversity wins", "Different models together beat one strong model, most of all in the unknown.")]
+    frame(s, "What We", "Learned", "What worked, what didn't, and what we would do differently.", "Results",
+          "Are Right, A Lot")
+    cards = [("What worked", NAVY, WHITE, ["Reading the data first", "Mixing different models", "Deciding per entity"]),
+             ("What didn't", WARM, NAVY, ["Our France estimates shared our model's blind spots",
+                                          "No recall rule passed the 75% bar"]),
+             ("Do differently", WARM, NAVY, ["Label a few hundred French pairs early", "Spend one upload measuring France"])]
     built = []
-    for i, (h, b) in enumerate(cards):
+    for i, (h, fill, col, lines) in enumerate(cards):
         x = 0.55 + i * 3.025
-        fill = NAVY if i == 0 else WARM
         bx = box(s, x, 1.55, 2.85, 3.15, fill)
-        n = text(s, x + 0.25, 1.75, 2.4, 0.6, f"0{i + 1}", size=26, color=ORANGE, bold=True)
-        hh = text(s, x + 0.25, 2.45, 2.4, 0.5, h, size=18, color=WHITE if i == 0 else NAVY, bold=True)
-        bb = text(s, x + 0.25, 3.0, 2.4, 1.5, b, size=13, color=DATA if i == 0 else NAVY)
-        built.append([(bx, "fade"), (n, "fade"), (hh, "fade"), (bb, "fade")])
+        hh = text(s, x + 0.25, 1.75, 2.4, 0.5, h, size=18, color=ORANGE, bold=True)
+        bb = text(s, x + 0.25, 2.4, 2.4, 2.2, [[("●  ", {"color": ORANGE, "size": 9}), (t, {})] for t in lines], size=13,
+                  color=col, spacing=10)
+        built.append([(bx, "fade"), (hh, "fade"), (bb, "fade")])
     animate(s, built)
-    notes(s, "(30 seconds) Three lessons. Data first: every good decision we made traced back to reading the data. "
-             "Doubt your own estimates: ours were built on our own model, so they shared its blind spots, and the "
-             "leaderboard corrected us. And diversity wins: different models together beat one strong model, most of "
-             "all in a country you have never seen.")
+    notes(s, "lessons")
 
 
 def scale_slide(s):
@@ -774,91 +827,54 @@ DIVIDERS = [("01", "Understanding the problem", "What the data told us, and the 
 
 # Final spoken script (about 8-8.5 minutes); None keeps the slide's own note (the dividers).
 SCRIPT = [
-    "(15 s) Hi, we are team Grenuke: Ameya, Aarush and Sachi. Three students, about 72 hours, one laptop and a few "
-    "rented GPUs. This is how we turned 24 million records into a solution that finished second among more than "
-    "32,000 teams.",
+    '(12 s) Hi, we are team Grenuke: Ameya, Aarush and Sachi. Three students, 72 hours, one laptop and a few rented GPUs. This is how 24 million records became a solution ranked second among more than 32,000 teams.',
     None,
-    "(25 s) We began where every ML project should: with the data. 24.2 million records from three sources. Training "
-    "covers only the US and India. The test adds France, 15 percent, with no labels at all. And the US part of the "
-    "test is half the size, which quietly shifts any count-based feature.",
-    "(25 s) An entity has about three and a half copies on average, and up to eleven. But 5.6 percent have none, and "
-    "for them an empty answer is right and scores full marks. Across 7.6 million true pairs, no record belongs to two "
-    "entities, so we gave every record one owner.",
-    "(25 s) True copies are noisy: 16 percent have a weak name, mostly transliterated Indian names, and 5 percent a "
-    "weak or empty address. But both weak at once is under a tenth of a percent, so name and address rescue each "
-    "other. House numbers agree 83 percent of the time, and there are almost no postcodes.",
-    "(25 s) Then we found the decoys. The test has 23 percent more records per entity but the same true matches, so "
-    "the extras are look-alikes. They leave fingerprints: a true copy keeps the house number 85 percent of the time, a "
-    "look-alike only 12, and look-alikes add a business word three times as often.",
-    "(25 s) So we set two rules. Decide like the metric: one wrong merge costs as much as four missed copies, and it "
-    "hurts a real customer, so precision comes first. And spend compute where the model is unsure: a cheap model reads "
-    "every pair, and only 2.6 percent reach our expensive models.",
+    '(25 s) We began where every ML project should: with the data. 24.2 million records in three sources: Source 1 is a clean reference, and Sources 2 and 3 are noisy vendor copies. Training covers the US and India; the test adds France, 15 percent, with no labels. And the US test pool is half the size, which shifts count features.',
+    '(22 s) We framed the task as: for each reference business, pick the right set of copies, possibly none. An entity has about three and a half copies, up to eleven. 5.6 percent have none, where an empty answer is right. And no record ever belongs to two entities, so every record gets one owner.',
+    '(20 s) True copies are noisy: 16 percent have a weak name and 5 percent a weak address, but both at once is under a tenth of a percent, so name and address rescue each other. House numbers agree 83 percent of the time, and there are almost no postcodes.',
+    '(20 s) Then we found the decoys. The test has 23 percent more records but the same true matches, so the extras are look-alikes. A true copy keeps the house number 85 percent of the time, a look-alike only 12, and look-alikes add a business word three times as often.',
+    '(20 s) So we set two rules. Decide like the metric: one wrong merge costs as much as four missed copies, so precision comes first. And spend compute where the model is unsure: a cheap model reads every pair, and only 2.6 percent reach our expensive models.',
     None,
-    "(30 s) Comparing everything would mean 17 trillion pairs. So we search each country separately, by name and "
-    "address words, with a name-only search when the address is empty, after repairing spellings. That keeps 99.1 "
-    "percent of true matches, and a learned cut leaves 3.7 candidates per entity while keeping 98.4. We avoided hard "
-    "city keys because many true copies have no usable address.",
-    "(30 s) Our architecture has seven steps. Blue is data, navy our models, orange our decisions. We clean records and "
-    "retrieve candidates. XGBoost scores every pair on name, address, number and rival features. Transformers, e5, bge "
-    "and Qwen, re-read the unsure pairs. A second XGBoost turns their votes into a calibrated probability. We decide "
-    "per entity, and finally rules and a 7B model check for decoys.",
-    "(25 s) Here is one decision. Each candidate gets a probability. We keep adding matches while the expected F0.5 "
-    "goes up: the two real copies stay; the look-alike name and the bakery at the same address go. And each record has "
-    "one owner, so two entities can never share it.",
-    "(25 s) We kept performance in mind throughout. Each stage shrinks the next: 34 candidates per entity, under 5 "
-    "after a cheap filter, 3.7 into the main models. The core pipeline ran on one 12 gigabyte GPU with 31 gigabytes of "
-    "memory, blocking in about 13 minutes. Only the transformers needed rented GPUs, and they read under 3 percent of "
-    "pairs.",
+    '(25 s) Comparing everything would mean 17 trillion pairs. So we search each country separately, by name and address words, with a name-only search when the address is empty, after repairing spellings. That keeps 99.1 percent of true matches, and a learned cut leaves 3.7 candidates per entity while keeping 98.4. Hard city keys would lose copies with empty addresses.',
+    '(25 s) Our architecture has seven steps: blue is data, navy our models, orange our decisions. We clean and retrieve. XGBoost scores every pair. Transformers, e5, bge and Qwen, re-read only the unsure pairs. A second XGBoost turns their votes into a calibrated probability. We decide per entity, and rules plus a 7B model catch the last decoys.',
+    '(22 s) Our features came straight from the noise we saw. Typos get fuzzy name scores. Inc versus Incorporated gets a legal-form check. A moved house number gets number features. A swapped business word gets look-alike word odds learned from the data. Shared names get rival features, and empty addresses get their own signals.',
+    '(20 s) Here is one decision. Each candidate gets a probability. We keep adding matches while the expected F0.5 rises: the two real copies stay; the similar name and the bakery at the same address go. And each record has one owner.',
+    '(20 s) Three edge cases. Singletons: 5.6 percent have no match, so the decision can return an empty set. Noisy names and addresses: repairs before search, fuzzy features, and a name-only search when the address is empty. And an unseen country, France, which is the next part of our story.',
+    '(20 s) We kept performance in mind throughout. Each stage shrinks the next: 34 candidates per entity, under 5 after a cheap filter, 3.7 into the main models. The core pipeline ran on one 12 gigabyte GPU, with blocking in about 13 minutes. Only the transformers needed rented GPUs.',
     None,
-    "(25 s) Our first scores were humbling: 0.989 on our validation, 0.980 on the leaderboard. We treated the gap like "
-    "a bug report. Splitting it by country showed the US and India were fine; the whole gap was France, at about 0.93. "
-    "Reading the French errors by hand showed us the decoys we were accepting.",
-    "(30 s) France had no labels, so we let the data teach us. We learned which French words mark a look-alike, without "
-    "labels. The model learned from its own confident answers, cross-checked so no pair grades itself; honestly, that "
-    "failed twice before it worked. And different models vote, with a 7B re-check. France rose from about 0.93 to "
-    "0.98, an estimate, since it was never measured directly.",
+    '(20 s) Our first scores were humbling: 0.989 on our validation, 0.980 on the leaderboard. We treated the gap like a bug report. By country, the US and India were fine; the gap was France, at about 0.93. Reading the French errors by hand showed us the decoys.',
+    '(25 s) France had no labels, so we let the data teach us. We learned which French words mark a look-alike, without labels. The model learned from its own confident answers, cross-checked so no pair grades itself; honestly, that failed twice before it worked. And different models vote, with a 7B re-check. France rose from about 0.93 to 0.98, an estimate.',
     None,
-    "(25 s) As three people, we tried everything: 329 experiments, 177 kept, 126 dropped, each upload testing one "
-    "change. Ameya led the data, blocking and France; Aarush the 7B model and the final submission; Sachi our testing "
-    "gates, a Qwen model and synthetic French. Our rule: when two ideas tie, keep the simpler one.",
-    "(20 s) This is our climb, from 0.976 to 0.991, one understood change per upload. Behind it are long nights, a "
-    "laptop that froze at 3:35 in the morning, and a GPU lost mid-run. We finished at 0.990879, second of the top ten "
-    "among more than 32,000 teams.",
-    "(15 s) Three lessons. Data first: every good decision traced back to it. Doubt your estimates: ours shared our "
-    "model's blind spots. Diversity wins: different models together beat one strong model, especially in the unknown.",
+    '(20 s) As three people, we tried everything: 329 experiments, 177 kept, 126 dropped, each upload testing one change. Ameya led data, blocking and France; Aarush the 7B model and the final submission; Sachi our testing gates, a Qwen model and synthetic French. When two ideas tied, we kept the simpler one.',
+    '(18 s) This is our climb, from 0.976 to 0.991, one understood change per upload. Behind it: long nights, a laptop that froze at 3:35 in the morning, a GPU lost mid-run. We finished at 0.990879, second of the top ten among more than 32,000 teams.',
+    '(22 s) How did we measure? A fixed quarter of the entities, about 550 thousand, was held out, and every change was judged on it with a paired bootstrap. Under F0.5 we chose precision: 99.9 percent precision against 97.5 percent recall, adding a match only when it was about 75 percent likely.',
+    "(22 s) What worked: reading the data first, mixing different models, and deciding per entity. What didn't: our France estimates shared our model's blind spots, and no recall rule passed the 75 percent bar. What we would do differently: label a few hundred French pairs early, and spend one upload measuring France directly.",
     None,
-    "(30 s) At billions of records, we would shard by country and region, so new records only search their own shard. "
-    "We would distil the transformers into one small, quantised model and cache scores. At sign-up, XGBoost and a "
-    "small model can check for duplicates instantly on a CPU, with the 7B in the cloud for batch checks. Cost follows "
-    "candidates per entity, so we keep it at 3.7.",
-    "(25 s) Next, we would add a few hundred labels per new country, use city and state as soft keys, match empty "
-    "addresses better, and send unsure pairs to people for review. And this applies widely: business sign-ups, seller "
-    "and supplier records, fake accounts, and launching new marketplaces, which is exactly our France problem.",
-    "(10 s) Thank you for listening. Read the data, decide like the metric, and spend compute where it matters. We are "
-    "happy to take your questions.",
+    '(22 s) At billions of records, we would shard by country and region, so new records search only their own shard; distil the transformers into one small, quantised model; and at sign-up, run XGBoost and a small model on a CPU, with the 7B in the cloud. Cost follows candidates per entity, so we keep it at 3.7.',
+    '(18 s) Next, we would add a few hundred labels per new country, use city and state as soft keys, improve empty-address matching, and send unsure pairs to human review. And this applies to sign-ups, seller and supplier records, fake accounts, and new marketplaces.',
+    '(8 s) Thank you. Read the data, decide like the metric, and spend compute where it matters. We are happy to take your questions.',
 ]
 
 
 def main() -> int:
     work = OUT.with_suffix(".tmp.pptx")
     shutil.copy(TEMPLATE, work)
-    for src, n in (("slide2.xml", 15), ("slide3.xml", 5)):     # 16 white content slides, 6 dark slides
+    for src, n in (("slide2.xml", 18), ("slide3.xml", 5)):     # 19 white content slides, 6 dark slides
         for _ in range(n):
             subprocess.run([sys.executable, str(ADD_SLIDE), str(work), src, "--after", src], check=True, capture_output=True)
     prs = Presentation(work)
     lst = prs.slides._sldIdLst
-    ids = list(lst)                                           # 0 title, 1-16 white, 17-22 dark
-    W, D = ids[1:17], ids[17:23]
-    order = [ids[0], D[0], W[0], W[1], W[2], W[3], W[4], D[1], W[5], W[6], W[7], W[8], D[2], W[9], W[10], D[3],
-             W[11], W[12], W[13], D[4], W[14], W[15], D[5]]
+    ids = list(lst)                                           # 0 title, 1-19 white, 20-25 dark
+    W, D = ids[1:20], ids[20:26]
+    order = [ids[0], D[0], *W[0:5], D[1], *W[5:11], D[2], W[11], W[12], D[3], *W[13:17], D[4], W[17], W[18], D[5]]
     for el in ids:
         lst.remove(el)
     for el in order:
         lst.append(el)
     plan = [title_slide, DIVIDERS[0], glance_slide, matches_slide, copies_slide, decoys_slide, principles_slide,
-            DIVIDERS[1], blocking_slide, architecture_slide, decide_slide, performance_slide, DIVIDERS[2],
-            leaderboard_slide, france_slide, DIVIDERS[3], team_slide, climb_slide, lessons_slide, DIVIDERS[4],
-            scale_slide, next_slide, closing_slide]
+            DIVIDERS[1], blocking_slide, architecture_slide, features_slide, decide_slide, edge_slide,
+            performance_slide, DIVIDERS[2], leaderboard_slide, france_slide, DIVIDERS[3], team_slide, climb_slide,
+            measured_slide, lessons_slide, DIVIDERS[4], scale_slide, next_slide, closing_slide]
     sl = list(prs.slides)
     assert len(sl) == len(plan), (len(sl), len(plan))
     for slide, step in zip(sl, plan):
