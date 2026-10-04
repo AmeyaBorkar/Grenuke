@@ -21,7 +21,7 @@ This folder holds everything for the talk: logistics, the deck, the script and t
 
 | criterion | our evidence | the question to expect |
 |---|---|---|
-| leaderboard | public LB **0.990879** (Composite B). Private LB: we have not seen our score | "Why is your local score (0.9913) higher than the leaderboard?" (France has no labels, so it cannot be in the holdout) |
+| leaderboard | public LB **0.990879** (Composite B). Private LB: the organisers publish only rankings, not scores; we are 2nd of the Top 10 | "Why is your local score (0.9913) higher than the leaderboard?" (France has no labels, so it cannot be in the holdout) |
 | blocking | per-country multi-view retrieval; repairs (domain names, OCR digits, a learned Indic→Latin dictionary); a learned cut | "Why not city/state blocking keys?" ([Q&A](../knowledge/qa.md)) |
 | novelty | self-training for an unlabelled country; per-S1 expected-F0.5 set selection; a 7B re-check of confident predictions | "How do you know self-training did not reinforce its own mistakes?" |
 | compute | XGBoost on all pairs, cross-encoders only on the 1.49M uncertain pairs, the 7B only where a second opinion pays | "What would this cost on a billion records?" |
