@@ -84,6 +84,15 @@ Sizes are characters in the digests [M].
 
 **PR and issue numbers #78–#81.** They were opened after the export, so no extract read them as GitHub records. #78 is the PR that added `knowledge/` and `finale/`; #80 and #81 are the capture requests to Bakshi and Sachi. The finale-plan issue also came after the export, and its number was not checked [U]. Their content is known from the files #78 added and from the 3 Oct part of the main session (T6).
 
+## 3a. Bakshi's branch documents (merged on 4 Oct)
+
+Five of Bakshi's PRs (#37, #42, #49, #59, #60) were still open when the knowledge base was mined; extract R3 read them from the branches. They are now on `main`, with his authorship kept:
+- handovers: `docs/handover/2026-09-26_1613_bakshi_v5-tsv-audit.md`, `…_1637_bakshi_v7-france-probe.md`, `…_1903_bakshi_score-improvement-ideas.md`, `…_2339_bakshi_final-plan-review.md`, `docs/handover/2026-09-27_0952_bakshi_recovery-audit.md`, `…_1010_bakshi_score-0990545.md`, `…_1022_bakshi_nstdpc-control.md`;
+- documents: `experiments/bakshi/PROGRESS_CAPSULE.md`, `experiments/bakshi/FINAL_DAY_REVIEW.md`, `plans/bakshi/RECOVERY_0991.md`, `plans/bakshi/AFTER_0990545.md`;
+- code: `experiments/bakshi/v7/` (TSV audit, France probe, robust-drop probe, with tests: 17 pass).
+
+His status snapshots from those branches were superseded by his current `docs/status/bakshi.md` and were not merged. The commits keep them.
+
 ## 4. The twelve extracts
 
 Sizes are bytes of each extract file [M].

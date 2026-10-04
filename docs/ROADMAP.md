@@ -7,7 +7,7 @@
   - **A** = Ameya (coordinator, captain, blocking, pipeline; the integration machine);
   - **S** = Sachi (model, decision, gates);
   - **B** = Bakshi, @trustdemons05 (normalization, string features).
-- **Last updated:** Sat 3 Oct 23:45.
+- **Last updated:** Sun 4 Oct, evening.
   - The competition is over: the leaderboard closed on 27 Sep and the ZIP went in on 29 Sep.
   - We are in the Top 10 (2nd). **Phase 6 (the Grand Finale) is the current work.** Phases 0–5 are kept as the record.
 - **Competition window (past):**
@@ -23,14 +23,14 @@
 | # | task | owner | due (IST) | status |
 |---|---|---|---|---|
 | 6.1 | Confirm participation; join the organisers' WhatsApp group | A | Sun 4 Oct, morning | todo |
-| 6.2 | Rules and structure for knowledge capture: `knowledge/` (standard, capture kit, templates), `finale/`, digest script, hooks and CI | A (agent) | Sat 3 Oct | doing |
-| 6.3 | Ameya's capture: three Claude Code sessions, 26 sub-agent logs, and the repo's records (handovers, decisions, plans, research, PRs, issues, code) | A (agents) | Sun 4 Oct, 06:00 | doing |
+| 6.2 | Rules and structure for knowledge capture: `knowledge/` (standard, capture kit, templates), `finale/`, digest script, hooks and CI | A (agent) | Sat 3 Oct | done (#78) |
+| 6.3 | Ameya's capture: three Claude Code sessions, 26 sub-agent logs, and the repo's records (handovers, decisions, plans, research, PRs, issues, code) | A (agents) | Sun 4 Oct, 06:00 | done (#84) |
 | 6.4 | Bakshi's capture into `knowledge/people/bakshi/` (`knowledge/CAPTURE.md`) | B | **Sun 4 Oct, 12:00** | todo |
-| 6.5 | Sachi's capture into `knowledge/people/sachi/` | S | **Sun 4 Oct, 12:00** | todo |
-| 6.6 | Curated knowledge base v1: story, timeline, decisions, experiments, numbers, components, failures, lessons, conflicts | A (agents) | Sun 4 Oct, 10:00 | doing |
+| 6.5 | Sachi's capture into `knowledge/people/sachi/` | S | **Sun 4 Oct, 12:00** | done (#82) |
+| 6.6 | Curated knowledge base v1: story, timeline, decisions, experiments, numbers, components, failures, lessons, conflicts | A (agents) | Sun 4 Oct, 10:00 | done (#84); timeline, experiment ledger and component pages to come |
 | 6.7 | Curated knowledge base v2: merge Bakshi's and Sachi's captures; each member reviews the pages about their work | A; B and S review | Sun 4 Oct, 20:00 | todo |
-| 6.8 | Theory study guide: 11 pages and a glossary, each page with jury questions and a self-test | A (agents); all study | Sun 4 Oct | doing |
-| 6.9 | Q&A bank v1: at least 60 likely questions, each with a short spoken answer and the evidence | A (agents); owners check | Sun 4 Oct, 20:00 | todo |
+| 6.8 | Theory study guide: 11 pages and a glossary, each page with jury questions and a self-test | A (agents); all study | Sun 4 Oct | done (#84): 11 advanced + 18 foundations pages |
+| 6.9 | Q&A bank v1: at least 60 likely questions, each with a short spoken answer and the evidence | A (agents); owners check | Sun 4 Oct, 20:00 | done: `knowledge/qa.md`, 100 questions |
 | 6.10 | Team call: capture status, Q&A leads, who reviews which pages | all | Sun 4 Oct, 15:00 | todo |
 | 6.11 | The storyline and `finale/deck-outline.md`; who presents what; deck v1 on the organisers' template, with speaker notes | all; A (agents) builds | Mon 5 Oct | todo |
 | 6.12 | Rehearsal 1 (timed to 10:00), then fixes | all | Tue 6 Oct, morning | todo |
