@@ -1,5 +1,21 @@
 # Status: bakshi
 
+- **Last updated (IST):** 2026-10-04 23:30
+- **Current focus:** Grand Finale preparation. Knowledge capture for issue #80 is written in
+  `knowledge/people/bakshi/` (branch `bakshi/kb-capture`): 40 decisions, 50 experiments, numbers, journal,
+  contributions and open questions, mined from every Codex and Claude Code session on this machine.
+- **Branch(es):** `bakshi/kb-capture`.
+- **ETA:** Capture done; open questions in `knowledge/people/bakshi/open-questions.md` need Bakshi's answers.
+- **Blocked on / need:** Bakshi to confirm who clicked upload for Composite B and B7, the order of the two
+  morning uploads on 27 Sep, and the credit wording for the 7B re-check and the LOCO ladder.
+- **Latest handover:** none (knowledge work; see the 4 Oct entry in `knowledge/people/bakshi/journal.md`).
+- **Next up:** review the KB pages about Bakshi's work (`knowledge/components/llm-recheck.md` and others);
+  prepare the Q&A for his topics (Qwen2.5-7B, the 7B re-check, Composite B, reproducibility).
+
+---
+
+Previous status (27 Sep 20:10), kept for the record:
+
 - **Last updated (IST):** 2026-09-27 20:10
 - **Current focus:** Final push done. The team's single upload `mixf2` (#64, predicted ~0.99091) uses Bakshi's g1w
   India (7B cross-encoder ×2 in stage 2) and Bakshi's 7B drop rule in all countries. Bakshi confirmed it on #64.
