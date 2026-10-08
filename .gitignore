@@ -51,3 +51,19 @@ venv/
 .DS_Store
 __MACOSX/
 Thumbs.db
+
+# Private by policy (public repository since Oct 2026): personal notes stay on each member's machine.
+docs/handover/*.md
+!docs/handover/README.md
+!docs/handover/TEMPLATE.md
+docs/status/*.md
+!docs/status/TEMPLATE.md
+submissions/records/*.md
+!submissions/records/TEMPLATE.md
+knowledge/people/*/
+finale/
+student_resource/*
+!student_resource/.gitkeep
+
+# Python build outputs
+build/

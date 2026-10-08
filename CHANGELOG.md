@@ -12,7 +12,31 @@ Notable changes to the pipeline, the plan, the contracts and the team process. N
   - a minor bump for each submitted improvement;
   - the tag `final` for the packaged final submission.
 
-## [Unreleased]
+## [1.0.0] - 2026-10-08: public release
+
+**Result:** Team Grenuke won **3rd place at the Grand Finale** of the Amazon ML Challenge 2026 (7 Oct). The final submission, Composite B, scored 0.990879 on the public leaderboard.
+
+### Added
+- `LICENSE` (Apache-2.0), `NOTICE` (copyright, third-party models, data not included), `SECURITY.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `CITATION.cff`.
+- GitHub issue templates (bug report, question).
+- `CONTRIBUTING.md` §0: how to contribute to the public archive.
+- `docs/ROADMAP.md` Phase 7 (public release).
+
+### Changed
+- `README.md` rewritten for a public audience: the task, the pipeline, results with their evaluation scopes, reproduction, citation.
+- `AGENTS.md`, `CONTRIBUTING.md`, `docs/TEAM.md` and `docs/ROADMAP.md` describe the public-archive phase. Personal notes are private by policy.
+- The CI privacy check now covers every file, not only `knowledge/` and `finale/`.
+- The package metadata (`pyproject.toml`) is at version 1.0.0, with authors, license and URLs.
+
+### Removed (kept in a private archive)
+- `finale/`: the deck, its builder, the organisers' PowerPoint template and the logistics.
+- `student_resource/`: the organisers' problem statement, documentation template and validator. Participants get these with the dataset.
+- Members' captures (`knowledge/people/<member>/`), status files, handovers and upload records. Their READMEs and templates remain, and the folders are now git-ignored.
+
+### Security
+- Personal paths, rented-server hosts and SSH ports are redacted in the remaining files. They became `$REPO`, `$SCRATCH`, `$HOME`, `<gpu-host>` and `<port>`.
+
+## [Unreleased before 1.0.0]
 
 ### Finale phase (3–4 Oct 2026)
 - **#78** Rules and structure for knowledge capture.

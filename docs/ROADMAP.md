@@ -7,16 +7,28 @@
   - **A** = Ameya (coordinator, captain, blocking, pipeline; the integration machine);
   - **S** = Sachi (model, decision, gates);
   - **B** = Bakshi, @trustdemons05 (normalization, string features).
-- **Last updated:** Sun 4 Oct, evening.
+- **Last updated:** Thu 8 Oct 2026. **The project is complete.**
   - The competition is over: the leaderboard closed on 27 Sep and the ZIP went in on 29 Sep.
-  - We are in the Top 10 (2nd). **Phase 6 (the Grand Finale) is the current work.** Phases 0–5 are kept as the record.
+  - Team Grenuke reached the Top 10 (2nd on the finalists' list) and **won 3rd place at the Grand Finale on 7 Oct**.
+  - Phase 7 made the repository public. Phases 0–6 are kept as the record.
 - **Competition window (past):**
   - Fri 25 Sep 00:00 → Sun 27 Sep, 21:00 IST;
   - 5 leaderboard uploads per day per team.
 
-## Phase 6: Grand Finale (3–7 Oct): current
+## Phase 7: public release (8 Oct): done
 
-- **Plan, logistics and judging criteria:** `finale/README.md`. **Knowledge base:** `knowledge/README.md`.
+| # | task | owner | status |
+|---|---|---|---|
+| 7.1 | Remove private material from the tree: finale deck and template, the organisers' files, members' notes, status files, handovers and upload records. They stay in a private archive and are now git-ignored | A (agent) | done |
+| 7.2 | Redact personal paths, rented-server hosts and SSH ports in the remaining files; widen the CI privacy check to the whole repository | A (agent) | done |
+| 7.3 | Apache-2.0 `LICENSE` and `NOTICE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CITATION.cff`, issue templates; public README and contributing guide | A (agent) | done |
+
+## Phase 6: Grand Finale (3–7 Oct): done, 3rd place
+
+> The statuses in this table are as last recorded on 4 Oct. The finale took place on Wed 7 Oct, and Team Grenuke placed 3rd. The deck and the finale logistics are private and are not in this repository.
+
+
+- **Plan, logistics and judging criteria:** the private `finale/` folder. **Knowledge base:** `knowledge/README.md`.
 - **Owners are proposed.** Confirm them in the team call (6.10).
 - **The deck is due Tue 6 Oct, 14:00 IST.** Knowledge capture comes first; the deck is built on Monday.
 

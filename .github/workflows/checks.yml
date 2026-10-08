@@ -76,14 +76,16 @@ jobs:
           done < <(git ls-files)
           exit $fail
 
-      - name: No IPs, e-mails or SSH details in knowledge/ and finale/
+      - name: No IPs, e-mails, SSH details or personal paths in any file (public repository)
         shell: bash
         run: |
           set -euo pipefail
-          pattern='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(com|in|org|net|io|edu|ai)\b|ssh +(-[A-Za-z] +[^ ]+ +)*-p +[0-9]+'
-          files=$(git ls-files knowledge finale)
-          if [ -n "$files" ] && grep -InE "$pattern" $files; then
-            echo "::error::Redact the lines above (knowledge/STANDARD.md section 6)."
+          pattern='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.(com|in|org|net|io|edu|ai)\b|ssh +(-[A-Za-z] +[^ ]+ +)*-p +[0-9]+|[A-Za-z]:[/\\]+Users[/\\]+[A-Za-z]|/c/Users/[A-Za-z]'
+          allow='example\.com|users\.noreply\.github\.com'
+          hits=$(git ls-files -z | xargs -0 grep -InE "$pattern" 2>/dev/null | grep -Ev "$allow" || true)
+          if [ -n "$hits" ]; then
+            echo "$hits"
+            echo "::error::Redact the lines above (SECURITY.md, knowledge/STANDARD.md section 6)."
             exit 1
           fi
           echo "OK"

@@ -1,0 +1,28 @@
+name: Bug report
+description: Something in the code or the docs is broken or wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. This is an archived competition solution: fixes to `code/business_entity_resolution/` and the docs are welcome; the `experiments/` folders are a research log and are not maintained.
+        **Security problems:** don't open an issue; see SECURITY.md. **Never paste the competition data**, tokens or personal details.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Exact command(s), the commit, and the relevant output (trimmed).
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, and `pip show ber` version.

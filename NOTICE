@@ -1,0 +1,14 @@
+Grenuke: Business Entity Resolution (Amazon ML Challenge 2026)
+Copyright 2026 Ameya Borkar, Aarush Bakshi and Sachi Dhoka (Team Grenuke)
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party models used in this work (the final pipeline and its experiments). They are not redistributed in this
+repository; download them from their publishers under their own licenses:
+- intfloat/multilingual-e5-small, multilingual-e5-base, multilingual-e5-large (MIT)
+- BAAI/bge-reranker-v2-m3 (Apache-2.0)
+- Qwen/Qwen2.5-1.5B, Qwen/Qwen2.5-7B, Qwen/Qwen3-4B-Base (Apache-2.0)
+- XGBoost (Apache-2.0)
+
+The competition dataset, the organisers' problem statement, documentation template and submission validator are
+not included. They belong to the challenge organisers and are available to participants on the challenge platform.

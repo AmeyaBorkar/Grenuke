@@ -1,5 +1,7 @@
 # People: each member's own capture
 
+> **Private by policy.** This repository is public, so these notes are git-ignored and stay on each member's machine (or in the team's private archive). Only this README and the template are committed.
+
 One folder per member, written **only by that member and their agents** (one writer, so no conflicts). Each holds the raw-but-structured record of what that person did, decided and knows, mined from their own chats, notes and memory.
 
 | member | folder | status |

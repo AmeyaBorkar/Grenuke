@@ -1,5 +1,7 @@
 # Handovers
 
+> **Private by policy.** This repository is public, so these notes are git-ignored and stay on each member's machine (or in the team's private archive). Only this README and the template are committed.
+
 A handover passes context to the next person or agent session: your teammate, your own next session, or someone taking over your area.
 
 - **When:** at the end of **every** working session (human or agent), and whenever you pass an area to someone else.

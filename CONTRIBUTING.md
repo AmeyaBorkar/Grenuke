@@ -2,8 +2,19 @@
 
 Three people (and their AI agents) work in parallel. These rules were written for the 72-hour competition. They keep `main` runnable, prevent merge conflicts, and make every result reproducible.
 
-**Now (from 3 Oct 2026):** we prepare the Grand Finale on 7 Oct. The work is capturing everything we know into `knowledge/`, learning the theory, and building and rehearsing the deck in `finale/`. Section 12 has the rules for this phase.
 AI agents follow the same rules through `AGENTS.md`.
+
+## 0. Contributing to the public repository (from Oct 2026)
+
+The competition is over: Team Grenuke placed 3rd at the Grand Finale. This repository is now a public, archived solution. The sections below record how the team worked during the challenge, and they still apply to maintainers.
+
+- **Issues** are welcome: questions about the method, bugs in `code/business_entity_resolution/`, or broken docs. Use the issue templates.
+- **Pull requests** are welcome for fixes and documentation. Keep them small, follow §4 (commits) and §5 (PRs), and make sure `python -m pytest code/business_entity_resolution/tests -q` passes. A maintainer reviews and rebase-merges.
+- **New modelling work** is out of scope for this archive. Fork the repository instead.
+- **The competition data isn't included** and must never be committed (§7).
+- **Security problems:** see [`SECURITY.md`](SECURITY.md). **Conduct:** [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- By contributing, you agree that your contribution is licensed under the Apache License 2.0 ([`LICENSE`](LICENSE)).
+- **Privacy:** personal notes (status files, handovers, upload records, `knowledge/people/`, `finale/`) are git-ignored and stay private. Never commit IPs, hosts, SSH details, tokens, e-mails, phone numbers or personal paths.
 
 ## 1. Principles
 
@@ -84,19 +95,21 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 
 ## 6. Coordination documents (conflict-free by design)
 
+Since the repository became public, the rows marked **private** are git-ignored. They stay on each member's machine, and only their templates are committed.
+
 | what | where | naming | written by |
 |---|---|---|---|
-| what I'm doing now | `docs/status/<member>.md` | fixed name | that member only |
-| handover (end of every session, or when passing work on) | `docs/handover/` | `YYYY-MM-DD_HHMM_<member>_<topic>.md` (IST) | the author only |
+| what I'm doing now (**private**) | `docs/status/<member>.md` | fixed name | that member only |
+| handover, at the end of every session or when passing work on (**private**) | `docs/handover/` | `YYYY-MM-DD_HHMM_<member>_<topic>.md` (IST) | the author only |
 | decision record (architecture/approach choices) | `docs/decisions/` | `YYYY-MM-DD_HHMM_<topic>.md` | the author, reviewed in a PR |
-| leaderboard submission record | `submissions/records/` | `YYYY-MM-DD_subNN.md` | the submissions captain |
+| leaderboard submission record (**private**) | `submissions/records/` | `YYYY-MM-DD_subNN.md` | the submissions captain |
 | roadmap, milestones and owners | `docs/ROADMAP.md` | fixed | the coordinator (others propose changes in their status file or a PR) |
 | changelog | `CHANGELOG.md` | fixed | the coordinator, plus the captain for uploads. Feature PRs put a one-line `Changelog:` note in the PR description instead |
 | the plan we build | `plans/FINAL_PLAN.md` | fixed | the coordinator. Changes come from `docs/decisions/` records |
 | candidate plans | `plans/<member>/` | `PLAN.md` (+ `.pdf`) | that member |
-| my knowledge capture (journal, decisions, experiments, contributions, numbers, sources, open questions) | `knowledge/people/<member>/` | fixed names (`knowledge/templates/person/`) | that member only |
+| my knowledge capture: journal, decisions, experiments, contributions, numbers, sources, open questions (**private**) | `knowledge/people/<member>/` | fixed names (`knowledge/templates/person/`) | that member only |
 | the shared knowledge base (story, timeline, decisions, experiments, numbers, components, theory, Q&A) | `knowledge/` | see `knowledge/README.md` | the curator (Ameya), reviewed in PRs |
-| finale deck, script, rehearsal notes | `finale/` | see `finale/README.md` | the curator, reviewed by all |
+| finale deck, script, rehearsal notes (**private**) | `finale/` | — | the curator, reviewed by all |
 
 `python scripts/new_doc.py {handover|status|decision|submission} ...` creates any of these from the templates with the correct name and IST timestamp.
 
@@ -139,7 +152,9 @@ Then put the Unstop dataset in `student_resource/dataset/{train,test}/`. It is g
 - Choosing a plan: follow the process in `plans/README.md`.
 - If you break `main`: revert first (`git revert` in a PR), then fix. Never rewrite `main`'s history.
 
-## 12. The finale phase: knowledge capture, theory, deck
+## 12. The finale phase: knowledge capture, theory, deck (completed)
+
+> This phase ran from 3 to 7 Oct 2026 and ended with 3rd place at the Grand Finale. It is kept as a record. The members' captures (`knowledge/people/`) and the deck (`finale/`) are private and are not in this repository; the curated `knowledge/` pages are.
 
 The jury values **why** over **what**. Every member must be able to explain any part of the pipeline: the choice, the alternatives, the evidence and the limits. So we write it all down once, in one format, and study from it.
 
