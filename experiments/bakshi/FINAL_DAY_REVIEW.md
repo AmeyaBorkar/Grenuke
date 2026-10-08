@@ -5,8 +5,8 @@ Snapshot: main `72a221fbd1bd488995efd0bd0b4c7b501d3f4660`, fetched 26 Sep late e
 ## Confirmed current state
 
 - v7n has a recorded **public score 0.989721, rank 8 at about 23:05 IST**. Rank is historical, not a guarantee of final placement. Holdout is 0.991211.
-- Its local matching file `C:/Users/baksh/Downloads/New folder/matching_resultsv7n.tsv` has the recorded SHA256 `9b902971c72ada328bb9a23e1cdae3ec171c08239034114d5f9c60d9eaa92ae5`.
-- Local v7nst `C:/Users/baksh/Downloads/New folder/matching_resultsv7nst.tsv` has SHA256 `659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533`. It has no recorded public result yet.
+- Its local matching file `$HOME/Downloads/New folder/matching_resultsv7n.tsv` has the recorded SHA256 `9b902971c72ada328bb9a23e1cdae3ec171c08239034114d5f9c60d9eaa92ae5`.
+- Local v7nst `$HOME/Downloads/New folder/matching_resultsv7nst.tsv` has SHA256 `659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533`. It has no recorded public result yet.
 - The paired v7n candidate file must have SHA256 `7246d9ec1ca32ea89bce1ec30f84a997af98bce7b33b7cfae3c21679ddcc31c3`. It was not found in the supplied download folders. The available v6 candidates (`cc3750d0...`) are a different package.
 - Main's 23:15 status says **a replacement on-demand H100 already runs BGE and a France self-trained e5-large**. Reported alias `grenuke-vast`, key `grenuke_vast2`; account access is not available in this task. Avoid a duplicate rental. This status is not a live GPU health check.
 - Latest issue #45 assigns uploads to Ameya and gives the current sequence. Do not spend slots separately or leave a diagnostic probe as the final upload.
@@ -30,7 +30,7 @@ BAAI/bge-reranker-v2-m3 is Apache-2.0 per its [official model repository](https:
 
 ## PR30 package: concrete gaps
 
-PR30 is merged commit `161dad99c94d5e4648072422f8c4369b06d45c42`. Its exact diff is exported locally to `C:/Users/baksh/Documents/Codex/2026-09-25/in/outputs/PR30_packaging.diff` and is [available on GitHub](https://github.com/AmeyaBorkar/Grenuke/pull/30/files).
+PR30 is merged commit `161dad99c94d5e4648072422f8c4369b06d45c42`. Its exact diff is exported locally to `$HOME/Documents/Codex/2026-09-25/in/outputs/PR30_packaging.diff` and is [available on GitHub](https://github.com/AmeyaBorkar/Grenuke/pull/30/files).
 
 | component | current draft | required for v7n |
 |---|---|---|
@@ -46,23 +46,23 @@ The documentation is owned/staged under `docs/package/`; its current gaps make a
 
 ## Useful exact source paths
 
-Fresh isolated checkout: `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan`, branch `bakshi/final-plan-review`.
+Fresh isolated checkout: `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan`, branch `bakshi/final-plan-review`.
 
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/README.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/Documentation_template.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/reproduce_v6all.sh`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/requirements.txt`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/RECIPE.md` (currently detailed through v7ce3; v7n continuation is in the handover below).
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/handover/2026-09-26_2049_ameya_squeeze-v7n.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/decisions/2026-09-26_2135_model-v7n.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/zmean_ce.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/ce_box.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/ce_import.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/stage3.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/acr_join.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/student_resource/utils/validate_submission.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/README.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/Documentation_template.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/reproduce_v6all.sh`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/package/requirements.txt`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/RECIPE.md` (currently detailed through v7ce3; v7n continuation is in the handover below).
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/handover/2026-09-26_2049_ameya_squeeze-v7n.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/docs/decisions/2026-09-26_2135_model-v7n.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/zmean_ce.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/ce_box.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/ce_import.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/stage3.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/experiments/ameya/model-v1/acr_join.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeFinalPlan/student_resource/utils/validate_submission.py`
 
-Older local v8 untracked files in `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/bakshi/v8/` belong to another session and were not edited or executed.
+Older local v8 untracked files in `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/bakshi/v8/` belong to another session and were not edited or executed.
 
 ## Corrected next actions
 

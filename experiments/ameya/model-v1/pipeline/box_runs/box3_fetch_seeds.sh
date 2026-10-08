@@ -2,7 +2,7 @@
 # When the box's seed runs of v7sq (XGBoost seeds 1-3) end, fetch each (box3_fetch_s2.sh) for a later bag. Ends "SEEDS DONE".
 set -uo pipefail
 H=grenuke-vast3; R=/workspace/grenuke
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 rsh() { ssh -n -o ConnectTimeout=20 $H "$@" 2>&1 | grep -vE "^Welcome|^Have fun|^AI agents"; }
 for s in 1 2 3; do
   until rsh "pgrep -f 'ameya-s2-v7sq-sd$s' > /dev/null || echo ended" | grep -q ended; do sleep 60; done

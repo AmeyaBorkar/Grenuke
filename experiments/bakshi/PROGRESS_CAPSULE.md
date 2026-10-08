@@ -18,15 +18,15 @@ All paths below are on Bakshi's Windows laptop. Other-machine paths are explicit
 
 | purpose | absolute path |
 |---|---|
-| task workspace | `C:/Users/baksh/Documents/Codex/2026-09-25/in` |
-| primary clone and scientific environment | `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeGit2` |
-| active isolated worktree | `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7` |
-| Python with scientific dependencies | `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeGit2/.venv/Scripts/python.exe` |
-| active package source / PYTHONPATH | `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/code/business_entity_resolution/src` |
-| BER_WORK_DIR / shared local cache | `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeGit2/work` |
-| raw dataset / BER_DATA_DIR | `C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset` |
-| original dataset container | `C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource` |
-| user attachment from earlier discussion | `C:/Users/baksh/.codex/attachments/7ae354d1-7cd0-435d-8e77-3a0df2c2c259/Pasted text.txt` |
+| task workspace | `$HOME/Documents/Codex/2026-09-25/in` |
+| primary clone and scientific environment | `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeGit2` |
+| active isolated worktree | `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7` |
+| Python with scientific dependencies | `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeGit2/.venv/Scripts/python.exe` |
+| active package source / PYTHONPATH | `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/code/business_entity_resolution/src` |
+| BER_WORK_DIR / shared local cache | `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeGit2/work` |
+| raw dataset / BER_DATA_DIR | `$HOME/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset` |
+| original dataset container | `$HOME/Downloads/New folder/6ab10eb3b23ba_student_resource` |
+| user attachment from earlier discussion | `$HOME/.codex/attachments/7ae354d1-7cd0-435d-8e77-3a0df2c2c259/Pasted text.txt` |
 
 The primary clone's environment imports that clone's editable package unless PYTHONPATH is explicitly set to the active worktree. Global Python has `requests`; the scientific virtual environment does not. Use global Python for existing GitHub API helpers.
 
@@ -63,13 +63,13 @@ Upstream claims 115 tests passed for PR40/41. This is distinct from the earlier 
 
 | file | identity / facts |
 |---|---|
-| `C:/Users/baksh/Downloads/New folder/matching_resultsV5all.tsv` | recorded v5all + rules v2 + cut; 97,645,249 bytes; 1,732,544 S1 rows; 5,835,593 pairs |
-| `C:/Users/baksh/Downloads/New folder/matching_resultsv6all.tsv` | **exact v6all + stage 3 + rules v3 + cut**, package `2026-09-26-v6all-s3-ops3-c2`; 97,914,336 bytes; 5,856,439 pairs |
-| `C:/Users/baksh/Downloads/candidate_pairsv6all.tsv` | exact recorded v6 candidate file; 104,979,142 bytes; 6,406,457 pairs, mean 3.6977168/S1; 75,397 empty candidate rows; no duplicate pairs |
-| `C:/Users/baksh/Downloads/New folder/matching_resultsv3.tsv` | older v3; 98,208,190 bytes |
-| `C:/Users/baksh/Downloads/New folder/matching_resultsv2.tsv` | older v2; 97,729,493 bytes |
-| `C:/Users/baksh/Downloads/New folder/matching_results.tsv` | same size as v2; historical file, do not mistake for latest |
-| `C:/Users/baksh/Documents/Codex/2026-09-25/in/outputs/v7_v5base_robustB_probe/matching_results.tsv` | our earlier isolated v5-based experiment; **not upstream v7ce3**; 97,630,521 bytes; 5,834,445 pairs |
+| `$HOME/Downloads/New folder/matching_resultsV5all.tsv` | recorded v5all + rules v2 + cut; 97,645,249 bytes; 1,732,544 S1 rows; 5,835,593 pairs |
+| `$HOME/Downloads/New folder/matching_resultsv6all.tsv` | **exact v6all + stage 3 + rules v3 + cut**, package `2026-09-26-v6all-s3-ops3-c2`; 97,914,336 bytes; 5,856,439 pairs |
+| `$HOME/Downloads/candidate_pairsv6all.tsv` | exact recorded v6 candidate file; 104,979,142 bytes; 6,406,457 pairs, mean 3.6977168/S1; 75,397 empty candidate rows; no duplicate pairs |
+| `$HOME/Downloads/New folder/matching_resultsv3.tsv` | older v3; 98,208,190 bytes |
+| `$HOME/Downloads/New folder/matching_resultsv2.tsv` | older v2; 97,729,493 bytes |
+| `$HOME/Downloads/New folder/matching_results.tsv` | same size as v2; historical file, do not mistake for latest |
+| `$HOME/Documents/Codex/2026-09-25/in/outputs/v7_v5base_robustB_probe/matching_results.tsv` | our earlier isolated v5-based experiment; **not upstream v7ce3**; 97,630,521 bytes; 5,834,445 pairs |
 
 Full SHA256:
 - v5: `76fe7eff4bb37e9eab392b25d4cb0e563a91f0953131bc9b908909ca44fa3d4b`.
@@ -131,7 +131,7 @@ Error-table caution: an earlier user table's 187 'owned by another S1' pairs and
 
 ## 8. Source documents and code to read next
 
-All local source references are under active worktree `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/`:
+All local source references are under active worktree `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/`:
 - `AGENTS.md`: read fully; `docs/ROADMAP.md`, `docs/TEAM.md`, `plans/FINAL_PLAN.md`, `docs/CONTRACTS.md`, `docs/DEVELOPMENT.md` govern contracts and ownership.
 - `docs/status/ameya.md`: freshest package, probes and v7b status.
 - `docs/status/bakshi.md`: this local work.
@@ -152,7 +152,7 @@ On branch `bakshi/v7-tsv-audit` (PR37), same worktree-relative paths:
 
 ## 9. Cached artifacts and reports, absolute local paths
 
-Cache root is `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeGit2/work/`.
+Cache root is `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeGit2/work/`.
 - `records/train.parquet` (12,527,040 records), `records/test.parquet` (11,702,133), `records/truth.parquet`.
 - `norm/bakshi-norm-v0a/train.parquet`, `norm/bakshi-norm-v0a/test.parquet`.
 - `features/bakshi-feat-v0/train.parquet`: old own 75-feature dev data.
@@ -167,7 +167,7 @@ Cache root is `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeGit2/wor
 - `v7/bakshi-v7-robustB-probe-audit/`: independent probe audit cache. Historical notes may use lowercase robustb; use the actual directory listing before reading.
 - `reports/`: corresponding C7 JSON reports.
 
-Workspace helper/report root is `C:/Users/baksh/Documents/Codex/2026-09-25/in/`:
+Workspace helper/report root is `$HOME/Documents/Codex/2026-09-25/in/`:
 - `work/github_snapshot.json`: freshly fetched issues, PRs, releases, branches, tags, commits and comments. **No full model artifacts in this snapshot.**
 - `work/audit_github.py`: authenticated fetch/API inventory via hidden token input, transient askpass.
 - `work/candidate_v6_review.py`, `work/candidate_v6_review.json`: read-only latest candidate comparison; not committed pipeline code.
@@ -197,9 +197,9 @@ GitHub releases currently available: devkit-v0, devkit-v2, devkit-v3, scores-v2l
 
 PowerShell environment for local analysis:
 ```powershell
-$env:PYTHONPATH='C:\Users\baksh\Documents\Codex\2026-09-25\in\work\GrenukeV7\code\business_entity_resolution\src'
-$env:BER_WORK_DIR='C:\Users\baksh\Documents\Codex\2026-09-25\in\work\GrenukeGit2\work'
-$env:BER_DATA_DIR='C:\Users\baksh\Downloads\New folder\6ab10eb3b23ba_student_resource\student_resource\dataset'
+$env:PYTHONPATH='$HOME\Documents\Codex\2026-09-25\in\work\GrenukeV7\code\business_entity_resolution\src'
+$env:BER_WORK_DIR='$HOME\Documents\Codex\2026-09-25\in\work\GrenukeGit2\work'
+$env:BER_DATA_DIR='$HOME\Downloads\New folder\6ab10eb3b23ba_student_resource\student_resource\dataset'
 ```
 Official validator (use the scientific Python above, from repo root):
 ```text
@@ -226,86 +226,86 @@ This document is intended to let a fresh agent continue without rerunning comple
 
 Existing files in this checkout at snapshot time (PR37-only paths are identified in section 8):
 
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/AGENTS.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/ROADMAP.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/TEAM.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/plans/FINAL_PLAN.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/CONTRACTS.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/DEVELOPMENT.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/status/ameya.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/status/bakshi.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/submissions/records/2026-09-26_sub01.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/acr_join.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/analysis.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v2.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v3.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v4.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/brand_join.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/buckets.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cand_size.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cands_final.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce_box.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce_import.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cluster.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/common.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/decide.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/dev_export.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/error_analysis.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_legal.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_lo.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_lo_proxy.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_nx.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/FEATURES.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/fr_threshold.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/france_check.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/france_kit.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/gap_check.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/legal.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/lo_mix.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/loco.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/post_ops.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/probe.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/probe_shift.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RECIPE.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RESEARCH_v5.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RESEARCH_v6.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/rules.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/s1.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/s2.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/stage3.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/variant.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/add_name_uniqueness.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/ce_compare.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/check_name_uniqueness.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/error_analysis_v2.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_discover.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_hyp_split.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_hypotheses.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/loco_groups.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/loco_profile.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/make_dev_features.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/run_dev.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/run_real.py`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0207_model-v4-france-and-cross-encoder.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0417_france-generator-ops-and-final-fit.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0532_candidate-set-cut.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0626_france-rules-v2.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1122_blocking-v3-repairs.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1425_model-v6all-final.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1557_rules-v3-and-stage3.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1933_model-v7ce3.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0207_ameya_leaderboard-gap-france-v4.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0417_ameya_france-generator-ops.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0520_ameya_research-gap-candidates.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0554_ameya_research-part2-plan.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1123_ameya_solutions-round1.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1428_ameya_model-v6all-final.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1545_bakshi_v7-france.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1557_ameya_research-v6-gap-budget.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1817_ameya_ce-large-box.md`
-- `C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1903_bakshi_score-improvement-ideas.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/AGENTS.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/ROADMAP.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/TEAM.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/plans/FINAL_PLAN.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/CONTRACTS.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/DEVELOPMENT.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/status/ameya.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/status/bakshi.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/submissions/records/2026-09-26_sub01.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/acr_join.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/analysis.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v2.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v3.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ANALYSIS_v4.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/brand_join.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/buckets.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cand_size.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cands_final.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce_box.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/ce_import.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/cluster.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/common.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/decide.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/dev_export.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/error_analysis.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_legal.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_lo.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_lo_proxy.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/feats_nx.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/FEATURES.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/fr_threshold.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/france_check.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/france_kit.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/gap_check.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/legal.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/lo_mix.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/loco.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/post_ops.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/probe.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/probe_shift.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RECIPE.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RESEARCH_v5.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/RESEARCH_v6.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/rules.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/s1.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/s2.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/stage3.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/ameya/model-v1/variant.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/add_name_uniqueness.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/ce_compare.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/check_name_uniqueness.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/error_analysis_v2.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_discover.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_hyp_split.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/france_hypotheses.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/loco_groups.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/loco_profile.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/make_dev_features.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/run_dev.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/experiments/sachi/run_real.py`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0207_model-v4-france-and-cross-encoder.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0417_france-generator-ops-and-final-fit.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0532_candidate-set-cut.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_0626_france-rules-v2.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1122_blocking-v3-repairs.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1425_model-v6all-final.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1557_rules-v3-and-stage3.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/decisions/2026-09-26_1933_model-v7ce3.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0207_ameya_leaderboard-gap-france-v4.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0417_ameya_france-generator-ops.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0520_ameya_research-gap-candidates.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_0554_ameya_research-part2-plan.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1123_ameya_solutions-round1.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1428_ameya_model-v6all-final.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1545_bakshi_v7-france.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1557_ameya_research-v6-gap-budget.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1817_ameya_ce-large-box.md`
+- `$HOME/Documents/Codex/2026-09-25/in/work/GrenukeV7/docs/handover/2026-09-26_1903_bakshi_score-improvement-ideas.md`
 
 ## 14. Remote branches and release inventory
 

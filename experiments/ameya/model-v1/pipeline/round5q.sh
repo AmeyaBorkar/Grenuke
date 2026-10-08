@@ -2,11 +2,11 @@
 # 7B-corrected round-4 labels: pseudo_labels.py on mixf7 (France = v7sq6r3 minus the 7B rejects), pseudo_guard.py, then the
 # 859 French pairs the 7B rejects forced to y = 0 (pseudo_labels leaves them unlabelled because their pc is high) ->
 # grenuke-vast3 stage 2 v7sq6q4 / v7sq7q4 (box3_r15.sh). Ends "R5Q LABELS DONE" / "... FAILED".
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-SPW=C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-FS=C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1
+SP=$SCRATCH
+SPW=$SCRATCH
+FS=$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1
 source $SP/env6.sh > /dev/null
-cd /c/Users/ameya/Documents/GrenukeAmazon
+cd $REPO
 python $FS/pseudo_labels.py ameya-model-v7sq6r3-s3 ameya-s3-v7sq6r3 ameya-model-v7sq6r3-s3-ops3 ameya-model-mixf7 s1:ameya-s1-v6all $SPW/box/pseudo_s2_fr_mixf7q.parquet \
   || { echo "$(date +%H:%M) R5Q LABELS FAILED pseudo_labels"; exit 1; }
 python $FS/pseudo_guard.py $SPW/box/pseudo_s2_fr_v7ce3.parquet $SPW/box/pseudo_s2_fr_mixf7q.parquet $SPW/box/rulepop_fr.parquet $SPW/box/pseudo_s2_fr_mixf7q_guard.parquet \

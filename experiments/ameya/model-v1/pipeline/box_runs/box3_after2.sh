@@ -7,7 +7,7 @@
 # Logs to work/logs/box3_after.log. Ends "BOX3 AFTER DONE".
 set -uo pipefail
 H=grenuke-vast3; R=/workspace/grenuke
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 rsh() { ssh -n -o ConnectTimeout=20 $H "$@" 2>&1 | grep -vE "^Welcome|^Have fun|^AI agents"; }
 ended() { rsh "pgrep -f '[t]ag ameya-s2-$1 ' > /dev/null || echo ended" | grep -q ended; }
 echo "$(date +%H:%M:%S) start (after2)"

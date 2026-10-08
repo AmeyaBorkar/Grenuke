@@ -5,7 +5,7 @@ A) acronym copy: R name == initials of the S1's core words (parenthesized tokens
 import re, sys, unicodedata
 import numpy as np, pandas as pd, pyarrow.parquet as pq
 from ber.paths import records_path
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
+SP = "$SCRATCH"
 LEG = set("sarl sas sasu eurl sa sci snc ei llc inc ltd limited pvt private corp co llp pllc pc lp plc".split())
 STOP = set("de du des la le les l d et en sur a au aux the of and &".split())
 def fold(s): return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode().lower()

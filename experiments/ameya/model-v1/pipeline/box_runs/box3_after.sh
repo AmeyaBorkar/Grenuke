@@ -5,7 +5,7 @@
 #      (gates, cmq5g, stage 2 v7sq5g), then fetch it and mark v7sq5g_state/s2.done.  Ends "BOX3 AFTER DONE".
 set -uo pipefail
 H=grenuke-vast3; R=/workspace/grenuke
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 rsh() { ssh -n -o ConnectTimeout=20 $H "$@" 2>&1 | grep -vE "^Welcome|^Have fun|^AI agents"; }
 echo "$(date +%H:%M:%S) start"
 # R2 launch (as soon as both CEs are done), then Wg fetch, then R2 fetch

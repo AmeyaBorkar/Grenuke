@@ -3,8 +3,8 @@ rows: scored, never trained on), and the French final pairs as the test band (ta
 scores the confident pairs (p1 > 0.99) that no cross-encoder ever looked at."""
 import numpy as np, pandas as pd
 from ber.eval.splits import fold_of
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 K = 4_000_000_000
 tr = pd.read_parquet(f"{SP}/box/band_train.parquet")
 h = pd.read_parquet(f"{R}/hold_pred_pairs.parquet")

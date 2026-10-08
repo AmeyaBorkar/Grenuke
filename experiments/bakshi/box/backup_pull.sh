@@ -14,7 +14,7 @@
 set -uo pipefail
 H="root@${1:?host}"; P="${2:?port}"; EVERY="${3:-300}"
 KEY="$HOME/.ssh/vast_grenuke"
-DST="${BACKUP_DIR:-/c/Users/baksh/Downloads/New folder/train-backup}"
+DST="${BACKUP_DIR:-$HOME/Downloads/New folder/train-backup}"
 RCLONE="${RCLONE:-rclone}"
 REMOTE="${REMOTE:-gdrive:grenuke-train-backup}"
 R=/workspace/grenuke

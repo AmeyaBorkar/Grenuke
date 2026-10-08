@@ -1,9 +1,9 @@
 import sys
 import numpy as np, pandas as pd
-sys.path[1:1] = ["C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1/stack",
-                 "C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1"]
+sys.path[1:1] = ["$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1/stack",
+                 "$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1"]
 from textlib import load_text
-D = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+D = "$REPO/work/bakshi_pull/train/box/rescore"
 h = pd.read_parquet(f"{D}/hold_scored.parquet")
 print(h.columns.tolist(), len(h))
 d = h[(h.q7__logit < -4) & (h.p1 > 0.99)].sort_values("q7__logit")

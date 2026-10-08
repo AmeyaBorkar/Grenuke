@@ -1,13 +1,13 @@
 #!/bin/bash
 # when Bakshi's 7B has scored g1w's confident US/India pairs (usin_scored_0..3), fetch them, build the US/India q7 drop list
 # (q7 < -6, p1 > 0.99; the rule he validated on the holdout: +33e-6 F, both halves positive) and rebuild the final as mixf2.
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-source $SP/env6.sh > /dev/null; K=~/.ssh/grenuke_vast2; H="-i $K -p 28860 root@202.122.49.242"; D=/workspace/grenuke/box/rescore
+SP=$SCRATCH
+source $SP/env6.sh > /dev/null; K=~/.ssh/grenuke_vast2; H="-i $K -p <port> root@<gpu-host>"; D=/workspace/grenuke/box/rescore
 until ssh -n -o ConnectTimeout=15 $H "ls $D/usin_scored_0.parquet $D/usin_scored_1.parquet $D/usin_scored_2.parquet $D/usin_scored_3.parquet >/dev/null 2>&1 && echo yes" 2>/dev/null | grep -q yes; do
   [ "$(date +%H%M)" -gt 2100 ] && { echo "$(date +%H:%M) USIN never arrived"; exit 0; }; sleep 60; done
 sleep 20
-mkdir -p $SP/q7drop/usin; scp -q -i $K -P 28860 "root@202.122.49.242:$D/usin_scored_*.parquet" $SP/q7drop/usin/ || { echo "USIN fetch FAILED"; exit 1; }
-cd /c/Users/ameya/Documents/GrenukeAmazon
+mkdir -p $SP/q7drop/usin; scp -q -i $K -P <port> "root@<gpu-host>:$D/usin_scored_*.parquet" $SP/q7drop/usin/ || { echo "USIN fetch FAILED"; exit 1; }
+cd $REPO
 python - <<PY
 import glob, numpy as np, pandas as pd, pyarrow.parquet as pq
 from ber.paths import records_path

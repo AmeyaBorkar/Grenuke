@@ -22,8 +22,8 @@ Relay asks for Ameya to the user in chat. Don't ask him through GitHub.
 
 | role | ssh | what's there |
 |---|---|---|
-| **pipeline** (2x RTX 4090, 64 vCPU, on-demand) | `ssh -p 48742 root@216.144.178.146` | `/workspace/grenuke/{repo,work,box,box_ameya,ref,logs,output}`, `env.sh` |
-| **training** (4x H100, on-demand) | `ssh -p 28860 root@202.122.49.242` | `/workspace/grenuke/{repo,box,logs}` |
+| **pipeline** (2x RTX 4090, 64 vCPU, on-demand) | `ssh -p <port> root@<gpu-host>` | `/workspace/grenuke/{repo,work,box,box_ameya,ref,logs,output}`, `env.sh` |
+| **training** (4x H100, on-demand) | `ssh -p <port> root@<gpu-host>` | `/workspace/grenuke/{repo,box,logs}` |
 | old interruptible training box, Vast id 52916777 | dead | the user was asked to stop or destroy it; ignore it |
 
 - **SSH key:** the laptop used `~/.ssh/vast_grenuke`. The cloud session needs its own key: generate one and give the user the public half, so it can be added to both boxes' `~/.ssh/authorized_keys`.

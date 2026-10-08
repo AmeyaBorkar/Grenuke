@@ -5,7 +5,7 @@ import numpy as np, pandas as pd, pyarrow.parquet as pq
 from rapidfuzz.distance import Indel
 from ber.paths import records_path
 from ber.artifacts import read_table
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
+SP = "$SCRATCH"
 K = 4_000_000_000
 LEG = {"sarl", "sas", "sasu", "eurl", "sa", "sci", "snc", "ei", "s.a.r.l.", "s.a.s.", "s.a.s.u.", "e.u.r.l.", "s.a.", "s.c.i.", "e.i."}
 def fold(s): return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode().lower()

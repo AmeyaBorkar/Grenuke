@@ -6,8 +6,8 @@ from ber.artifacts import read_table
 from ber.paths import artifact_path, records_path
 from ber.records import load_truth
 K = 4_000_000_000
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 def f05(tp, n, nt):
     fp, fn = n - tp, nt - tp; den = 1.25 * tp + 0.25 * fn + fp
     return np.where((n == 0) & (nt == 0), 1.0, np.where(den > 0, 1.25 * tp / np.maximum(den, 1e-12), 0.0))

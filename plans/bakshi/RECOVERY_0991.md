@@ -204,7 +204,7 @@ F0.5 here is a matching metric, not ordinary classification accuracy.
 
 ## Files and machine access
 
-Workspace: `C:/Users/baksh/Documents/Codex/2026-09-25/in`.
+Workspace: `$HOME/Documents/Codex/2026-09-25/in`.
 
 | purpose | location |
 |---|---|
@@ -212,8 +212,8 @@ Workspace: `C:/Users/baksh/Documents/Codex/2026-09-25/in`.
 | existing active execution checkout; read, do not edit | `work/GrenukeOpusExec` |
 | scientific Python | `work/GrenukeGit2/.venv/Scripts/python.exe` |
 | cached records/norm and old dev artifacts | `work/GrenukeGit2/work` |
-| raw data | `C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset` |
-| protected matching file | `C:/Users/baksh/Downloads/New folder/matching_resultsv7nst.tsv` |
+| raw data | `$HOME/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset` |
+| protected matching file | `$HOME/Downloads/New folder/matching_resultsv7nst.tsv` |
 | current execution ledger | `work/GrenukeOpusExec/experiments/bakshi/final-package/ledger.json` |
 | current packaging scripts | `work/GrenukeOpusExec/experiments/bakshi/final-package/` |
 | updated GitHub snapshot | `work/github_snapshot.json` |

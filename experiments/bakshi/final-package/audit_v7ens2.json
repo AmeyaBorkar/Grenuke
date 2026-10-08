@@ -1,11 +1,11 @@
 {
   "matching": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\grenuke-for-bakshi-v7ens2\\package\\matching_results.tsv",
+    "path": "$HOME\\Downloads\\New folder\\grenuke-for-bakshi-v7ens2\\package\\matching_results.tsv",
     "bytes": 97898350,
     "sha256": "9989dbf11e9e51feeab6c5bcf390d3bc0fe695589118264ae8d4be9121ff2b9d"
   },
   "candidate": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\grenuke-for-bakshi-v7ens2\\package\\candidate_pairs.tsv",
+    "path": "$HOME\\Downloads\\New folder\\grenuke-for-bakshi-v7ens2\\package\\candidate_pairs.tsv",
     "bytes": 105027959,
     "sha256": "9555e047708897473632ef5e51f3ddac7668a89d1ad6a5e2982db8509eede6fc"
   },

@@ -3,7 +3,7 @@ import sys
 import numpy as np, pandas as pd
 from ber.artifacts import read_table
 K = 4_000_000_000
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
+SP = "$SCRATCH"
 RT, M, TS = sys.argv[1], sys.argv[2], sys.argv[3]  # repo STACK_OUT, model, tag suffix
 def ks(d): return set((d.s1.to_numpy().astype(np.int64) * K + d.r.to_numpy().astype(np.int64)).tolist())
 def pqf(p): return pd.read_parquet(p, columns=["s1", "r"])
