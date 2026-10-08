@@ -5,8 +5,8 @@
 # reassembled on the box and checked by sha256. Ends "UPLOAD DONE" (or "SHA MISMATCH ...").
 set -euo pipefail
 H=grenuke-vast3
-W=/c/Users/ameya/Documents/GrenukeAmazon/work
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+W=$REPO/work
+SP=$SCRATCH
 R=/workspace/grenuke
 CH=$SP/box3_chunks; rm -rf $CH; mkdir -p $CH
 files="features/ameya-fx5-str/train.parquet features/ameya-fx5-str/test.parquet features/ameya-fx5-cx/train.parquet

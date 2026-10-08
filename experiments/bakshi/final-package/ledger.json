@@ -5,7 +5,7 @@
     "opened_ist": "2026-09-27T00:20:50+05:30",
     "clock_source": "Get-Date on Bakshi laptop; timezone India Standard Time (UTC+05:30)",
     "branch": "bakshi/opus-exec",
-    "worktree": "C:/Users/baksh/Documents/Codex/2026-09-25/in/work/GrenukeOpusExec",
+    "worktree": "$HOME/Documents/Codex/2026-09-25/in/work/GrenukeOpusExec",
     "base_commit": "2023ffbae034e274aab5cb262c982d6fef762e5c",
     "base_commit_subject": "docs(changelog): 26 Sep upload 04 (v7nst, 0.990179, rank 7)"
   },
@@ -26,7 +26,7 @@
     "s1_by_country": {"France": 259452, "India": 809986, "US": 663106},
     "france_share_of_test_s1": 0.1497523,
     "verified_locally": true,
-    "source": "C:/Users/baksh/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset/test",
+    "source": "$HOME/Downloads/New folder/6ab10eb3b23ba_student_resource/student_resource/dataset/test",
     "note": "France's whole-test S1 share (0.1497523) equals the 0.14975 coefficient in the team's F_France = (LB - 0.843226) / 0.14975 formula. That formula therefore assumes the PUBLIC-leaderboard subset has the same country composition as the whole test set. That assumption is unverified, so every France level derived from it is an estimate, not a measurement."
   },
   "_LIVE_RISK_2026-09-27T11:00": "v7nst-dpc (0.990264) was uploaded AFTER v7sq-dpc (0.990545), and the final upload is what counts. As of now we would be graded on the WORSE of the two, a live loss of 0.000281. The restore of the best measured file is not optional and must not be left late. Hard rule proposed to the captain: if the best measured file is not the last upload by 18:30 IST, stop experimenting and restore.",
@@ -36,11 +36,11 @@
       "package": "submissions/files/2026-09-27-v7sq-s3-ops3a-dpc-c2",
       "parent": "v7nst",
       "changed_component": "cross-encoder group cmq = z-mean of e5l, qst (Qwen2.5-1.5B LoRA, France self-trained), e5ls (e5-large, France self-trained) and bge; plus the stacked per-country-group rules (-dpc)",
-      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7sq.tsv", "bytes": 97874391, "sha256": "cdda9a2da0147c06039d83b673e26d8bfc71c5171915148c1dcd24979ea0e85c", "sha256_verified_locally": true},
+      "matching": {"local_path": "$HOME/Downloads/New folder/matching_resultsv7sq.tsv", "bytes": 97874391, "sha256": "cdda9a2da0147c06039d83b673e26d8bfc71c5171915148c1dcd24979ea0e85c", "sha256_verified_locally": true},
       "candidate": {
         "sha256": "55b766efbe7473e17985d06810d27f5d758951b1ce42832a0dd9081a76af5331",
         "sha256_verified_locally": true,
-        "local_path": "C:/Users/baksh/Downloads/New folder/candidate_pairs_7nst_dpc.tsv",
+        "local_path": "$HOME/Downloads/New folder/candidate_pairs_7nst_dpc.tsv",
         "bytes": 105028786,
         "pairs": 6410310,
         "status": "RESOLVED 2026-09-27 ~11:45 IST.",
@@ -48,7 +48,7 @@
       },
       "validation": {"matching_hard_checks": "PASS", "row_count": 1732544, "final_pairs": 5853353, "empty_rows": 99840, "mean_matches_per_s1": 3.3785, "owner_conflicts": 0, "cross_country_pairs": 0, "targets_absent": 0, "candidate_pairs": 6410310, "matches_outside_candidates": 0, "package_pairing": "PASS", "report": "experiments/bakshi/final-package/audit_v7sq_dpc.json", "verified_locally": true},
       "final_package": {
-        "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist_v7sq_dpc/Grenuke_submission.zip",
+        "zip": "$HOME/Downloads/New folder/grenuke_dist_v7sq_dpc/Grenuke_submission.zip",
         "zip_bytes": 87543055,
         "zip_sha256": "4282b939e174e17270408f28ce7f8e5d96d20617d3322f4f28a74be7da50864c",
         "n_files": 117,
@@ -73,7 +73,7 @@
       "package": "submissions/files/2026-09-27-v7nst-s3-ops3a-dpc-c2",
       "parent": "v7nst",
       "changed_component": "the stacked per-country-group rules only; the model is unchanged from v7nst. This makes it a clean controlled measurement of the stack with the model held fixed.",
-      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_results_7nst_dpc.tsv", "bytes": 97870453, "sha256": "f349012516cdd239106cc88f53e4f5ccaf8b5531d30a9345e82f0584783494a2", "sha256_verified_locally": true},
+      "matching": {"local_path": "$HOME/Downloads/New folder/matching_results_7nst_dpc.tsv", "bytes": 97870453, "sha256": "f349012516cdd239106cc88f53e4f5ccaf8b5531d30a9345e82f0584783494a2", "sha256_verified_locally": true},
       "candidate": {"sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa", "sha256_verified_locally": true, "note": "byte-identical to v7nst's candidate file — the stack adds no candidates, only adds or reclassifies pairs already inside the set. Confirmed empirically, not assumed."},
       "validation": {"matching_hard_checks": "PASS", "row_count": 1732544, "final_pairs": 5853049, "empty_rows": 99837, "owner_conflicts": 0, "cross_country_pairs": 0, "targets_absent": 0, "matches_outside_candidates": 0, "package_pairing": "PASS", "report": "experiments/bakshi/final-package/audit_v7nst_dpc.json", "verified_locally": true},
       "affected_by_country": {"France": {"s1": 259452, "s1_nonempty": 244431, "pairs": 871528, "pairs_per_s1": 3.3591}, "India": {"pairs": 2734250}, "US": {"pairs": 2247271}, "verified_locally": true},
@@ -98,7 +98,7 @@
         "pseudo": "scratchpad/box/pseudo_s2_fr_v7ce3.parquet (reported; not on this laptop)"
       },
       "matching": {
-        "local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7nst.tsv",
+        "local_path": "$HOME/Downloads/New folder/matching_resultsv7nst.tsv",
         "bytes": 97909982,
         "sha256": "659f5169cabbb2a3de2cb8580b614bbff718ea62d5b1fb4497243b50fcc34533",
         "sha256_verified_locally": true
@@ -106,7 +106,7 @@
       "candidate": {
         "sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa",
         "sha256_verified_locally": true,
-        "local_path": "C:/Users/baksh/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi/candidate_pairs.tsv",
+        "local_path": "$HOME/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi/candidate_pairs.tsv",
         "bytes": 105027973,
         "pairs": 6410247,
         "empty_rows": 75361,
@@ -134,7 +134,7 @@
         "report": "experiments/bakshi/final-package/audit_v7nst_FINAL.json"
       },
       "final_package": {
-        "zip": "C:/Users/baksh/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
+        "zip": "$HOME/Downloads/New folder/grenuke_dist/Grenuke_submission.zip",
         "zip_bytes": 87529581,
         "zip_sha256": "d9eb4388409a9d17af483213fbaa88c6b8a475ab501b3c88d62e1980e34f0cd2",
         "n_files": 107,
@@ -152,7 +152,7 @@
           "organiser validator PASS",
           "strict audit PASS, 0 matches outside candidates"
         ],
-        "manifest": "C:/Users/baksh/Downloads/New folder/grenuke_dist/package_manifest.json"
+        "manifest": "$HOME/Downloads/New folder/grenuke_dist/package_manifest.json"
       },
       "affected_by_country": {
         "France": {"s1": 259452, "s1_nonempty": 244429, "pairs": 871242, "pairs_per_s1": 3.358},
@@ -212,7 +212,7 @@
       "parent": "v7ce3",
       "changed_component": "e5-small logit plus the z-mean of two e5-large cross-encoders (group cem2) in stage 2; no bge",
       "matching": {
-        "local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv7n.tsv",
+        "local_path": "$HOME/Downloads/New folder/matching_resultsv7n.tsv",
         "bytes": 97903805,
         "sha256": "9b902971c72ada328bb9a23e1cdae3ec171c08239034114d5f9c60d9eaa92ae5",
         "sha256_verified_locally": false,
@@ -227,9 +227,9 @@
     {
       "variant": "v6all",
       "package": "submissions/files/2026-09-26-v6all-ops-c2",
-      "matching": {"local_path": "C:/Users/baksh/Downloads/New folder/matching_resultsv6all.tsv", "bytes": 97914336, "sha256": "0f6d8985be05877276e16a4d95562d8d72f36c38f962441f1a6f9928d22890be", "sha256_verified_locally": false},
+      "matching": {"local_path": "$HOME/Downloads/New folder/matching_resultsv6all.tsv", "bytes": 97914336, "sha256": "0f6d8985be05877276e16a4d95562d8d72f36c38f962441f1a6f9928d22890be", "sha256_verified_locally": false},
       "candidate": {
-        "local_path": "C:/Users/baksh/Downloads/New folder/candidate_pairsv6all.tsv",
+        "local_path": "$HOME/Downloads/New folder/candidate_pairsv6all.tsv",
         "bytes": 104979142,
         "sha256": "cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae",
         "sha256_verified_locally": true,
@@ -267,7 +267,7 @@
     "what_would_reopen_it": "out_bge, or a usable out_q15. An independent family is the whole premise."
   },
   "delivered_folder": {
-    "path": "C:/Users/baksh/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi",
+    "path": "$HOME/Downloads/New folder/grenuke-for-bakshi-20260926T195414Z-1-001/grenuke-for-bakshi",
     "received_ist": "2026-09-27T01:25+05:30",
     "size_mb": 201.4,
     "hash_verification": "13 of 13 files OK against the folder's own SHA256SUMS.txt, 0 failures",

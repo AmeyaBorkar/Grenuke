@@ -3,7 +3,7 @@
 # into work/incoming, then place it and mark <tag>_state/s2.done, unless the laptop queue already started that s2.
 # usage: box3_fetch_s2.sh <model tag, e.g. v7sqwg>. Ends "PLACED <tag>", "TOO LATE <tag>" or an error.
 set -euo pipefail
-H=grenuke-vast3; R=/workspace/grenuke; W=/c/Users/ameya/Documents/GrenukeAmazon/work; L=$W/logs
+H=grenuke-vast3; R=/workspace/grenuke; W=$REPO/work; L=$W/logs
 t=$1; T=ameya-s2-$t; IN=$W/incoming/$T
 rm -rf $IN; mkdir -p $IN/chunks $IN/models
 ssh -n $H "set -e; cd $R/work; test -s scores/$T/train.parquet; test -s scores/$T/test.parquet; test -s reports/$T.json; test -d models/$T

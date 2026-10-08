@@ -2,12 +2,12 @@
 import glob, re, sys, unicodedata
 import numpy as np, pandas as pd
 from rapidfuzz.distance import Indel
-sys.path[1:1] = ["C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1/stack",
-                 "C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1"]
+sys.path[1:1] = ["$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1/stack",
+                 "$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1"]
 from textlib import load_text
 K = 4_000_000_000
-OUT = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad/q7drop"
-D = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+OUT = "$SCRATCH/q7drop"
+D = "$REPO/work/bakshi_pull/train/box/rescore"
 fr = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob(f"{D}/fr_scored_*.parquet"))], ignore_index=True)
 t = load_text("test", np.r_[fr.s1.to_numpy(), fr.r.to_numpy()])
 TYPES = set("rue r ru avenue av ave boulevard bd bld blvd allee allees all place pl chemin ch che route rte impasse imp cours crs quai q square sq passage pass voie residence res lotissement lot cite hameau lieu dit lieu-dit chaussee parvis esplanade promenade rond-point faubourg fbg sentier villa cour".split())

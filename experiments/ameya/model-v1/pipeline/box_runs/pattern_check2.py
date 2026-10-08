@@ -4,8 +4,8 @@ import re, unicodedata
 import numpy as np, pandas as pd, pyarrow.parquet as pq
 from rapidfuzz.distance import Indel
 from ber.paths import records_path
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 TYPES = set("rue r ru avenue av ave boulevard bd blvd allee all place pl chemin ch route rte impasse imp cours crs quai q street st road rd drive dr lane ln court ct way highway hwy circle cir place pl parkway pkwy terrace ter trail trl".split())
 STOP = set("de du des la le les l d et en sur a au aux the of and".split())
 LEG = set("sarl sas sasu eurl sa sci snc ei llc inc ltd limited pvt private corp co llp pllc pc lp plc".split())

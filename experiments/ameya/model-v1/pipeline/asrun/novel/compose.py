@@ -24,7 +24,7 @@ if not np.isin(m.s1.to_numpy() * K + m.r.to_numpy(), c.s1.to_numpy() * K + c.r.t
 write_table(c, "candidates", f"ameya-cands-{name}", "test", command=f"compose.py {' '.join(sys.argv[1:])}")
 write_table(m, "matches", f"ameya-model-{name}", "test", command=f"compose.py {' '.join(sys.argv[1:])}")
 print(f"composed {name}: labelled {int(lab(m).sum())} pairs from {lm}, other {int((~lab(m)).sum())} from {om}; candidates {len(c)}")
-sp = "/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
+sp = "$SCRATCH"
 out = subprocess.run(["bash", f"{sp}/package6.sh", f"ameya-model-{name}", f"ameya-cands-{name}", f"2026-09-27-{name}-c2"],
                      capture_output=True, text=True)
 print("\n".join(l for l in out.stdout.splitlines() if "PASS" in l or "FAIL" in l or "matching_results.tsv" in l or "rror" in l))

@@ -2,11 +2,11 @@
 # Round-4 stage-2 labels from mixqc (v7sq3 US/India + v7sq6r3 France, no look-alike drop; the cal leader): pseudo_labels.py
 # (French decisions of mixqc, pc of v7sq6r3's stage 3) -> pseudo_guard.py (round-1 labels for empty-address records, rule
 # populations override) -> grenuke-vast3: stage 2 v7sq6r4 (cmq6), guarded x3 (box3_r14.sh). Ends "R4 LABELS DONE" / "... FAILED".
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-SPW=C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-FS=C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1
+SP=$SCRATCH
+SPW=$SCRATCH
+FS=$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1
 source $SP/env6.sh > /dev/null
-cd /c/Users/ameya/Documents/GrenukeAmazon
+cd $REPO
 echo "$(date +%H:%M) round-4 labels start"
 python $FS/pseudo_labels.py ameya-model-v7sq6r3-s3 ameya-s3-v7sq6r3 ameya-model-v7sq6r3-s3-ops3 ameya-model-mixqc s1:ameya-s1-v6all $SPW/box/pseudo_s2_fr_mixqc.parquet \
   || { echo "$(date +%H:%M) R4 LABELS FAILED pseudo_labels"; exit 1; }

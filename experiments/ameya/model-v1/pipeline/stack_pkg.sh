@@ -3,7 +3,7 @@
 # Checks one owner per record and matches inside the candidate set, imports it as work/matches/<tag>/test.parquet,
 # then package6.sh (write, validator --check-ids, sha256).
 set -euo pipefail
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 source $SP/env6.sh > /dev/null
 PQ=$1; TAG=$2; CANDS=$3; NAME=$4
 python - "$PQ" "$TAG" "$CANDS" <<'PY'

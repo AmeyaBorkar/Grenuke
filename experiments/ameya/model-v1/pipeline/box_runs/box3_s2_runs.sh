@@ -5,7 +5,7 @@
 # Needs box3_upload_s2.sh done. Writes work/scores/ameya-s2-<tag> + models + reports on the box. Ends "S2 RUNS LAUNCHED".
 set -euo pipefail
 H=grenuke-vast3
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 R=/workspace/grenuke
 scp -q $SP/s2w.py $H:$R/repo/experiments/ameya/model-v1/s2w.py
 scp -q $SP/agents/gpuplan/pseudo_s2_fr_v7sq_guard.parquet $H:$R/box/

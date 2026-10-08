@@ -1,11 +1,11 @@
 {
   "matching": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\matching_resultsv6all.tsv",
+    "path": "$HOME\\Downloads\\New folder\\matching_resultsv6all.tsv",
     "bytes": 97914336,
     "sha256": "544ffdf89410c2fe00d09c20941f57ca5e9afb998db1d8251f161c362ac98710"
   },
   "candidate": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\candidate_pairsv6all.tsv",
+    "path": "$HOME\\Downloads\\New folder\\candidate_pairsv6all.tsv",
     "bytes": 104979142,
     "sha256": "cc3750d0c38e7d7863576fb1550668471cd65ad17b66187e8d457e5cf9dceaae"
   },

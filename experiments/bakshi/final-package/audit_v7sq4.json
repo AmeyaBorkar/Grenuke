@@ -1,11 +1,11 @@
 {
   "matching": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\matching_results.tsv",
+    "path": "$HOME\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\matching_results.tsv",
     "bytes": 97881948,
     "sha256": "45ea616a0cda8719962fc354771e0f3c3d0f8cd040ef8863f51bb0de9856bc24"
   },
   "candidate": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\candidate_pairs.tsv",
+    "path": "$HOME\\Downloads\\New folder\\for-bakshi-round2-20260927T063549Z-1-001\\for-bakshi-round2\\2026-09-27-v7sq4-s3-ops3a-dpc-c2\\candidate_pairs.tsv",
     "bytes": 105028709,
     "sha256": "457a2aa71732f8a775dce61f12e6da3794197d6415d92233d644cf6a9597a991"
   },

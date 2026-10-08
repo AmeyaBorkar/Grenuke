@@ -1,7 +1,7 @@
 """Build synth_fr3.py from synth_fr2.py (raw-string patches)."""
 import sys
 
-D = "C:/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack/experiments/ameya/model-v1/"
+D = "$REPO/.claude/worktrees/final-stack/experiments/ameya/model-v1/"
 s = open(D + "synth_fr2.py", encoding="utf-8").read()
 
 

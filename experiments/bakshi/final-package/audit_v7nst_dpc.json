@@ -1,11 +1,11 @@
 {
   "matching": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\matching_results_7nst_dpc.tsv",
+    "path": "$HOME\\Downloads\\New folder\\matching_results_7nst_dpc.tsv",
     "bytes": 97870453,
     "sha256": "f349012516cdd239106cc88f53e4f5ccaf8b5531d30a9345e82f0584783494a2"
   },
   "candidate": {
-    "path": "C:\\Users\\baksh\\Downloads\\New folder\\grenuke-for-bakshi-20260926T195414Z-1-001\\grenuke-for-bakshi\\candidate_pairs.tsv",
+    "path": "$HOME\\Downloads\\New folder\\grenuke-for-bakshi-20260926T195414Z-1-001\\grenuke-for-bakshi\\candidate_pairs.tsv",
     "bytes": 105027973,
     "sha256": "510a33ea18a7ab4cd2ec5ad4e8ad113bbc4fd4f46818941c00f29852f3e258aa"
   },

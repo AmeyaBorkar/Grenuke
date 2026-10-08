@@ -4,8 +4,8 @@ import numpy as np, pandas as pd, pyarrow.parquet as pq
 from ber.artifacts import read_table
 from ber.paths import artifact_path
 K = 4_000_000_000
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 def cut(df):  # p1 >= 0.02 rows already; keep each record's top-2 S1 by p1
     df = df.sort_values(["r", "p1"], ascending=[True, False], kind="mergesort")
     return df[df.groupby("r").cumcount() < 2]

@@ -3,8 +3,8 @@ v7sq3 stage-3 predictions; one addition per record (the highest q7). Then counts
 import glob
 import numpy as np, pandas as pd, pyarrow.parquet as pq
 from ber.paths import records_path
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 def f05(tp, npred, ntrue):
     fp, fn = npred - tp, ntrue - tp
     den = 1.25 * tp + 0.25 * fn + fp

@@ -3,8 +3,8 @@ drop a predicted pair when det < t and p1 > 0.99; macro F0.5 on the labelled US/
 France drop counts and overlap with the 7B's (q7 < -6) drops. usage: eval_det.py <out dir with ce_train/ce_test.parquet>"""
 import glob, sys
 import numpy as np, pandas as pd
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 K = 4_000_000_000
 out = sys.argv[1]
 def f05(tp, npred, ntrue):

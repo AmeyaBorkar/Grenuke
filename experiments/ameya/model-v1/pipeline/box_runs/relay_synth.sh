@@ -1,8 +1,8 @@
 #!/bin/bash
 # copy each finished synthetic-French cross-encoder to grenuke-vast3:/workspace/grenuke/box/out_<name>/ via the laptop.
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 K=~/.ssh/grenuke_vast2; mkdir -p $SP/synth_out
-declare -A HOST=( [cesy2]="202.122.49.242 28860 /workspace/grenuke/ameya/box_cesy2" [cesy2b]="202.122.49.242 28860 /workspace/grenuke/ameya/box_cesy2" [cesyb]="216.144.178.146 48742 /workspace/grenuke/box_cesy" )
+declare -A HOST=( [cesy2]="<gpu-host> 28860 /workspace/grenuke/ameya/box_cesy2" [cesy2b]="<gpu-host> 28860 /workspace/grenuke/ameya/box_cesy2" [cesyb]="<gpu-host> 48742 /workspace/grenuke/box_cesy" )
 todo="cesy2 cesy2b cesyb"
 while [ -n "$todo" ]; do
   for n in $todo; do

@@ -4,7 +4,7 @@ import numpy as np, pandas as pd, pyarrow.compute as pc, pyarrow.parquet as pq
 from ber.artifacts import read_table
 from ber.paths import artifact_path, records_path
 K = 4_000_000_000
-OUT = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad/q7drop"
+OUT = "$SCRATCH/q7drop"
 labelled = set(pc.unique(pq.read_table(records_path("train"), columns=["country"])["country"]).to_pylist())
 r = pq.read_table(records_path("test"), columns=["eid", "source", "country"]).to_pandas()
 s1c = r[r.source == 1].set_index("eid").country; del r

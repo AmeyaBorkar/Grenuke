@@ -5,8 +5,8 @@
 # Nothing is launched. Ends "SETUP DONE".
 set -euo pipefail
 H=grenuke-vast3
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
-WT=/c/Users/ameya/Documents/GrenukeAmazon/.claude/worktrees/final-stack
+SP=$SCRATCH
+WT=$REPO/.claude/worktrees/final-stack
 R=/workspace/grenuke
 echo "$(date +%H:%M:%S) dirs + venv (background)"
 ssh -n $H "mkdir -p $R/box $R/work/records $R/logs $R/repo"
@@ -23,7 +23,7 @@ export PYTHONIOENCODING=utf-8
 ENV
 scp -q $SP/box3_env.sh $H:$R/env.sh
 echo "$(date +%H:%M:%S) data: records (about 1.1 GB), band pairs, pseudo-labels"
-scp -q /c/Users/ameya/Documents/GrenukeAmazon/work/records/train.parquet /c/Users/ameya/Documents/GrenukeAmazon/work/records/test.parquet $H:$R/work/records/
+scp -q $REPO/work/records/train.parquet $REPO/work/records/test.parquet $H:$R/work/records/
 scp -q $SP/box/band_train.parquet $SP/box/band_test.parquet $SP/box/pseudo_fr_v7ce3.parquet $SP/box/pseudo_s2_fr_v7ce3.parquet $H:$R/box/
 echo "$(date +%H:%M:%S) wait for pip, fetch weights"
 ssh -n $H "until grep -qE 'PIP_DONE|rror' $R/logs/pip.log; do sleep 5; done; tail -2 $R/logs/pip.log; source $R/env.sh; python -c \"

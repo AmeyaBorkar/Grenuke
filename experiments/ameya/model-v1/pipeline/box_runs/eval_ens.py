@@ -4,8 +4,8 @@ halves) for mean / max over the 3 adapters, against the single-adapter rule (q0 
 import glob, sys
 import numpy as np, pandas as pd, pyarrow.parquet as pq
 from ber.paths import records_path
-SP = "C:/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad"
-R = "C:/Users/ameya/Documents/GrenukeAmazon/work/bakshi_pull/train/box/rescore"
+SP = "$SCRATCH"
+R = "$REPO/work/bakshi_pull/train/box/rescore"
 K = 4_000_000_000
 key = lambda d: d.s1.to_numpy(np.int64) * K + d.r.to_numpy(np.int64)
 def attach(d, split):

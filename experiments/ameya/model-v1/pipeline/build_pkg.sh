@@ -3,9 +3,9 @@
 # compose (labelled countries from the first model, others from the second) [+ apply France-only changes] -> package
 # 2026-09-27-<name>-c2, validator + strict audit, and the matching sha256. Ends "PKG READY <name>".
 set -euo pipefail
-SP=/c/Users/ameya/AppData/Local/Temp/claude/C--Users-ameya-Documents-GrenukeAmazon/19e315ba-0725-4d6f-ae6a-972e1c1f0aa9/scratchpad
+SP=$SCRATCH
 source $SP/env6.sh > /dev/null
-F=C:/Users/ameya/Documents/GrenukeAmazon/submissions/files; T=C:/Users/ameya/Documents/GrenukeAmazon/student_resource/dataset/test
+F=$REPO/submissions/files; T=$REPO/student_resource/dataset/test
 n=$1
 (cd $SP/novel && python compose.py $2 $3 $4 $5 ${n}c 2>&1 | grep -E "composed|rror|owners|outside")
 mt=ameya-model-${n}c
