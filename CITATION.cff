@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Grenuke: Business Entity Resolution (Amazon ML Challenge 2026)"
+type: software
+authors:
+  - given-names: Ameya
+    family-names: Borkar
+  - given-names: Aarush
+    family-names: Bakshi
+  - given-names: Sachi
+    family-names: Dhoka
+repository-code: "https://github.com/AmeyaBorkar/Grenuke"
+license: Apache-2.0
+version: 1.0.0
+date-released: 2026-10-08
+abstract: >-
+  Team Grenuke's solution to the Amazon ML Challenge 2026 business entity resolution task (3rd place at the Grand
+  Finale). For every Source-1 business record it finds all Source-2/3 records that describe the same business, from
+  names and addresses only, across the US, India and an unseen country (France). The pipeline combines token
+  blocking, gradient-boosted pair scoring, multilingual cross-encoders on the uncertain band, guarded self-training
+  for the unseen country, an expected-F0.5 set decision and generator-aware French rules.
+keywords:
+  - entity resolution
+  - record linkage
+  - blocking
+  - cross-encoder
+  - self-training
+  - domain adaptation
+  - F-beta

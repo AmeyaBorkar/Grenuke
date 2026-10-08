@@ -1,12 +1,26 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ber"
-version = "0.2.0"
-description = "Team Grenuke: Business Entity Resolution (Amazon ML Challenge 2026)"
+version = "1.0.0"
+description = "Team Grenuke: Business Entity Resolution (Amazon ML Challenge 2026, 3rd place at the Grand Finale)"
+readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+  { name = "Ameya Borkar" },
+  { name = "Aarush Bakshi" },
+  { name = "Sachi Dhoka" },
+]
+keywords = ["entity resolution", "record linkage", "blocking", "cross-encoder", "f-beta"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Development Status :: 7 - Inactive",
+]
 # Core deps (CI installs these). numba is core because stage kernels are @njit at module level.
 # The full pinned environment is requirements.txt.
 dependencies = [
@@ -15,6 +29,10 @@ dependencies = [
   "pyarrow>=15",
   "numba>=0.61",
 ]
+
+[project.urls]
+Repository = "https://github.com/AmeyaBorkar/Grenuke"
+Issues = "https://github.com/AmeyaBorkar/Grenuke/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

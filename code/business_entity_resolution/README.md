@@ -3,11 +3,11 @@
 This folder is the **deliverable code package**. It is copied as-is into `<team>_submission.zip` under `code/business_entity_resolution/`.
 Anyone must be able to regenerate `output/matching_results.tsv` and `output/candidate_pairs.tsv` from the raw data using only this folder.
 
-> **Status:**
-> - The pipeline skeleton works: the CLI, the `records`, `write` and `evaluate` stages, artifact provenance, folds and gates.
-> - `normalize`, `block`, `features`, `train`, `predict` and `decide` are stubs, filled in during Phase 1 of `docs/ROADMAP.md`.
-> - The design is in `plans/FINAL_PLAN.md`; the developer guide is `docs/DEVELOPMENT.md`.
-> - Exact end-to-end commands and run times are completed in Phase 4.
+> **Status (final, Oct 2026):**
+> - This package holds the shared pipeline: the CLI, records, normalization, blocking (multi-view retrieval, Indic transliteration, domain/OCR repairs, French address normalisation), context features, the writer, evaluation, folds and gates.
+> - The final model chain (pair features, XGBoost stages 0–3, cross-encoder features, the expected-F0.5 decision and the French rules) lives in `experiments/ameya/model-v1/`. Its exact commands are in `experiments/ameya/model-v1/RECIPE.md`.
+> - The submitted package's layout and reproduce scripts are in `docs/package/`. The developer guide is `docs/DEVELOPMENT.md`.
+> - The organisers' validator and dataset aren't included; see the repository README.
 
 ## Environment
 

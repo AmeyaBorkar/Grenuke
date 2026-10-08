@@ -29,5 +29,5 @@ Changelog: <!-- one line for CHANGELOG.md; the coordinator copies it in -->
 - [ ] No data, large files or secrets; no external data, APIs or lookups
 - [ ] Any pretrained model: name + license stated (MIT / Apache-2.0, ≤ 8B params)
 - [ ] No co-author / attribution lines in the commits or this description
-- [ ] Handover written: `docs/handover/...`
+- [ ] No personal data (IPs, hosts, e-mails, personal paths); handovers stay private (`docs/handover/` is git-ignored)
 - [ ] Knowledge recorded: decisions and experiments from this PR are in `knowledge/` or `knowledge/people/<member>/` (`knowledge/STANDARD.md`); no transcripts, IPs, e-mails or personal paths

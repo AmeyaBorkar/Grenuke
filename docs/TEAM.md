@@ -1,19 +1,19 @@
 # Team, roles and ownership
 
 This is a shared file owned by the coordinator. Change it through a small PR.
-- Ownership follows `plans/FINAL_PLAN.md` §10. Tonight's tasks are GitHub issues assigned to each member: `gh issue list --assignee @me` (milestone "Fri: v0 end-to-end").
+- Ownership follows `plans/FINAL_PLAN.md` §10. During the challenge, tasks were GitHub issues assigned to each member.
 
 ## Members
 
-| member | GitHub | branch prefix | role(s) | contact |
-|---|---|---|---|---|
-| Ameya | @AmeyaBorkar | `ameya/` | repo admin; **coordinator**; **submissions captain**; blocking; pipeline and packaging | team chat |
-| Sachi | @ssdhoka06 | `sachi/` | model, calibration, decision; gates and ablations; error analysis | team chat |
-| Bakshi | @trustdemons05 | `bakshi/` | normalization and lexicons; pair features (string groups) | team chat |
+| member | GitHub | branch prefix | role(s) |
+|---|---|---|---|
+| Ameya Borkar | @AmeyaBorkar | `ameya/` | repo admin; **coordinator**; **submissions captain**; blocking; pipeline and packaging |
+| Sachi Dhoka | @ssdhoka06 | `sachi/` | model, calibration, decision; gates and ablations; error analysis |
+| Aarush Bakshi | @trustdemons05 | `bakshi/` | normalization and lexicons; pair features (string groups) |
 
 - All three handles are repo collaborators with push access.
 - `.github/CODEOWNERS` mirrors the areas below.
-- **Team drive** for shared artifacts (dev kit, candidates, features; CONTRIBUTING §7): _link: Ameya posts it in the team chat_.
+- Shared artifacts (dev kits, candidates, features) were exchanged through a private team drive; they are not part of this repository.
 
 ## Machines and what runs where
 

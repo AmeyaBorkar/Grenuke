@@ -1,7 +1,9 @@
 # Grenuke knowledge base
 
 The complete record of how team Grenuke built its Amazon ML Challenge 2026 solution: every decision and why we made it, every experiment, every number, every dead end, who did what, and the theory behind it all.
-It serves the Grand Finale (7 Oct 2026; [`finale/`](../finale/README.md)) and remains as the permanent record of the project.
+It served the Grand Finale (7 Oct 2026, where the team placed 3rd) and remains the permanent record of the project.
+
+> **Public repository note.** Some sources cited in these pages are private and are not in this repository: the members' captures (`knowledge/people/<member>/`), session handovers (`docs/handover/`), status files (`docs/status/`), upload records (`submissions/records/`), chat logs (`[chat:...]` citations) and the finale deck. The citations are kept so that the evidence trail stays honest.
 
 **Rules:** formats, sources and evidence levels are in [`STANDARD.md`](STANDARD.md). To add what you know, use [`CAPTURE.md`](CAPTURE.md).
 

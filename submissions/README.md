@@ -1,5 +1,7 @@
 # Leaderboard submissions protocol
 
+> **Archived.** This is the protocol the team used during the challenge (25–27 Sep 2026). The per-upload records are private, and the organisers' validator is not included in this repository. Every upload and its score is listed in `CHANGELOG.md`.
+
 The budget is **5 uploads per day for the whole team**, over 3 days (15 total). Only the **submissions captain** (`docs/TEAM.md`) uploads.
 
 ## Before any upload

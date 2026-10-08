@@ -16,17 +16,17 @@ If it conflicts with an explicit instruction from the human member you work for,
   - the leaderboard window closed on Sun 27 Sep 2026;
   - the final ZIP was submitted on 29 Sep;
   - our submission is Composite B, public LB 0.990879.
-- **Team:** three members work in parallel.
+- **Team:** three members worked in parallel: Ameya Borkar, Aarush Bakshi and Sachi Dhoka.
   - **The plan we built: `plans/FINAL_PLAN.md`.** The reasons for it are in `plans/DECISION.md`. The candidate plans are kept in `plans/<member>/`.
-  - Current work: `docs/ROADMAP.md`. What changed: `CHANGELOG.md`.
+  - Final state: `docs/ROADMAP.md`. What changed: `CHANGELOG.md`.
 
-### Current phase: Grand Finale preparation (from 3 Oct 2026)
+### Current phase: public archive (from 8 Oct 2026)
 
-- We are in the **Top 10 (2nd)**. The finale is **Wed 7 Oct 2026**: a 10-minute talk and 5 minutes of Q&A before senior Amazon scientists.
-- **Deck deadline:** **Tue 6 Oct 2026, 14:00 IST**, through the organisers' survey. Details are in `finale/README.md`.
-- **The work now is knowledge capture, the theory, the deck and rehearsal, not new models.**
-  - Every decision, step and detail of how we built the solution goes into **`knowledge/`**, following **`knowledge/STANDARD.md`**.
-  - Each member captures their own chats and notes with **`knowledge/CAPTURE.md`**. See §10.
+- The challenge is over. Team Grenuke won **3rd place at the Grand Finale** (7 Oct 2026).
+- **This repository is public** (Apache-2.0). Everything committed here is visible to everyone. So:
+  - **personal notes stay private**: handovers, status files, upload records, members' knowledge capture (`knowledge/people/<member>/`) and finale material are git-ignored, and are kept by each member or in the team's private archive;
+  - never commit IPs, hosts, SSH details, tokens, e-mails, phone numbers or personal paths **anywhere** (hooks and CI check every file).
+- The work now is **maintenance and documentation, not new models.** The knowledge base is `knowledge/`, following `knowledge/STANDARD.md`.
 
 ---
 
@@ -37,12 +37,11 @@ If it conflicts with an explicit instruction from the human member you work for,
 1. `git fetch --all --prune`, then read in this order:
    1. this file
    2. `docs/ROADMAP.md`
-   3. **in the finale phase:** `finale/README.md`, `knowledge/README.md` and `knowledge/STANDARD.md`
+   3. `knowledge/README.md` and `knowledge/STANDARD.md`
    4. `plans/FINAL_PLAN.md`: at least §0, the §4 section for your area, and §9 (gates)
    5. `docs/TEAM.md` (who owns what)
-   6. `docs/status/<member>.md`
-   7. the 3 newest files in `docs/handover/` for your area
-   8. `docs/CONTRACTS.md` and `docs/DEVELOPMENT.md`, if you touch code or data flow
+   6. your member's private status and newest handovers, if they keep them locally (they are not in the public repo)
+   7. `docs/CONTRACTS.md` and `docs/DEVELOPMENT.md`, if you touch code or data flow
 2. **Find out which member you work for** and ask if unclear. You act only for that member, on that member's branches.
    - Their tasks are GitHub issues assigned to them: `gh issue list --assignee <handle>` (handles in `docs/TEAM.md`). Each issue has the spec, the contract, the due time and "done when". Link the issue in the PR (`Closes #N`).
 3. `git config core.hooksPath` must print `.githooks`. If it doesn't, run `git config core.hooksPath .githooks`.
@@ -59,11 +58,12 @@ If it conflicts with an explicit instruction from the human member you work for,
 
 ### End (mandatory)
 
-1. **Handover or journal.**
-   - After code or data-flow work, run `python scripts/new_doc.py handover --member <member> --topic <topic>`, fill in every section, and commit it on your branch.
-   - After knowledge, theory or finale work, add a session entry to `knowledge/people/<member>/journal.md` instead (`knowledge/STANDARD.md` §2.5).
+1. **Handover or journal (private).**
+   - After code or data-flow work, run `python scripts/new_doc.py handover --member <member> --topic <topic>` and fill in every section.
+   - After knowledge or theory work, add a session entry to `knowledge/people/<member>/journal.md` instead (`knowledge/STANDARD.md` §2.5).
+   - Both locations are **git-ignored**: they stay on the member's machine. Only gate results go into the public `docs/decisions/`.
    - Either way, record every decision you made in the standard decision format.
-2. **Status.** Update `docs/status/<member>.md`, and only your member's file.
+2. **Status (private).** Update `docs/status/<member>.md` locally (git-ignored), and only your member's file.
 3. **Push and PR.** Push the branch, then open or update the PR to `main`: `gh pr create --base main --fill`, or the web UI. Do **not** merge unless the human explicitly asks.
 
 ---
@@ -92,7 +92,7 @@ If it conflicts with an explicit instruction from the human member you work for,
   - `*.jsonl`, `work/kb_digest/`, ChatGPT, WhatsApp or web-chat exports;
   - they stay on the member's machine;
   - hooks and CI block `*.jsonl`.
-- Put **secrets or personal data** in `knowledge/` or `finale/`: IPs, ports, host names, SSH details, tokens, e-mails, phone numbers, personal paths.
+- Put **secrets or personal data** anywhere in the repository (it is public): IPs, ports, host names, SSH details, tokens, e-mails, phone numbers, personal paths.
 - **Invent facts, numbers or references.** Unknown is written as "unknown" and listed in `open-questions.md` or `knowledge/conflicts.md`.
 - Edit another member's `knowledge/people/<member>/` folder.
 
@@ -105,7 +105,7 @@ If it conflicts with an explicit instruction from the human member you work for,
   - the gates are in `plans/FINAL_PLAN.md` §9;
   - the test is a paired bootstrap from `ber.eval.gates`;
   - the result is a record in `docs/decisions/` (`docs/CONTRACTS.md` C10). Ties go to the simpler option.
-- In `knowledge/` and `finale/`, give **every number a scope, an evidence level (M/E/R/U) and a source**, as in `knowledge/STANDARD.md` §3.
+- In `knowledge/` and the README, give **every number a scope, an evidence level (M/E/R/U) and a source**, as in `knowledge/STANDARD.md` §3.
   - Always say which evaluation a score comes from: the local holdout, the public LB or the private LB.
 
 ---
@@ -122,21 +122,21 @@ If it conflicts with an explicit instruction from the human member you work for,
   - `.github/**`, `.githooks/**`, `scripts/**`, `.claude/settings.json`
   - `knowledge/STANDARD.md`, `knowledge/CAPTURE.md`, `knowledge/templates/**`
 - **Curated files**:
-  - which: every other file in `knowledge/` (outside `people/`), and everything in `finale/`;
+  - which: every other file in `knowledge/` (outside `people/`, which is private);
   - who writes: the curator, Ameya, or an agent working for him;
   - how: changes go through a PR;
   - corrections from others: comment on the PR, or send a small PR that the curator reviews.
 - **One-writer files** have exactly one author, so they cannot conflict:
 
-| path | the only writer |
-|---|---|
-| `docs/status/<member>.md` | that member |
-| `docs/handover/*` | the author |
-| `docs/decisions/*` | the author |
-| `plans/<member>/**` | that member |
-| `experiments/<member>/**` | that member |
-| `knowledge/people/<member>/**` | that member |
-| `submissions/records/*` | the submissions captain |
+| path | the only writer | in the public repo? |
+|---|---|---|
+| `docs/status/<member>.md` | that member | no (git-ignored; template only) |
+| `docs/handover/*` | the author | no (git-ignored; README and template only) |
+| `docs/decisions/*` | the author | yes |
+| `plans/<member>/**` | that member | yes |
+| `experiments/<member>/**` | that member | yes (a research log, redacted) |
+| `knowledge/people/<member>/**` | that member | no (git-ignored) |
+| `submissions/records/*` | the submissions captain | no (git-ignored; template only) |
 
 ---
 
@@ -176,6 +176,7 @@ If it conflicts with an explicit instruction from the human member you work for,
 python student_resource/utils/validate_submission.py --matching output/matching_results.tsv --candidate output/candidate_pairs.tsv --test-dir student_resource/dataset/test
 ```
 
+- The validator is the organisers' script. It is **not included** in this repository: participants get it with the dataset, in `student_resource/`.
 - It must print `PASS`.
 - The matches must be a subset of the candidates.
 - There must be one row per test S1.
@@ -188,16 +189,17 @@ python student_resource/utils/validate_submission.py --matching output/matching_
 |---|---|
 | team rules (humans) | `CONTRIBUTING.md` |
 | who owns what, branch prefixes | `docs/TEAM.md` |
-| what to do next | `docs/ROADMAP.md` |
+| the final state of the roadmap | `docs/ROADMAP.md` |
 | **the plan we build** (stages, gates, milestones) | `plans/FINAL_PLAN.md` |
 | why that plan, grafts, rejected ideas | `plans/DECISION.md` (candidates: `plans/<member>/PLAN.md`) |
 | stage I/O schemas, holdout, folds, reporting, gate records | `docs/CONTRACTS.md` |
 | how to run and extend the pipeline | `docs/DEVELOPMENT.md` |
 | what changed, and every leaderboard upload | `CHANGELOG.md` |
-| handovers / status / decisions | `docs/handover/`, `docs/status/`, `docs/decisions/` |
+| gate decisions (public) | `docs/decisions/` |
+| handover and status templates (the notes themselves are private) | `docs/handover/`, `docs/status/` |
 | leaderboard protocol | `submissions/README.md` |
-| official problem statement, validator, doc template | `student_resource/` |
-| **the finale**: logistics, deadlines, judging criteria, deck, script | `finale/README.md` |
+| the methodology document | `experiments/ameya/final-zip/doc/Documentation_template.md` |
+| security policy, license, conduct | `SECURITY.md`, `LICENSE`, `NOTICE`, `CODE_OF_CONDUCT.md` |
 | **the knowledge base**: decisions, experiments, numbers, components, theory, Q&A | `knowledge/README.md` |
 | how to record knowledge (formats, sources, evidence levels) | `knowledge/STANDARD.md` |
 | how to capture your own chats and notes | `knowledge/CAPTURE.md`, `scripts/kb/digest_transcripts.py` |
@@ -210,14 +212,15 @@ Ask the human. For anything involving `main`, shared files, submissions, license
 
 ---
 
-## 10. Knowledge capture and the finale
+## 10. Knowledge capture
 
 - **Goal:** one complete, sourced record of how we built the solution.
   - What it contains: every decision and its reason, every experiment (wins and dead ends), every number we may quote, who did what, and the theory behind each technique.
-  - Why: any member can then defend any part of it to the jury.
+  - Why: anyone can check and learn from any part of it. It also prepared us for the Grand Finale jury.
 - **Formats:** `knowledge/STANDARD.md`. It covers decisions `D-<AREA>-NN`, experiments `EXP-NNN`, timeline rows, the fact sheet, component pages, theory pages, Q&A entries and evidence levels M/E/R/U.
 - **Your own capture:**
-  - follow `knowledge/CAPTURE.md`: make redacted digests of your chats with `scripts/kb/digest_transcripts.py`, then write `knowledge/people/<member>/` on a `<member>/kb-capture` branch;
+  - follow `knowledge/CAPTURE.md`: make redacted digests of your chats with `scripts/kb/digest_transcripts.py`, then write `knowledge/people/<member>/` locally;
+  - that folder is git-ignored and stays private. Only curated, redacted facts go into the shared `knowledge/` pages;
   - digests stay in `work/kb_digest/`.
 - **Agents mining chats:**
   - read every assigned source completely, in order;
@@ -225,8 +228,7 @@ Ask the human. For anything involving `main`, shared files, submissions, license
   - mark evidence levels;
   - put anything unclear in `open-questions.md` (`knowledge/conflicts.md` when curating);
   - never smooth a disagreement away.
-- **The deck and the script** (`finale/`) quote only numbers that are in `knowledge/numbers.md`, so the talk, the Q&A and the methodology document never disagree.
+- **Public numbers** (README, docs) quote only values that are in `knowledge/numbers.md`, so the documents never disagree.
 - **No new modelling is planned.**
-  - An experiment to answer a likely jury question needs the human's go-ahead first.
-  - Example: blocking recall with city/state keys versus ours.
+  - A new experiment needs the human's go-ahead first.
   - Such an experiment follows the normal rules: holdout, gate and record.
